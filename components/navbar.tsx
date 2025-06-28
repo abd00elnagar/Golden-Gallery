@@ -18,7 +18,7 @@ import { signOut } from "next-auth/react"
 interface NavbarProps {
   cartCount?: number
   favoritesCount?: number
-  user?: { name: string; image?: string } | null
+  user?: { name: string; image?: string, isAdmin: boolean } | null
 }
 
 export function Navbar({ cartCount = 0, favoritesCount = 0, user }: NavbarProps) {
@@ -102,10 +102,16 @@ export function Navbar({ cartCount = 0, favoritesCount = 0, user }: NavbarProps)
                   <Link href="/orders">Orders</Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href="/admin">Admin Dashboard</Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
+                {user.isAdmin ?
+                  <>
+                    <DropdownMenuItem asChild>
+                      <Link href="/admin">Admin Dashboard</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                  </>
+                  :
+                  <></>
+                }
                 <DropdownMenuItem onClick={() => signOut()}>
                   Sign out
                 </DropdownMenuItem>
@@ -114,7 +120,7 @@ export function Navbar({ cartCount = 0, favoritesCount = 0, user }: NavbarProps)
           ) : (
             <Button variant="ghost" size="sm" className="hidden sm:inline-flex">
               <Link href={"/auth/signin"}>
-              Sign in
+                Sign in
               </Link>
             </Button>
           )}

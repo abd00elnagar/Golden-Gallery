@@ -8,6 +8,7 @@ import { Footer } from "@/components/footer"
 import { Toaster } from "@/components/ui/toaster"
 import { mockUser } from "@/lib/mock-data"
 import { getServerSession } from "next-auth"
+import { getUser } from "@/lib/auth"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
@@ -25,7 +26,11 @@ export default async function RootLayout({
   const session = await getServerSession()
   console.log(session)
   const user = session ? { name: session.user?.name, image: session.user?.image } : null
-
+  if (user){
+    console.log((await getUser()))
+    const isAdmin = (await getUser())?.role == "admin"
+    user.isAdmin = isAdmin
+  }
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
