@@ -103,7 +103,7 @@ export function Navbar({ cartCount = 0, favoritesCount = 0, user }: NavbarProps)
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                  <Link href="/admin/dashboard">Admin Dashboard</Link>
+                  <Link href="/admin">Admin Dashboard</Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => signOut()}>
