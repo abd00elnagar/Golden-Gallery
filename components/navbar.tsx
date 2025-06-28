@@ -1,11 +1,10 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { useTheme } from "next-themes"
-import { Search, ShoppingCart, Heart, User, Menu, Sun, Moon, Globe } from "lucide-react"
+import { ShoppingCart, Heart, User, Menu, Sun, Moon} from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,70 +21,38 @@ interface NavbarProps {
 }
 
 export function Navbar({ cartCount = 0, favoritesCount = 0, user }: NavbarProps) {
-  const { theme, setTheme } = useTheme()
-  console.log("Current theme:", theme)
+  const { theme, setTheme, resolvedTheme } = useTheme()
   const [language, setLanguage] = useState("en")
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+    if (!theme) setTheme("light")
+  }, [theme, setTheme])
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background shadow-sm ">
-      <div className="container flex h-16 items-center">
+      <div className="container mx-auto flex h-16 items-center w-full px-4 gap-4 justify-center max-w-6xl">
         {/* Logo */}
-        <Link href="/" className="flex items-center space-x-2">
-          <img
-            src={`/logo-${theme}.png`}
-            alt="Golden Gallery Logo"
-            className="h-8 w-8 rounded-full object-cover"
-          />
-          <span className="text-xl font-bold">Golden Gallery</span>
-        </Link>
-
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center space-x-6 ml-8">
-          <Link href="/" className="text-sm font-medium hover:text-primary transition-colors">
-            Home
-          </Link>
-          <Link href="/favorites" className="text-sm font-medium hover:text-primary transition-colors">
-            Favorites
-          </Link>
-          <Link href="/orders" className="text-sm font-medium hover:text-primary transition-colors">
-            Orders
-          </Link>
-        </nav>
-
-        {/* Search Bar */}
-        <div className="flex-1 max-w-md mx-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search products..."
-              className="pl-10 bg-background/50 border-muted-foreground/20 focus:border-primary focus:bg-background transition-colors"
+        <div className="flex flex-1 justify-center">
+          <Link href="/" className="flex items-center space-x-2">
+            <img
+              src={`/logo-${mounted ? (theme || "light") : "light"}.png`}
+              alt="Golden Gallery Logo"
+              className="h-8 w-8 rounded-full object-cover"
             />
-          </div>
+            <span className="text-xl font-bold">Golden Gallery</span>
+          </Link>
         </div>
 
         {/* Actions */}
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2 flex-1 justify-end">
           {/* Theme Toggle */}
           <Button variant="ghost" size="icon" onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
             <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
             <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
             <span className="sr-only">Toggle theme</span>
           </Button>
-
-          {/* Language Toggle */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <Globe className="h-4 w-4" />
-                <span className="sr-only">Change language</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => setLanguage("en")}>English</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setLanguage("es")}>Español</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setLanguage("fr")}>Français</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
 
           {/* Favorites */}
           <Button variant="ghost" size="icon" asChild className="relative">

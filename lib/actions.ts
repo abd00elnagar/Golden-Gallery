@@ -370,3 +370,10 @@ export async function updateUserProfile(userId: string, updates: Partial<Databas
   const { error } = await serverClient.from("users").update(updates).eq("id", userId)
   return !error
 }
+
+export async function isAdmin(userId: string): Promise<boolean> {
+  const serverClient = createServerClient()
+  const { data, error } = await serverClient.from("users").select("role").eq("id", userId).single()
+  if (error || !data) return false
+  return data.role === "admin"
+}
