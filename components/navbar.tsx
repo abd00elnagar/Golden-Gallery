@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { signOut } from "next-auth/react"
 
 interface NavbarProps {
   cartCount?: number
@@ -84,7 +85,7 @@ export function Navbar({ cartCount = 0, favoritesCount = 0, user }: NavbarProps)
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon">
-                <img className="rounded-full" src={user.image} alt={user.name} />
+                  <img className="rounded-full" src={user.image} alt={user.name} />
                   <span className="sr-only">User menu</span>
                 </Button>
               </DropdownMenuTrigger>
@@ -105,12 +106,16 @@ export function Navbar({ cartCount = 0, favoritesCount = 0, user }: NavbarProps)
                   <Link href="/admin/dashboard">Admin Dashboard</Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>Sign out</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => signOut()}>
+                  Sign out
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
             <Button variant="ghost" size="sm" className="hidden sm:inline-flex">
+              <Link href={"/auth/signin"}>
               Sign in
+              </Link>
             </Button>
           )}
 
