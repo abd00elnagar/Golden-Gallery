@@ -1,24 +1,15 @@
 "use client"
 import Link from "next/link"
-
-import { useEffect, useState } from "react";
+import { useTheme } from "next-themes"
+import { useEffect, useState } from "react"
 
 export function Footer() {
-  const [mounted, setMounted] = useState(false);
-  const [theme, setTheme] = useState<"light" | "dark" | null>(null);
+  const { theme } = useTheme()
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    setMounted(true);
-    // Example: get theme from localStorage or system preference
-    const storedTheme = typeof window !== "undefined" ? localStorage.getItem("theme") : null;
-    if (storedTheme === "dark" || storedTheme === "light") {
-      setTheme(storedTheme);
-    } else {
-      // fallback to system preference
-      const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
-      setTheme(prefersDark ? "dark" : "light");
-    }
-  }, []);
+    setMounted(true)
+  }, [])
 
   return (
     <footer className="border-t bg-muted/30">
@@ -27,10 +18,10 @@ export function Footer() {
           <div>
             <div className="flex items-center space-x-2 mb-4">
               <img
-              src={`/logo-${mounted ? (theme || "light") : "light"}.png`}
-              alt="Golden Gallery Logo"
-              className="h-8 w-8 rounded-full object-cover"
-            />
+                src={`/logo-${mounted ? (theme || "light") : "light"}.png`}
+                alt="Golden Gallery Logo"
+                className="h-8 w-8 rounded-full object-cover"
+              />
               <span className="text-xl font-bold">Golden Gallery</span>
             </div>
             <p className="text-muted-foreground text-sm">
