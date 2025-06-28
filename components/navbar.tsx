@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { useTheme } from "next-themes"
-import { ShoppingCart, Heart, User, Menu, Sun, Moon} from "lucide-react"
+import { ShoppingCart, Heart, User, Menu, Sun, Moon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -21,8 +21,7 @@ interface NavbarProps {
 }
 
 export function Navbar({ cartCount = 0, favoritesCount = 0, user }: NavbarProps) {
-  const { theme, setTheme, resolvedTheme } = useTheme()
-  const [language, setLanguage] = useState("en")
+  const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
@@ -31,22 +30,22 @@ export function Navbar({ cartCount = 0, favoritesCount = 0, user }: NavbarProps)
   }, [theme, setTheme])
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background shadow-sm ">
-      <div className="container mx-auto flex h-16 items-center w-full px-4 gap-4 justify-center max-w-6xl">
-        {/* Logo */}
-        <div className="flex flex-1 justify-center">
+    <header className="sticky top-0 z-50 w-full border-b bg-background shadow-sm">
+      <div className="w-full flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8 xl:px-12">
+        {/* Logo on the left */}
+        <div className="flex items-center">
           <Link href="/" className="flex items-center space-x-2">
             <img
               src={`/logo-${mounted ? (theme || "light") : "light"}.png`}
               alt="Golden Gallery Logo"
               className="h-8 w-8 rounded-full object-cover"
             />
-            <span className="text-xl font-bold">Golden Gallery</span>
+            <span className="text-lg sm:text-xl font-bold">Golden Gallery</span>
           </Link>
         </div>
 
-        {/* Actions */}
-        <div className="flex items-center space-x-2 flex-1 justify-end">
+        {/* Actions on the right */}
+        <div className="flex items-center space-x-1 sm:space-x-2 justify-end">
           {/* Theme Toggle */}
           <Button variant="ghost" size="icon" onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
             <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
@@ -105,7 +104,7 @@ export function Navbar({ cartCount = 0, favoritesCount = 0, user }: NavbarProps)
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" className="hidden sm:inline-flex">
               Sign in
             </Button>
           )}
