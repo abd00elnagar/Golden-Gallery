@@ -1,26 +1,18 @@
-"use client";
-
-import { Camera } from "lucide-react";
+"use client";;
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { User } from "@/lib/types";
+import { useState } from "react";
+import { Textarea } from "@/components/ui/textarea";
 
-interface ProfileFormProps {
-  user: {
-    id: string;
-    email: string;
-    name: string;
-    image: string | null;
-    phone: string | null;
-    address: string | null;
-    role: "user" | "admin";
-    google_id: string | null;
-    created_at: string;
-  } | null;
-}
-export function ProfileForm({ user }: ProfileFormProps) {
+export function ProfileForm({ user }: { user: User | null }) {
+  const [isEditing, setIsEditing] = useState(false);
+  function handleEdit() {
+    setIsEditing(!isEditing);
+  }
   return (
     <div className="space-y-6">
       {/* Profile Picture */}
@@ -40,19 +32,9 @@ export function ProfileForm({ user }: ProfileFormProps) {
                   {user?.name}
                 </AvatarFallback>
               </Avatar>
-              <Button
-                size="icon"
-                className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full"
-              >
-                <Camera className="h-4 w-4" />
-                <span className="sr-only">Change profile picture</span>
-              </Button>
             </div>
             <div className="text-center sm:text-left">
               <h3 className="font-semibold">{user?.name}</h3>
-              <p className="text-sm text-muted-foreground">
-                Click the camera icon to change your profile picture
-              </p>
             </div>
           </div>
         </CardContent>
@@ -64,10 +46,10 @@ export function ProfileForm({ user }: ProfileFormProps) {
           <CardTitle>Personal Information</CardTitle>
           <Button
             variant={"outline"}
-            className="w-full sm:w-auto"
-            onClick={() => {}}
+            className={`w-full sm:w-auto ${isEditing ? "bg-black text-white" : ""}`}
+            onClick={() => handleEdit()}
           >
-            Edit Profile
+            {isEditing ? "Save Changes" : "Edit Profile"}
           </Button>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -76,9 +58,10 @@ export function ProfileForm({ user }: ProfileFormProps) {
               <Label htmlFor="name">Full Name</Label>
               <Input
                 id="name"
+                name="name"
                 value={user?.name}
                 onChange={(e) => {}}
-                disabled={true}
+                disabled={!isEditing}
               />
             </div>
             <div className="space-y-2">
@@ -86,9 +69,30 @@ export function ProfileForm({ user }: ProfileFormProps) {
               <Input
                 id="email"
                 type="email"
+                name="email"
                 value={user?.email}
-                onChange={(e) => {}}
                 disabled={true}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="phone">Phone Number</Label>
+              <Input
+                id="phone"
+                name="phone"
+                type="tel"
+                placeholder="Enter your phone number"
+                value={user?.phone}
+                disabled={!isEditing}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="address">Address</Label>
+              <Textarea
+                id="address"
+                name="address"
+                placeholder="Enter your address"
+                value={user?.address}
+                disabled={!isEditing}
               />
             </div>
           </div>
