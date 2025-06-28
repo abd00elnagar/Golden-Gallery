@@ -12,26 +12,26 @@ export function Footer() {
   }, [])
 
   return (
-    <footer className="border-t bg-muted/30">
-      <div className="container py-8 px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          <div>
-            <div className="flex items-center space-x-2 mb-4">
+    <footer className="border-t bg-muted/30 ">
+      <div className="container py-6 sm:py-8 px-3 sm:px-6 lg:px-8 flex flex-col items-center max-w-7xl mx-auto">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 sm:gap-8 w-full place-items-center">
+          <div className="flex flex-col items-center col-span-2 sm:col-span-4 md:col-span-1 mb-4 sm:mb-0">
+            <div className="flex items-center space-x-2 mb-3 sm:mb-4">
               <img
                 src={`/logo-${mounted ? (theme || "light") : "light"}.png`}
                 alt="Golden Gallery Logo"
-                className="h-8 w-8 rounded-full object-cover"
+                className="h-6 w-6 sm:h-8 sm:w-8 rounded-full object-cover"
               />
-              <span className="text-xl font-bold">Golden Gallery</span>
+              <span className="text-lg sm:text-xl font-bold">Golden Gallery</span>
             </div>
-            <p className="text-muted-foreground text-sm">
+            <p className="text-muted-foreground text-xs sm:text-sm text-center max-w-[250px] sm:max-w-none">
               Discover and collect beautiful artwork from talented artists around the world.
             </p>
           </div>
 
-          <div>
-            <h3 className="font-semibold mb-4">Shop</h3>
-            <ul className="space-y-2 text-sm">
+          <div className="flex flex-col items-center">
+            <h3 className="font-semibold mb-2 sm:mb-4 text-sm sm:text-base">Shop</h3>
+            <ul className="space-y-1 sm:space-y-2 text-xs sm:text-sm text-center">
               <li>
                 <Link href="/" className="text-muted-foreground hover:text-primary">
                   All Products
@@ -55,9 +55,9 @@ export function Footer() {
             </ul>
           </div>
 
-          <div>
-            <h3 className="font-semibold mb-4">Account</h3>
-            <ul className="space-y-2 text-sm">
+          <div className="flex flex-col items-center">
+            <h3 className="font-semibold mb-2 sm:mb-4 text-sm sm:text-base">Account</h3>
+            <ul className="space-y-1 sm:space-y-2 text-xs sm:text-sm text-center">
               <li>
                 <Link href="/profile" className="text-muted-foreground hover:text-primary">
                   Profile
@@ -81,9 +81,9 @@ export function Footer() {
             </ul>
           </div>
 
-          <div>
-            <h3 className="font-semibold mb-4">Support</h3>
-            <ul className="space-y-2 text-sm">
+          <div className="flex flex-col items-center">
+            <h3 className="font-semibold mb-2 sm:mb-4 text-sm sm:text-base">Support</h3>
+            <ul className="space-y-1 sm:space-y-2 text-xs sm:text-sm text-center">
               <li>
                 <Link href="/contact" className="text-muted-foreground hover:text-primary">
                   Contact
@@ -103,8 +103,8 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="border-t mt-8 pt-8 text-center text-sm text-muted-foreground">
-          <p>&copy; 2024 Golden Gallery. All rights reserved.</p>
+        <div className="border-t mt-6 sm:mt-8 pt-6 sm:pt-8 text-center text-xs sm:text-sm text-muted-foreground w-full">
+          <p>&copy; 2025 Golden Gallery. All rights reserved.</p>
         </div>
       </div>
     </footer>

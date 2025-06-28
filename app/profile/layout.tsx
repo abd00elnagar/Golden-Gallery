@@ -1,29 +1,25 @@
-import { getServerSession } from "next-auth"
-import type { Metadata } from "next"
+import { getServerSession } from "next-auth";
+import type { Metadata } from "next";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const session = await getServerSession()
+  const session = await getServerSession();
   if (!session?.user) {
     return {
-      title: 'Profile - Sign In Required',
-      description: 'Please sign in to view your profile',
-    }
+      title: "Profile - Sign In Required",
+      description: "Please sign in to view your profile",
+    };
   }
 
   return {
     title: `${session.user.name}'s Profile - Golden Gallery`,
     description: `View and manage ${session.user.name}'s profile, orders, and preferences`,
-  }
+  };
 }
 
-export default async function RootLayout({
+export default async function ProfileLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
-  return (
-    <html lang="en">
-      <body>{children}</body>
-    </html>
-  )
+  return children;
 }

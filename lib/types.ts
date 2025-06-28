@@ -2,9 +2,9 @@ export interface User {
   id: string
   email: string
   name: string
-  image?: string
-  phone?: string
-  address?: string
+  image: string | null
+  phone: string | null
+  address: string | null
   role: 'user' | 'admin'
 
   favorites: {
