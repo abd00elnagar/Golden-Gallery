@@ -119,12 +119,34 @@ export const authOptions: NextAuthOptions = {
 
 export async function updateUserProfile(
   userId: string,
-  updates: { phone?: string; address?: string }
+  updates: { name?: string; phone?: string; address?: string }
 ): Promise<User | null> {
   try {
+    // Validate inputs
+    if (!userId?.trim()) {
+      throw new Error("User ID is required");
+    }
+
+    // Clean and validate updates
+    const cleanUpdates = {
+      name: updates.name?.trim(),
+      phone: updates.phone?.trim()?.replace(/[^\d+]/g, ""), // Remove non-digit chars except +
+      address: updates.address?.trim()
+    };
+
+    // Remove undefined values
+    const filteredUpdates = Object.fromEntries(
+      Object.entries(cleanUpdates).filter(([_, v]) => v !== undefined)
+    );
+
+    // Skip update if no valid fields
+    if (Object.keys(filteredUpdates).length === 0) {
+      return null;
+    }
+
     const { data, error } = await serverClient
       .from("users")
-      .update(updates)
+      .update(filteredUpdates)
       .eq("id", userId)
       .select()
       .single();
