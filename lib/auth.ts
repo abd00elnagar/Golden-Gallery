@@ -19,7 +19,6 @@ export const authOptions: NextAuthOptions = {
     async signIn({
       user,
       account,
-      profile,
     }: {
       user: any;
       account: any;

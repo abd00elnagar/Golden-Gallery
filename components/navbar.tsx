@@ -96,9 +96,6 @@ export function Navbar({ cartCount = 0, favoritesCount = 0, user }: NavbarProps)
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="/profile">Profile</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
                   <Link href="/orders">Orders</Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />

@@ -24,7 +24,6 @@ export default async function RootLayout({
 }) {
 
   const session = await getServerSession()
-  console.log(session)
   const user = session ? { name: session.user?.name, image: session.user?.image } : null
   if (user){
     // console.log((await getUser()))
