@@ -26,7 +26,7 @@ export const createServerClient = () => {
   );
 };
 
-// Database types
+// Database types matching the new schema
 export interface Database {
   public: {
     Tables: {
@@ -36,52 +36,16 @@ export interface Database {
           email: string;
           name: string;
           image: string | null;
-          phone: string | null;
-          address: string | null;
           role: "user" | "admin";
-          google_id: string | null;
           favorites: {
-            items: {
-              productId: string;
-              addedAt: string;
-              productData: {
-                name: string;
-                price: number;
-                image: string;
-                favoriteCount: number;
-              };
-            }[];
-          } | null;
+            addedAt: string;
+            productId: string;
+          }[];
           cart: {
-            items: {
-              productId: string;
-              quantity: number;
-              color?: string;
-              addedAt: string;
-              productData: {
-                name: string;
-                price: number;
-                image: string;
-                originalPrice?: number;
-              };
-            }[];
-          } | null;
-          orders: {
-            items: {
-              orderId: string;
-              orderNumber: string;
-              status: string;
-              totalAmount: number;
-              createdAt: string;
-              items: {
-                productId: string;
-                quantity: number;
-                price: number;
-                color?: string;
-                productName: string;
-              }[];
-            }[];
-          } | null;
+            quantity: number;
+            productId: string;
+          }[];
+          orders: string[];
           created_at: string;
           updated_at: string;
         };
@@ -90,52 +54,16 @@ export interface Database {
           email: string;
           name: string;
           image?: string | null;
-          phone?: string | null;
-          address?: string | null;
           role?: "user" | "admin";
-          google_id?: string | null;
           favorites?: {
-            items: {
-              productId: string;
-              addedAt: string;
-              productData: {
-                name: string;
-                price: number;
-                image: string;
-                favoriteCount: number;
-              };
-            }[];
-          } | null;
+            addedAt: string;
+            productId: string;
+          }[];
           cart?: {
-            items: {
-              productId: string;
-              quantity: number;
-              color?: string;
-              addedAt: string;
-              productData: {
-                name: string;
-                price: number;
-                image: string;
-                originalPrice?: number;
-              };
-            }[];
-          } | null;
-          orders?: {
-            items: {
-              orderId: string;
-              orderNumber: string;
-              status: string;
-              totalAmount: number;
-              createdAt: string;
-              items: {
-                productId: string;
-                quantity: number;
-                price: number;
-                color?: string;
-                productName: string;
-              }[];
-            }[];
-          } | null;
+            quantity: number;
+            productId: string;
+          }[];
+          orders?: string[];
           created_at?: string;
           updated_at?: string;
         };
@@ -144,52 +72,16 @@ export interface Database {
           email?: string;
           name?: string;
           image?: string | null;
-          phone?: string | null;
-          address?: string | null;
           role?: "user" | "admin";
-          google_id?: string | null;
           favorites?: {
-            items: {
-              productId: string;
-              addedAt: string;
-              productData: {
-                name: string;
-                price: number;
-                image: string;
-                favoriteCount: number;
-              };
-            }[];
-          } | null;
+            addedAt: string;
+            productId: string;
+          }[];
           cart?: {
-            items: {
-              productId: string;
-              quantity: number;
-              color?: string;
-              addedAt: string;
-              productData: {
-                name: string;
-                price: number;
-                image: string;
-                originalPrice?: number;
-              };
-            }[];
-          } | null;
-          orders?: {
-            items: {
-              orderId: string;
-              orderNumber: string;
-              status: string;
-              totalAmount: number;
-              createdAt: string;
-              items: {
-                productId: string;
-                quantity: number;
-                price: number;
-                color?: string;
-                productName: string;
-              }[];
-            }[];
-          } | null;
+            quantity: number;
+            productId: string;
+          }[];
+          orders?: string[];
           created_at?: string;
           updated_at?: string;
         };
@@ -200,21 +92,18 @@ export interface Database {
           name: string;
           description: string | null;
           created_at: string;
-          updated_at: string;
         };
         Insert: {
           id?: string;
           name: string;
           description?: string | null;
           created_at?: string;
-          updated_at?: string;
         };
         Update: {
           id?: string;
           name?: string;
           description?: string | null;
           created_at?: string;
-          updated_at?: string;
         };
       };
       products: {
@@ -223,9 +112,17 @@ export interface Database {
           name: string;
           description: string | null;
           price: number;
-          image: string | null;
-          category_id: string | null;
           stock: number;
+          image_url: string | null;
+          colors: {
+            name: string;
+            hex: string;
+            image: string;
+          }[];
+          category_id: string | null;
+          likes: number;
+          ordered: number;
+          featured: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -234,9 +131,17 @@ export interface Database {
           name: string;
           description?: string | null;
           price: number;
-          image?: string | null;
-          category_id?: string | null;
           stock?: number;
+          image_url?: string | null;
+          colors?: {
+            name: string;
+            hex: string;
+            image: string;
+          }[];
+          category_id?: string | null;
+          likes?: number;
+          ordered?: number;
+          featured?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -245,121 +150,109 @@ export interface Database {
           name?: string;
           description?: string | null;
           price?: number;
-          image?: string | null;
-          category_id?: string | null;
           stock?: number;
+          image_url?: string | null;
+          colors?: {
+            name: string;
+            hex: string;
+            image: string;
+          }[];
+          category_id?: string | null;
+          likes?: number;
+          ordered?: number;
+          featured?: boolean;
           created_at?: string;
           updated_at?: string;
-        };
-      };
-      product_colors: {
-        Row: {
-          id: string;
-          product_id: string;
-          name: string;
-          hex_code: string;
-          image: string | null;
-          created_at: string;
-        };
-        Insert: {
-          id?: string;
-          product_id: string;
-          name: string;
-          hex_code: string;
-          image?: string | null;
-          created_at?: string;
-        };
-        Update: {
-          id?: string;
-          product_id?: string;
-          name?: string;
-          hex_code?: string;
-          image?: string | null;
-          created_at?: string;
         };
       };
       orders: {
         Row: {
           id: string;
-          order_number: string;
           user_id: string;
-          total_amount: number;
+          order_number: string;
+          status: "pending" | "processing" | "shipped" | "delivered" | "cancelled";
+          payment_method: "cod" | "card" | "paypal";
           shipping_address: string;
           shipping_phone: string;
-          payment_method: "card" | "cod";
-          status:
-            | "pending"
-            | "processing"
-            | "shipped"
-            | "delivered"
-            | "cancelled";
+          total_amount: number;
+          items: {
+            product_id: string;
+            product_name: string;
+            color_name: string;
+            quantity: number;
+            price: number;
+            image: string;
+          }[];
           created_at: string;
           updated_at: string;
         };
         Insert: {
           id?: string;
-          order_number: string;
           user_id: string;
-          total_amount: number;
+          order_number: string;
+          status?: "pending" | "processing" | "shipped" | "delivered" | "cancelled";
+          payment_method?: "cod" | "card" | "paypal";
           shipping_address: string;
           shipping_phone: string;
-          payment_method: "card" | "cod";
-          status?:
-            | "pending"
-            | "processing"
-            | "shipped"
-            | "delivered"
-            | "cancelled";
+          total_amount: number;
+          items: {
+            product_id: string;
+            product_name: string;
+            color_name: string;
+            quantity: number;
+            price: number;
+            image: string;
+          }[];
           created_at?: string;
           updated_at?: string;
         };
         Update: {
           id?: string;
-          order_number?: string;
           user_id?: string;
-          total_amount?: number;
+          order_number?: string;
+          status?: "pending" | "processing" | "shipped" | "delivered" | "cancelled";
+          payment_method?: "cod" | "card" | "paypal";
           shipping_address?: string;
           shipping_phone?: string;
-          payment_method?: "card" | "cod";
-          status?:
-            | "pending"
-            | "processing"
-            | "shipped"
-            | "delivered"
-            | "cancelled";
+          total_amount?: number;
+          items?: {
+            product_id: string;
+            product_name: string;
+            color_name: string;
+            quantity: number;
+            price: number;
+            image: string;
+          }[];
           created_at?: string;
           updated_at?: string;
         };
       };
-      order_items: {
+      activity_logs: {
         Row: {
           id: string;
-          order_id: string;
-          product_id: string;
-          product_name: string;
-          quantity: number;
-          unit_price: number;
-          color_name: string | null;
+          user_id: string;
+          action: string;
+          entity_type: string | null;
+          entity_id: string | null;
+          details: Record<string, any>;
           created_at: string;
         };
         Insert: {
           id?: string;
-          order_id: string;
-          product_id: string;
-          product_name: string;
-          quantity: number;
-          unit_price: number;
-          color_name?: string | null;
+          user_id: string;
+          action: string;
+          entity_type?: string | null;
+          entity_id?: string | null;
+          details?: Record<string, any>;
           created_at?: string;
         };
         Update: {
           id?: string;
-          order_id?: string;
-          product_id?: string;
-          product_name?: string;
-          quantity?: number;
-          unit_price?: number;
-          color_name?: string | null;
+          user_id?: string;
+          action?: string;
+          entity_type?: string | null;
+          entity_id?: string | null;
+          details?: Record<string, any>;
           created_at?: string;
         };
       };
