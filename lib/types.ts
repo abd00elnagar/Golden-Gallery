@@ -3,6 +3,8 @@ export interface User {
   email: string
   name: string
   image?: string
+  phone?: string
+  address?: string
   role: 'user' | 'admin'
   favorites: {
     addedAt: string
