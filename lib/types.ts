@@ -1,9 +1,12 @@
 export interface User {
-  id: string;
-  email: string;
-  name: string;
-  image: string | null;
-  role: "user" | "admin";
+  id: string
+  email: string
+  name: string
+  image?: string
+  phone?: string
+  address?: string
+  role: 'user' | 'admin'
+
   favorites: {
     addedAt: string;
     productId: string;

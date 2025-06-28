@@ -36,6 +36,8 @@ export interface Database {
           email: string;
           name: string;
           image: string | null;
+          phone: string | null;
+          address: string | null;
           role: "user" | "admin";
           favorites: {
             addedAt: string;
@@ -54,6 +56,8 @@ export interface Database {
           email: string;
           name: string;
           image?: string | null;
+          phone?: string | null;
+          address?: string | null;
           role?: "user" | "admin";
           favorites?: {
             addedAt: string;
@@ -72,6 +76,8 @@ export interface Database {
           email?: string;
           name?: string;
           image?: string | null;
+          phone?: string | null;
+          address?: string | null;
           role?: "user" | "admin";
           favorites?: {
             addedAt: string;
