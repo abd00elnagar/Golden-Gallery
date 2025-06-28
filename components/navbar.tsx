@@ -84,11 +84,16 @@ export function Navbar({ cartCount = 0, favoritesCount = 0, user }: NavbarProps)
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon">
-                  <User className="h-4 w-4" />
+                <img className="rounded-full" src={user.image} alt={user.name} />
                   <span className="sr-only">User menu</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
+                <DropdownMenuItem asChild>
+                  <Link href="/profile">
+                    <h3>{user.name}</h3>
+                  </Link>
+                </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link href="/profile">Profile</Link>
                 </DropdownMenuItem>
