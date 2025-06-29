@@ -5,7 +5,7 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 // Public client for unauthenticated access (products, categories)
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+export const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     autoRefreshToken: false,
     persistSession: false,
@@ -120,7 +120,7 @@ export interface Database {
           description: string | null;
           price: number;
           stock: number;
-          image_url: string | null;
+          images: string[];
           colors: {
             name: string;
             hex: string;
@@ -139,7 +139,7 @@ export interface Database {
           description?: string | null;
           price: number;
           stock?: number;
-          image_url?: string | null;
+          images?: string[];
           colors?: {
             name: string;
             hex: string;
@@ -158,7 +158,7 @@ export interface Database {
           description?: string | null;
           price?: number;
           stock?: number;
-          image_url?: string | null;
+          images?: string[];
           colors?: {
             name: string;
             hex: string;

@@ -54,29 +54,19 @@ export function Navbar({ cartCount = 0, favoritesCount = 0, user }: NavbarProps)
             <span className="sr-only">Toggle theme</span>
           </Button>
 
-          {/* Favorites */}
-          <Button variant="ghost" size="icon" asChild className="relative">
-            <Link href="/favorites">
-              <Heart className="h-5 w-5" />
-              {favoritesCount > 0 && (
-                <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500 text-white text-xs font-medium flex items-center justify-center min-w-[20px] shadow-lg border-2 border-background">
-                  {favoritesCount > 99 ? "99+" : favoritesCount}
-                </span>
-              )}
-              <span className="sr-only">Favorites ({favoritesCount})</span>
+          {/* Cart - Desktop Only */}
+          <Button variant="ghost" size="icon" className="hidden md:flex" asChild>
+            <Link href="/cart">
+              <ShoppingCart className="h-4 w-4" />
+              <span className="sr-only">Cart</span>
             </Link>
           </Button>
 
-          {/* Cart */}
-          <Button variant="ghost" size="icon" asChild className="relative">
-            <Link href="/cart">
-              <ShoppingCart className="h-5 w-5" />
-              {cartCount > 0 && (
-                <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-primary text-primary-foreground text-xs font-medium flex items-center justify-center min-w-[20px] shadow-lg border-2 border-background animate-pulse">
-                  {cartCount > 99 ? "99+" : cartCount}
-                </span>
-              )}
-              <span className="sr-only">Cart ({cartCount})</span>
+          {/* Favorites - Desktop Only */}
+          <Button variant="ghost" size="icon" className="hidden md:flex" asChild>
+            <Link href="/favorites">
+              <Heart className="h-4 w-4" />
+              <span className="sr-only">Favorites</span>
             </Link>
           </Button>
 
@@ -132,18 +122,30 @@ export function Navbar({ cartCount = 0, favoritesCount = 0, user }: NavbarProps)
             </SheetTrigger>
             <SheetContent side="right">
               <nav className="flex flex-col space-y-4">
-                <Link href="/" className="text-sm font-medium">
-                  Home
-                </Link>
-                <Link href="/favorites" className="text-sm font-medium">
-                  Favorites
-                </Link>
-                <Link href="/orders" className="text-sm font-medium">
-                  Orders
-                </Link>
-                <Link href="/profile" className="text-sm font-medium">
+                <Link href="/profile" className="flex items-center gap-3 text-sm font-medium">
+                  <User className="h-4 w-4" />
                   Profile
                 </Link>
+                <Link href="/orders" className="flex items-center gap-3 text-sm font-medium">
+                  <ShoppingCart className="h-4 w-4" />
+                  Orders
+                </Link>
+                <Link href="/favorites" className="flex items-center gap-3 text-sm font-medium">
+                  <Heart className="h-4 w-4" />
+                  Favorites
+                </Link>
+                <Link href="/cart" className="flex items-center gap-3 text-sm font-medium">
+                  <ShoppingCart className="h-4 w-4" />
+                  Cart
+                </Link>
+                {user?.isAdmin && (
+                  <Link href="/admin" className="flex items-center gap-3 text-sm font-medium">
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                    Dashboard
+                  </Link>
+                )}
               </nav>
             </SheetContent>
           </Sheet>

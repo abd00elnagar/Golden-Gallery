@@ -78,7 +78,7 @@ export default function ProductPage({ params }: ProductPageProps) {
         <div className="space-y-4">
           <div className="aspect-square relative overflow-hidden rounded-lg border">
             <Image
-              src={selectedColor?.image || product.image_url}
+              src={selectedColor?.image || product.images?.[0] || "/placeholder.svg"}
               alt={product.name}
               fill
               className="object-cover"

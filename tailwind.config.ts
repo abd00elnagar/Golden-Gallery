@@ -91,6 +91,22 @@ const config: Config = {
   		}
   	}
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [
+    require("tailwindcss-animate"),
+    function({ addUtilities }: any) {
+      const newUtilities = {
+        '.category-selected': {
+          '@apply bg-primary text-primary-foreground shadow-md scale-105': {},
+          'transform': 'scale(1.05)',
+          'transition': 'all 0.2s ease-in-out',
+        },
+        '.category-unselected': {
+          '@apply bg-secondary text-secondary-foreground hover:bg-secondary/80': {},
+          'transition': 'all 0.2s ease-in-out',
+        }
+      }
+      addUtilities(newUtilities)
+    }
+  ],
 };
 export default config;

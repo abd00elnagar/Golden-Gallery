@@ -30,7 +30,7 @@ export default function AddProductPage() {
     price: "",
     stock: "",
     category_id: "",
-    image_url: "",
+    images: [""],
   })
   const [colors, setColors] = useState<ProductColor[]>([])
   const [newColor, setNewColor] = useState({
