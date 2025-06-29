@@ -38,7 +38,6 @@ function FormContent({ user }: { user: User | null }) {
 
   return (
     <>
-      <input type="hidden" name="userId" value={user?.id} />
       <Card>
         <CardHeader>
           <CardTitle>Profile Picture</CardTitle>
