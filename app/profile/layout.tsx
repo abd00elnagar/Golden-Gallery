@@ -21,5 +21,5 @@ export default async function ProfileLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return children;
+  return <>{children}</>;
 }

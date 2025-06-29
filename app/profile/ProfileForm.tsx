@@ -7,11 +7,16 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { User } from "@/lib/types";
 import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { useFormStatus } from "react-dom";
 import { useActionState } from "react";
 import { updateProfile } from "./actions";
 import { useEffect } from "react";
+
+function FormStatus() {
+  const { pending } = useFormStatus();
+  return pending;
+}
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -19,7 +24,7 @@ function SubmitButton() {
   return (
     <Button
       type="submit"
-      variant={"outline"}
+      variant={pending ? "default" : "outline"}
       className="w-full sm:w-auto"
       disabled={pending}
     >
@@ -28,28 +33,11 @@ function SubmitButton() {
   );
 }
 
-export function ProfileForm({ user }: { user: User | null }) {
-  const { toast } = useToast();
-  const [state, formAction] = useActionState(updateProfile, null);
-
-  // Handle form state changes
-  useEffect(() => {
-    if (state?.error) {
-      toast({
-        title: "Error",
-        description: state.error,
-        variant: "destructive",
-      });
-    } else if (state?.success) {
-      toast({
-        title: "Success",
-        description: "Profile updated successfully",
-      });
-    }
-  }, [state, toast]);
+function FormContent({ user }: { user: User | null }) {
+  const { pending } = useFormStatus();
 
   return (
-    <form action={formAction} className="space-y-6">
+    <>
       <input type="hidden" name="userId" value={user?.id} />
       <Card>
         <CardHeader>
@@ -79,13 +67,17 @@ export function ProfileForm({ user }: { user: User | null }) {
       <Card>
         <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <CardTitle>Personal Information</CardTitle>
-          <SubmitButton />
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="name">Full Name</Label>
-              <Input id="name" name="name" defaultValue={user?.name || ""} />
+              <Input
+                id="name"
+                name="name"
+                defaultValue={user?.name || ""}
+                disabled={pending}
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="email">Email Address</Label>
@@ -105,6 +97,7 @@ export function ProfileForm({ user }: { user: User | null }) {
                 type="tel"
                 placeholder="Enter your phone number"
                 defaultValue={user?.phone || ""}
+                disabled={pending}
               />
             </div>
             <div className="space-y-2">
@@ -114,6 +107,7 @@ export function ProfileForm({ user }: { user: User | null }) {
                 name="address"
                 placeholder="Enter your address"
                 defaultValue={user?.address || ""}
+                disabled={pending}
               />
             </div>
           </div>
@@ -130,8 +124,35 @@ export function ProfileForm({ user }: { user: User | null }) {
                 : ""}
             </p>
           </div>
+          <SubmitButton />
         </CardContent>
       </Card>
+    </>
+  );
+}
+
+export function ProfileForm({ user }: { user: User | null }) {
+  const { toast } = useToast();
+  const [state, formAction] = useActionState(updateProfile, null);
+
+  useEffect(() => {
+    if (state?.error) {
+      toast({
+        title: "Error",
+        description: state.error,
+        variant: "destructive",
+      });
+    } else if (state?.success) {
+      toast({
+        title: "Success",
+        description: "Profile updated successfully",
+      });
+    }
+  }, [state, toast]);
+
+  return (
+    <form action={formAction} className="space-y-6">
+      <FormContent user={user} />
     </form>
   );
 }

@@ -1,10 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProfileForm } from "./ProfileForm";
 import { getUser } from "@/lib/auth";
+import { redirect } from "next/dist/server/api-utils";
+import SignInPage from "@/components/SigninPage";
 
 export default async function ProfilePage() {
   const user = await getUser();
-  return (
+  return user ? (
     <div className="min-h-screen flex justify-center items-start py-8">
       <div className="w-full max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center mb-8">
@@ -18,5 +20,7 @@ export default async function ProfilePage() {
         <ProfileForm user={user} />
       </div>
     </div>
+  ) : (
+    <SignInPage />
   );
 }
