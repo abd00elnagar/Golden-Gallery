@@ -1,12 +1,11 @@
 import { getServerSession } from "next-auth";
 import type { Metadata } from "next";
-import { Toaster } from "@/components/ui/toaster";
 
 export async function generateMetadata(): Promise<Metadata> {
   const session = await getServerSession();
   if (!session?.user) {
     return {
-      title: "Profile - Sign In Required", 
+      title: "Profile - Sign In Required",
       description: "Please sign in to view your profile",
     };
   }
@@ -22,10 +21,5 @@ export default async function ProfileLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <>
-      {children}
-      <Toaster />
-    </>
-  );
+  return <>{children}</>;
 }
