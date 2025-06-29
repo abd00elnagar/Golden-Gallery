@@ -68,7 +68,6 @@ export const authOptions: NextAuthOptions = {
               .update({
                 name: user.name!,
                 image: user.image,
-                google_id: user.id,
               })
               .eq("id", existingUser.id);
 

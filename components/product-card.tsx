@@ -198,6 +198,11 @@ export function ProductCard({ product, isFavorite, userId }: ProductCardProps) {
         <h3 className="font-semibold text-lg mb-2 line-clamp-1 hover:text-primary transition-colors">
           {product.name}
         </h3>
+        {product.category && (
+          <Badge variant="outline" className="mb-2 text-xs">
+            {product.category.name}
+          </Badge>
+        )}
         <p className="text-muted-foreground text-sm mb-3 line-clamp-2">{product.description}</p>
 
         <div className="flex items-center justify-between mb-3">

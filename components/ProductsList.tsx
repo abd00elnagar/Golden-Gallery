@@ -93,7 +93,7 @@ function ProductsList({ products, categories, favorites, userId }: ProductsListP
 
                     {/* Dropdown Menu */}
                     {isDropdownOpen && (
-                        <div className="absolute top-full left-0 right-0 mt-1 bg-background border border-input rounded-md shadow-lg z-50 max-h-60 overflow-y-auto">
+                        <div className="absolute top-full left-0 right-0 mt-1 bg-background border border-input rounded-md shadow-lg z-40 max-h-60 overflow-y-auto">
                             <button
                                 onClick={() => {
                                     setSelectedCategory("all")
