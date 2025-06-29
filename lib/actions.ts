@@ -3,7 +3,7 @@
 import { supabaseClient, createServerClient } from "./supabase"
 import type { Database } from "./supabase"
 import { getServerSession } from "next-auth"
-import { authOptions } from "./auth"
+import { authOptions, getUser } from "./auth"
 
 // Helper function to get current authenticated user
 async function getCurrentUser() {
@@ -332,25 +332,18 @@ export async function removeFromFavorites(userId: string, productId: string): Pr
 
 // Form action wrappers for useFormState
 export async function toggleFavoriteAction(prevState: { success: boolean; message: string }, formData: FormData) {
-  const userId = formData.get("userId") as string
   const productId = formData.get("productId") as string
   const isFavorite = formData.get("isFavorite") === "true"
+  const user = await getUser()
 
-  // Authentication wall - users can only modify their own favorites
-  const currentUser = await getCurrentUser()
-  if (!currentUser || currentUser.id !== userId) {
-    console.error("Unauthorized attempt to modify favorites")
-    return { success: false, message: "Unauthorized" }
-  }
-
-  if (!userId || !productId) {
+  if (!user || !productId) {
     return { success: false, message: "Missing user or product information" }
   }
 
   try {
     const success = isFavorite
-      ? await removeFromFavorites(userId, productId)
-      : await addToFavorites(userId, productId)
+      ? await removeFromFavorites(user.id, productId)
+      : await addToFavorites(user.id, productId)
 
     return {
       success,
@@ -560,28 +553,17 @@ export async function isAdmin(userId: string): Promise<boolean> {
 
 // --- FAVORITES SERVER ACTION ---
 export async function toggleFavorite(prevState: any, formData: FormData) {
-  const userId = formData.get("userId") as string
   const productId = formData.get("productId") as string
   const isFavorite = formData.get("isFavorite") === "true"
-  console.log(userId, productId, isFavorite);
+  const user = await getUser()
   
-  // console.log("Toggle favorite called with:", { userId, productId, isFavorite })
-
-  if (!userId || !productId) {
+  if (!user || !productId) {
     return { error: "Missing user or product information" }
   }
 
   try {
     const serverClient = createServerClient()
     
-    // Update user favorites
-    const { data: user, error } = await serverClient.from("users").select("favorites").eq("id", userId).single()
-    
-    if (error || !user) {
-      console.error("User fetch error:", error)
-      return { error: "Failed to fetch user data" }
-    }
-
     // console.log("Current user favorites:", user.favorites)
     let favorites = user.favorites || []
     
@@ -599,7 +581,7 @@ export async function toggleFavorite(prevState: any, formData: FormData) {
     }
 
     // Update user favorites
-    const { error: updateUserError } = await serverClient.from("users").update({ favorites }).eq("id", userId)
+    const { error: updateUserError } = await serverClient.from("users").update({ favorites }).eq("id", user.id)
     
     if (updateUserError) {
       console.error("Update user error:", updateUserError)
@@ -638,25 +620,17 @@ export async function toggleFavorite(prevState: any, formData: FormData) {
 
 // --- CART SERVER ACTIONS ---
 export async function addToCartAction(prevState: any, formData: FormData) {
-  const userId = formData.get("userId") as string
   const productId = formData.get("productId") as string
   const quantity = parseInt(formData.get("quantity") as string) || 1
+  const user = await getUser()
 
-  // console.log("Add to cart called with:", { userId, productId, quantity })
-
-  if (!userId || !productId) {
+  if (!user || !productId) {
     return { error: "Missing user or product information" }
   }
 
   try {
     const serverClient = createServerClient()
-    const { data: user, error } = await serverClient.from("users").select("cart").eq("id", userId).single()
     
-    if (error || !user) {
-      console.error("User fetch error:", error)
-      return { error: "Failed to fetch user data" }
-    }
-
     // console.log("Current user cart:", user.cart)
     let cart = user.cart || []
     const existingItemIndex = cart.findIndex((item: any) => item.productId === productId)
@@ -671,7 +645,7 @@ export async function addToCartAction(prevState: any, formData: FormData) {
       // console.log("Added new item to cart:", { productId, quantity })
     }
 
-    const { error: updateError } = await serverClient.from("users").update({ cart }).eq("id", userId)
+    const { error: updateError } = await serverClient.from("users").update({ cart }).eq("id", user.id)
     
     if (updateError) {
       console.error("Update cart error:", updateError)
@@ -749,25 +723,17 @@ export async function getUserCartItems(userId: string): Promise<any[]> {
 
 // --- CART UPDATE ACTIONS ---
 export async function updateCartQuantityAction(prevState: any, formData: FormData) {
-  const userId = formData.get("userId") as string
   const productId = formData.get("productId") as string
   const quantity = parseInt(formData.get("quantity") as string) || 0
+  const user = await getUser()
 
-  // console.log("Update cart quantity called with:", { userId, productId, quantity })
-
-  if (!userId || !productId) {
+  if (!user || !productId) {
     return { error: "Missing user or product information" }
   }
 
   try {
     const serverClient = createServerClient()
-    const { data: user, error } = await serverClient.from("users").select("cart").eq("id", userId).single()
     
-    if (error || !user) {
-      console.error("User fetch error:", error)
-      return { error: "Failed to fetch user data" }
-    }
-
     let cart = user.cart || []
     
     if (quantity === 0) {
@@ -781,14 +747,13 @@ export async function updateCartQuantityAction(prevState: any, formData: FormDat
       }
     }
 
-    const { error: updateError } = await serverClient.from("users").update({ cart }).eq("id", userId)
+    const { error: updateError } = await serverClient.from("users").update({ cart }).eq("id", user.id)
     
     if (updateError) {
       console.error("Update cart error:", updateError)
       return { error: "Failed to update cart" }
     }
 
-    // console.log("Successfully updated cart")
     return { 
       success: true, 
       message: quantity === 0 ? "Item removed from cart" : "Cart updated",
@@ -801,35 +766,26 @@ export async function updateCartQuantityAction(prevState: any, formData: FormDat
 }
 
 export async function removeFromCartAction(prevState: any, formData: FormData) {
-  const userId = formData.get("userId") as string
   const productId = formData.get("productId") as string
+  const user = await getUser()
 
-  // console.log("Remove from cart called with:", { userId, productId })
-
-  if (!userId || !productId) {
+  if (!user || !productId) {
     return { error: "Missing user or product information" }
   }
 
   try {
     const serverClient = createServerClient()
-    const { data: user, error } = await serverClient.from("users").select("cart").eq("id", userId).single()
     
-    if (error || !user) {
-      console.error("User fetch error:", error)
-      return { error: "Failed to fetch user data" }
-    }
-
     let cart = user.cart || []
     cart = cart.filter((item: any) => item.productId !== productId)
 
-    const { error: updateError } = await serverClient.from("users").update({ cart }).eq("id", userId)
+    const { error: updateError } = await serverClient.from("users").update({ cart }).eq("id", user.id)
     
     if (updateError) {
       console.error("Update cart error:", updateError)
       return { error: "Failed to update cart" }
     }
 
-    // console.log("Successfully removed item from cart")
     return { 
       success: true, 
       message: "Item removed from cart",

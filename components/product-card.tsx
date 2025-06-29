@@ -80,7 +80,6 @@ function FavoriteButton({ productId, userId, isFavorite, productLikes, onLikesUp
   return (
     <div className="absolute top-2 right-2 z-10">
       <form action={formAction}>
-        <input type="hidden" name="userId" value={userId} />
         <input type="hidden" name="productId" value={productId} />
         <input type="hidden" name="isFavorite" value={fav.toString()} />
         <Button
@@ -139,7 +138,6 @@ function AddToCartButton({ productId, userId, isOutOfStock }: { productId: strin
 
   return (
     <form action={formAction} className="w-full">
-      <input type="hidden" name="userId" value={userId} />
       <input type="hidden" name="productId" value={productId} />
       <input type="hidden" name="quantity" value="1" />
       <Button type="submit" className="w-full" disabled={isOutOfStock || pending}>
