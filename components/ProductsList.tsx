@@ -2,7 +2,7 @@
 
 import { Product, Category } from "@/lib/types"
 import { ProductCard } from "./product-card"
-import { useState, useMemo, useEffect } from "react"
+import { useState, useMemo, useEffect, useRef } from "react"
 import { ChevronDown, Heart, TrendingUp, DollarSign, SortAsc, X } from "lucide-react"
 import { Button } from "./ui/button"
 import { useActionState } from "react"
@@ -96,6 +96,27 @@ function ProductsList({ products, categories, favorites, userId, selectedCat }: 
     const [selectedSort, setSelectedSort] = useState<SortOption>("most-liked")
     const [visibleCount, setVisibleCount] = useState(20)
     const [removedProducts, setRemovedProducts] = useState<Set<string>>(new Set())
+
+    // Refs for dropdown auto-close
+    const categoryDropdownRef = useRef<HTMLDivElement>(null)
+    const sortDropdownRef = useRef<HTMLDivElement>(null)
+
+    // Auto-close dropdowns when clicking outside
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            if (categoryDropdownRef.current && !categoryDropdownRef.current.contains(event.target as Node)) {
+                setIsDropdownOpen(false)
+            }
+            if (sortDropdownRef.current && !sortDropdownRef.current.contains(event.target as Node)) {
+                setIsSortDropdownOpen(false)
+            }
+        }
+
+        document.addEventListener('mousedown', handleClickOutside)
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside)
+        }
+    }, [])
 
     // Filter out removed products
     const filteredProducts = products.filter(product => {
@@ -200,7 +221,7 @@ function ProductsList({ products, categories, favorites, userId, selectedCat }: 
                 </div>
 
                 {/* Category Dropdown */}
-                <div className="relative">
+                <div className="relative" ref={categoryDropdownRef}>
                     <button
                         onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                         className="flex items-center justify-between w-full sm:w-48 px-4 py-2 border border-input rounded-md bg-background hover:bg-accent hover:text-accent-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
@@ -240,7 +261,7 @@ function ProductsList({ products, categories, favorites, userId, selectedCat }: 
                 </div>
 
                 {/* Sort Dropdown */}
-                <div className="relative">
+                <div className="relative" ref={sortDropdownRef}>
                     <button
                         onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}
                         className="flex items-center justify-between w-full sm:w-48 px-4 py-2 border border-input rounded-md bg-background hover:bg-accent hover:text-accent-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
