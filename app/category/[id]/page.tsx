@@ -1,3 +1,4 @@
+
 "use server"
 import ProductsList from "@/components/ProductsList"
 import { getCategories, getCategory, getProducts, Product } from "@/lib/actions"
@@ -5,7 +6,9 @@ import { getUser } from "@/lib/auth"
 import { Category, User } from "@/lib/types"
 import { getServerSession } from "next-auth"
 
-export default async function HomePage() {
+export default async function CategoryPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  
   const products: Product[] = await Promise.all(
     (await getProducts()).map(async (prod) => ({
       ...prod,
@@ -21,6 +24,6 @@ export default async function HomePage() {
   // console.log("cats: ",categories)
   // console.log("data: ",products[0])
   return (<>
-    <ProductsList products={products} categories={categories} favorites={favorites} userId={userId} />
+    <ProductsList products={products} categories={categories} favorites={favorites} userId={userId} selectedCat={id || null} />
   </>)
 }
