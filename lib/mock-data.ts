@@ -1,25 +1,43 @@
-import type { Product, Category, User, Order } from "./types"
+import type { Product, Category, User, Order } from "./types";
 
 export const mockCategories: Category[] = [
-  { id: "1", name: "Paintings", description: "Beautiful paintings and artwork" },
+  {
+    id: "1",
+    name: "Paintings",
+    description: "Beautiful paintings and artwork",
+  },
   { id: "2", name: "Sculptures", description: "Handcrafted sculptures" },
-  { id: "3", name: "Photography", description: "Professional photography prints" },
+  {
+    id: "3",
+    name: "Photography",
+    description: "Professional photography prints",
+  },
   { id: "4", name: "Digital Art", description: "Modern digital artwork" },
-]
+];
 
 export const mockProducts: Product[] = [
   {
     id: "1",
     name: "Abstract Sunset",
-    description: "A beautiful abstract painting capturing the essence of a sunset",
+    description:
+      "A beautiful abstract painting capturing the essence of a sunset",
     price: 299.99,
     stock: 5,
-    images: ["/placeholder.svg?height=400&width=400", "/placeholder.svg?height=400&width=400&variant=2"],
+    images: [
+      "/placeholder.svg?height=400&width=400",
+      "/placeholder.svg?height=400&width=400&variant=2",
+    ],
     category_id: "1",
     likes: 24,
     ordered: 12,
     colors: [
-      { id: "1", product_id: "1", name: "Original", hex: "#FF6B35", image: "/placeholder.svg?height=400&width=400" },
+      {
+        id: "1",
+        product_id: "1",
+        name: "Original",
+        hex: "#FF6B35",
+        image: "/placeholder.svg?height=400&width=400",
+      },
       {
         id: "2",
         product_id: "1",
@@ -36,13 +54,28 @@ export const mockProducts: Product[] = [
     description: "Contemporary metal sculpture perfect for modern spaces",
     price: 599.99,
     stock: 3,
-    images: ["/placeholder.svg?height=400&width=400", "/placeholder.svg?height=400&width=400&variant=3"],
+    images: [
+      "/placeholder.svg?height=400&width=400",
+      "/placeholder.svg?height=400&width=400&variant=3",
+    ],
     category_id: "2",
     likes: 18,
     ordered: 8,
     colors: [
-      { id: "3", product_id: "2", name: "Silver", hex: "#C0C0C0", image: "/placeholder.svg?height=400&width=400" },
-      { id: "4", product_id: "2", name: "Bronze", hex: "#CD7F32", image: "/placeholder.svg?height=400&width=400" },
+      {
+        id: "3",
+        product_id: "2",
+        name: "Silver",
+        hex: "#C0C0C0",
+        image: "/placeholder.svg?height=400&width=400",
+      },
+      {
+        id: "4",
+        product_id: "2",
+        name: "Bronze",
+        hex: "#CD7F32",
+        image: "/placeholder.svg?height=400&width=400",
+      },
     ],
     created_at: "2024-01-10",
   },
@@ -52,16 +85,25 @@ export const mockProducts: Product[] = [
     description: "Stunning landscape photography print",
     price: 149.99,
     stock: 10,
-    images: ["/placeholder.svg?height=400&width=400", "/placeholder.svg?height=400&width=400&variant=4"],
+    images: [
+      "/placeholder.svg?height=400&width=400",
+      "/placeholder.svg?height=400&width=400&variant=4",
+    ],
     category_id: "3",
     likes: 32,
     ordered: 25,
     colors: [
-      { id: "5", product_id: "3", name: "Standard", hex: "#228B22", image: "/placeholder.svg?height=400&width=400" },
+      {
+        id: "5",
+        product_id: "3",
+        name: "Standard",
+        hex: "#228B22",
+        image: "/placeholder.svg?height=400&width=400",
+      },
     ],
     created_at: "2024-01-20",
   },
-]
+];
 
 export const mockUser: User = {
   id: "1",
@@ -82,7 +124,7 @@ export const mockUser: User = {
   ],
   orders: ["1", "2"],
   created_at: "2024-01-01",
-}
+};
 
 export const mockOrders: Order[] = [
   {
@@ -118,4 +160,4 @@ export const mockOrders: Order[] = [
     ],
     created_at: "2024-01-25",
   },
-]
+];
