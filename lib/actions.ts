@@ -1,5 +1,29 @@
-import { supabase, createServerClient } from "./supabase"
+"use server";
+
+import { supabaseClient, createServerClient } from "./supabase"
 import type { Database } from "./supabase"
+import { getServerSession } from "next-auth"
+import { authOptions } from "./auth"
+
+// Helper function to get current authenticated user
+async function getCurrentUser() {
+  try {
+    const session = await getServerSession(authOptions)
+    if (!session?.user?.id) {
+      return null
+    }
+    return session.user as { id: string; role?: string; name?: string; email?: string; image?: string }
+  } catch (error) {
+    console.error("Error getting current user:", error)
+    return null
+  }
+}
+
+// Helper function to check if user is admin
+async function isCurrentUserAdmin() {
+  const user = await getCurrentUser()
+  return user?.role === "admin"
+}
 
 // --- TYPES ---
 export interface ProductColor {
@@ -10,126 +34,100 @@ export interface ProductColor {
 
 export type Product = Database["public"]["Tables"]["products"]["Row"] & {
   category?: Database["public"]["Tables"]["categories"]["Row"]
-  colors?: Database["public"]["Tables"]["product_colors"]["Row"][]
 }
 
 export type Category = Database["public"]["Tables"]["categories"]["Row"]
 export type User = Database["public"]["Tables"]["users"]["Row"]
 export type Order = Database["public"]["Tables"]["orders"]["Row"] & {
   user?: Database["public"]["Tables"]["users"]["Row"]
-  items?: Database["public"]["Tables"]["order_items"]["Row"][]
 }
 
 // --- IMAGE UPLOAD ---
 export async function uploadImage(file: File, folder: string = ""): Promise<string | null> {
   const serverClient = createServerClient()
-  const filePath = `${folder ? folder + "/" : ""}${Date.now()}-${file.name}`
-  const { data, error } = await serverClient.storage.from("images").upload(filePath, file, {
-    cacheControl: "3600",
-    upsert: false,
-  })
-  if (error) {
-    console.error("Error uploading image:", error)
+  try {
+    const filePath = `${folder ? folder + "/" : ""}${Date.now()}-${file.name}`
+    const { data, error } = await serverClient.storage.from("images").upload(filePath, file, {
+      cacheControl: "3600",
+      upsert: false,
+    })
+    if (error) return null
+    const { data: urlData } = serverClient.storage.from("images").getPublicUrl(filePath)
+    return urlData?.publicUrl || null
+  } catch {
     return null
   }
-  const { data: urlData } = serverClient.storage.from("images").getPublicUrl(filePath)
-  return urlData?.publicUrl || null
 }
 
 // --- PRODUCT ACTIONS ---
-export async function getProducts(search?: string, categoryName?: string): Promise<Product[]> {
+export async function getProducts(): Promise<Product[]> {
+  const serverClient = createServerClient()
   try {
-    let query = supabase.from("products").select(`*,categories(id, name, description)`)
-    if (search) {
-      query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%`)
-    }
-    if (categoryName && categoryName !== "all") {
-      const { data: category } = await supabase.from("categories").select("id").eq("name", categoryName).single()
-      if (category) {
-        query = query.eq("category_id", category.id)
-      }
-    }
-    const { data, error } = await query.order("created_at", { ascending: false })
-    if (error) return []
-    if (!data) return []
-    const transformedData = await Promise.all(
-      data.map(async (item: any) => {
-        const { data: colors } = await supabase.from("product_colors").select("*").eq("product_id", item.id)
-        return {
-          ...item,
-          category: item.categories,
-          colors: colors || [],
-        }
-      })
-    )
-    return transformedData
+    const { data, error } = await serverClient.from("products").select("*").order("likes", { ascending: false })
+    if (error) return [];
+    return data
   } catch {
     return []
   }
 }
 
 export async function getProduct(id: string): Promise<Product | null> {
+  const serverClient = createServerClient()
   try {
-    const { data, error } = await supabase
-      .from("products")
-      .select(`*,categories(id, name, description)`)
-      .eq("id", id)
-      .single()
+    const { data, error } = await serverClient.from("products").select("*").eq("id", id).single()
     if (error) return null
-    const { data: colors } = await supabase.from("product_colors").select("*").eq("product_id", id)
-    return {
-      ...data,
-      category: data.categories,
-      colors: colors || [],
-    }
+    return data
   } catch {
     return null
   }
 }
 
 export async function createProduct(product: Database["public"]["Tables"]["products"]["Insert"]): Promise<Product | null> {
+  // Authentication wall - only admins can create products
+  const isAdmin = await isCurrentUserAdmin()
+  if (!isAdmin) {
+    console.error("Unauthorized attempt to create product")
+    return null
+  }
+
+  const serverClient = createServerClient()
   try {
-    const serverClient = createServerClient()
-    const { data, error } = await serverClient
-      .from("products")
-      .insert(product)
-      .select(`*,categories(id, name, description)`)
-      .single()
+    const { data, error } = await serverClient.from("products").insert(product).select().single()
     if (error) return null
-    return {
-      ...data,
-      category: data.categories,
-      colors: [],
-    }
+    return data
   } catch {
     return null
   }
 }
 
 export async function updateProduct(id: string, updates: Database["public"]["Tables"]["products"]["Update"]): Promise<Product | null> {
+  // Authentication wall - only admins can update products
+  const isAdmin = await isCurrentUserAdmin()
+  if (!isAdmin) {
+    console.error("Unauthorized attempt to update product")
+    return null
+  }
+
+  const serverClient = createServerClient()
   try {
-    const serverClient = createServerClient()
-    const { data, error } = await serverClient
-      .from("products")
-      .update(updates)
-      .eq("id", id)
-      .select(`*,categories(id, name, description)`)
-      .single()
+    const { data, error } = await serverClient.from("products").update(updates).eq("id", id).select().single()
     if (error) return null
-    const { data: colors } = await serverClient.from("product_colors").select("*").eq("product_id", id)
-    return {
-      ...data,
-      category: data.categories,
-      colors: colors || [],
-    }
+    return data
   } catch {
     return null
   }
 }
 
 export async function deleteProduct(id: string): Promise<boolean> {
+  // Authentication wall - only admins can delete products
+  const isAdmin = await isCurrentUserAdmin()
+  if (!isAdmin) {
+    console.error("Unauthorized attempt to delete product")
+    return false
+  }
+
+  const serverClient = createServerClient()
   try {
-    const serverClient = createServerClient()
     const { error } = await serverClient.from("products").delete().eq("id", id)
     return !error
   } catch {
@@ -139,18 +137,20 @@ export async function deleteProduct(id: string): Promise<boolean> {
 
 // --- CATEGORY ACTIONS ---
 export async function getCategories(): Promise<Category[]> {
+  const serverClient = createServerClient()
   try {
-    const { data, error } = await supabase.from("categories").select("*").order("name", { ascending: true })
+    const { data, error } = await serverClient.from("categories").select("*").order("name", { ascending: true })
     if (error) return []
-    return data || []
+    return data
   } catch {
     return []
   }
 }
 
 export async function getCategory(id: string): Promise<Category | null> {
+  const serverClient = createServerClient()
   try {
-    const { data, error } = await supabase.from("categories").select("*").eq("id", id).single()
+    const { data, error } = await serverClient.from("categories").select("*").eq("id", id).single()
     if (error) return null
     return data
   } catch {
@@ -159,8 +159,15 @@ export async function getCategory(id: string): Promise<Category | null> {
 }
 
 export async function createCategory(category: Database["public"]["Tables"]["categories"]["Insert"]): Promise<Category | null> {
+  // Authentication wall - only admins can create categories
+  const isAdmin = await isCurrentUserAdmin()
+  if (!isAdmin) {
+    console.error("Unauthorized attempt to create category")
+    return null
+  }
+
+  const serverClient = createServerClient()
   try {
-    const serverClient = createServerClient()
     const { data, error } = await serverClient.from("categories").insert(category).select().single()
     if (error) return null
     return data
@@ -170,8 +177,15 @@ export async function createCategory(category: Database["public"]["Tables"]["cat
 }
 
 export async function updateCategory(id: string, updates: Database["public"]["Tables"]["categories"]["Update"]): Promise<Category | null> {
+  // Authentication wall - only admins can update categories
+  const isAdmin = await isCurrentUserAdmin()
+  if (!isAdmin) {
+    console.error("Unauthorized attempt to update category")
+    return null
+  }
+
+  const serverClient = createServerClient()
   try {
-    const serverClient = createServerClient()
     const { data, error } = await serverClient.from("categories").update(updates).eq("id", id).select().single()
     if (error) return null
     return data
@@ -181,8 +195,15 @@ export async function updateCategory(id: string, updates: Database["public"]["Ta
 }
 
 export async function deleteCategory(id: string): Promise<boolean> {
+  // Authentication wall - only admins can delete categories
+  const isAdmin = await isCurrentUserAdmin()
+  if (!isAdmin) {
+    console.error("Unauthorized attempt to delete category")
+    return false
+  }
+
+  const serverClient = createServerClient()
   try {
-    const serverClient = createServerClient()
     const { error } = await serverClient.from("categories").delete().eq("id", id)
     return !error
   } catch {
@@ -191,172 +212,309 @@ export async function deleteCategory(id: string): Promise<boolean> {
 }
 
 // --- CART ACTIONS ---
-export async function addToCart(userId: string, productId: string, quantity: number = 1) {
-  const serverClient = createServerClient()
-  const { data: user, error } = await serverClient.from("users").select("cart").eq("id", userId).single()
-  if (error || !user) return false
-  let cart = user.cart || []
-  const idx = cart.findIndex((item: any) => item.productId === productId)
-  if (idx > -1) {
-    cart[idx].quantity += quantity
-  } else {
-    cart.push({ productId, quantity })
+export async function addToCart(userId: string, productId: string, quantity: number = 1): Promise<boolean> {
+  // Authentication wall - users can only modify their own cart
+  const currentUser = await getCurrentUser()
+  if (!currentUser || currentUser.id !== userId) {
+    console.error("Unauthorized attempt to modify cart")
+    return false
   }
-  const { error: updateError } = await serverClient.from("users").update({ cart }).eq("id", userId)
-  return !updateError
+
+  const serverClient = createServerClient()
+  try {
+    const { data: user, error } = await serverClient.from("users").select("cart").eq("id", userId).single()
+    if (error || !user) return false
+    let cart = user.cart || []
+    const idx = cart.findIndex((item: any) => item.productId === productId)
+    if (idx > -1) {
+      cart[idx].quantity += quantity
+    } else {
+      cart.push({ productId, quantity })
+    }
+    const { error: updateError } = await serverClient.from("users").update({ cart }).eq("id", userId)
+    return !updateError
+  } catch {
+    return false
+  }
 }
 
-export async function removeFromCart(userId: string, productId: string) {
+export async function removeFromCart(userId: string, productId: string): Promise<boolean> {
+  // Authentication wall - users can only modify their own cart
+  const currentUser = await getCurrentUser()
+  if (!currentUser || currentUser.id !== userId) {
+    console.error("Unauthorized attempt to modify cart")
+    return false
+  }
+
   const serverClient = createServerClient()
-  const { data: user, error } = await serverClient.from("users").select("cart").eq("id", userId).single()
-  if (error || !user) return false
-  let cart = user.cart || []
-  cart = cart.filter((item: any) => item.productId !== productId)
-  const { error: updateError } = await serverClient.from("users").update({ cart }).eq("id", userId)
-  return !updateError
+  try {
+    const { data: user, error } = await serverClient.from("users").select("cart").eq("id", userId).single()
+    if (error || !user) return false
+    let cart = user.cart || []
+    cart = cart.filter((item: any) => item.productId !== productId)
+    const { error: updateError } = await serverClient.from("users").update({ cart }).eq("id", userId)
+    return !updateError
+  } catch {
+    return false
+  }
 }
 
-export async function updateCartQuantity(userId: string, productId: string, quantity: number) {
-  const serverClient = createServerClient()
-  const { data: user, error } = await serverClient.from("users").select("cart").eq("id", userId).single()
-  if (error || !user) return false
-  let cart = user.cart || []
-  const idx = cart.findIndex((item: any) => item.productId === productId)
-  if (idx > -1) {
-    cart[idx].quantity = quantity
+export async function updateCartQuantity(userId: string, productId: string, quantity: number): Promise<boolean> {
+  // Authentication wall - users can only modify their own cart
+  const currentUser = await getCurrentUser()
+  if (!currentUser || currentUser.id !== userId) {
+    console.error("Unauthorized attempt to modify cart")
+    return false
   }
-  const { error: updateError } = await serverClient.from("users").update({ cart }).eq("id", userId)
-  return !updateError
+
+  const serverClient = createServerClient()
+  try {
+    const { data: user, error } = await serverClient.from("users").select("cart").eq("id", userId).single()
+    if (error || !user) return false
+    let cart = user.cart || []
+    const idx = cart.findIndex((item: any) => item.productId === productId)
+    if (idx > -1) {
+      cart[idx].quantity = quantity
+      const { error: updateError } = await serverClient.from("users").update({ cart }).eq("id", userId)
+      return !updateError
+    }
+    return false
+  } catch {
+    return false
+  }
 }
 
 // --- FAVORITES ACTIONS ---
-export async function addToFavorites(userId: string, productId: string) {
-  const serverClient = createServerClient()
-  const { data: user, error } = await serverClient.from("users").select("favorites").eq("id", userId).single()
-  if (error || !user) return false
-  let favorites = user.favorites || []
-  if (!favorites.find((item: any) => item.productId === productId)) {
-    favorites.push({ productId, addedAt: new Date().toISOString() })
-    await serverClient.from("users").update({ favorites }).eq("id", userId)
-    await serverClient.rpc("increment_product_likes", { product_id: productId })
+export async function addToFavorites(userId: string, productId: string): Promise<boolean> {
+  // Authentication wall - users can only modify their own favorites
+  const currentUser = await getCurrentUser()
+  if (!currentUser || currentUser.id !== userId) {
+    console.error("Unauthorized attempt to modify favorites")
+    return false
   }
-  return true
+
+  try {
+    const { data: user, error } = await supabaseClient.from("users").select("favorites").eq("id", userId).single()
+    if (error || !user) return false
+    let favorites = user.favorites || []
+    const existingIndex = favorites.findIndex((fav: any) => fav.productId === productId)
+
+    if (existingIndex === -1) {
+      favorites.push({ productId, addedAt: new Date().toISOString() })
+      const { error: updateError } = await supabaseClient.from("users").update({ favorites }).eq("id", userId)
+      return !updateError
+    }
+    return true
+  } catch {
+    return false
+  }
 }
 
-export async function removeFromFavorites(userId: string, productId: string) {
+export async function removeFromFavorites(userId: string, productId: string): Promise<boolean> {
+  // Authentication wall - users can only modify their own favorites
+  const currentUser = await getCurrentUser()
+  if (!currentUser || currentUser.id !== userId) {
+    console.error("Unauthorized attempt to modify favorites")
+    return false
+  }
+
+  try {
+    const { data: user, error } = await supabaseClient.from("users").select("favorites").eq("id", userId).single()
+    if (error || !user) return false
+    let favorites = user.favorites || []
+    favorites = favorites.filter((fav: any) => fav.productId !== productId)
+    const { error: updateError } = await supabaseClient.from("users").update({ favorites }).eq("id", userId)
+    return !updateError
+  } catch {
+    return false
+  }
+}
+
+// Form action wrappers for useFormState
+export async function toggleFavoriteAction(prevState: { success: boolean; message: string }, formData: FormData) {
+  const userId = formData.get("userId") as string
+  const productId = formData.get("productId") as string
+  const isFavorite = formData.get("isFavorite") === "true"
+
+  // Authentication wall - users can only modify their own favorites
+  const currentUser = await getCurrentUser()
+  if (!currentUser || currentUser.id !== userId) {
+    console.error("Unauthorized attempt to modify favorites")
+    return { success: false, message: "Unauthorized" }
+  }
+
+  if (!userId || !productId) {
+    return { success: false, message: "Missing user or product information" }
+  }
+
+  try {
+    const success = isFavorite
+      ? await removeFromFavorites(userId, productId)
+      : await addToFavorites(userId, productId)
+
+    return {
+      success,
+      message: success
+        ? (isFavorite ? "Removed from favorites" : "Added to favorites")
+        : "Failed to update favorites"
+    }
+  } catch (error) {
+    return { success: false, message: "An error occurred" }
+  }
+}
+
+// Server actions for client-side calls
+export async function addToFavoritesServerAction(userId: string, productId: string): Promise<boolean> {
+  // Authentication wall - users can only modify their own favorites
+  const currentUser = await getCurrentUser()
+  if (!currentUser || currentUser.id !== userId) {
+    console.error("Unauthorized attempt to modify favorites")
+    return false
+  }
+
   const serverClient = createServerClient()
-  const { data: user, error } = await serverClient.from("users").select("favorites").eq("id", userId).single()
-  if (error || !user) return false
-  let favorites = user.favorites || []
-  favorites = favorites.filter((item: any) => item.productId !== productId)
-  await serverClient.from("users").update({ favorites }).eq("id", userId)
-  return true
+  try {
+    const { data: user, error } = await serverClient.from("users").select("favorites").eq("id", userId).single()
+    if (error || !user) return false
+    let favorites = user.favorites || []
+    favorites.push({ productId, addedAt: new Date().toISOString() })
+    const { error: updateError } = await serverClient.from("users").update({ favorites }).eq("id", userId)
+    return !updateError
+    return true
+  } catch {
+    return false
+  }
+}
+
+export async function removeFromFavoritesServerAction(userId: string, productId: string): Promise<boolean> {
+  // Authentication wall - users can only modify their own favorites
+  const currentUser = await getCurrentUser()
+  if (!currentUser || currentUser.id !== userId) {
+    console.error("Unauthorized attempt to modify favorites")
+    return false
+  }
+
+  const serverClient = createServerClient()
+  try {
+    const { data: user, error } = await serverClient.from("users").select("favorites").eq("id", userId).single()
+    if (error || !user) return false
+    let favorites = user.favorites || []
+    favorites = favorites.filter((fav: any) => fav.productId !== productId)
+    const { error: updateError } = await serverClient.from("users").update({ favorites }).eq("id", userId)
+    return !updateError
+  } catch {
+    return false
+  }
 }
 
 // --- ORDER ACTIONS ---
 export async function getOrders(): Promise<Order[]> {
+  // Authentication wall - only admins can view all orders
+  const isAdmin = await isCurrentUserAdmin()
+  if (!isAdmin) {
+    console.error("Unauthorized attempt to view all orders")
+    return []
+  }
+
+  const serverClient = createServerClient()
   try {
-    const serverClient = createServerClient()
-    const { data, error } = await serverClient
-      .from("orders")
-      .select(`*,users(id, name, email, phone, address),order_items(*)`)
-      .order("created_at", { ascending: false })
+    const { data, error } = await serverClient.from("orders").select("*").order("created_at", { ascending: false })
     if (error) return []
-    return (
-      data?.map((order: any) => ({
-        ...order,
-        user: order.users,
-        items: order.order_items,
-      })) || []
-    )
+    return data
   } catch {
     return []
   }
 }
 
 export async function getOrder(id: string): Promise<Order | null> {
+  // Authentication wall - users can only view their own orders, admins can view any order
+  const currentUser = await getCurrentUser()
+  if (!currentUser) {
+    console.error("Unauthorized attempt to view order")
+    return null
+  }
+
+  const serverClient = createServerClient()
   try {
-    const serverClient = createServerClient()
-    const { data, error } = await serverClient
-      .from("orders")
-      .select(`*,users(id, name, email, phone, address),order_items(*)`)
-      .eq("id", id)
-      .single()
+    const { data, error } = await serverClient.from("orders").select("*").eq("id", id).single()
     if (error) return null
-    return {
-      ...data,
-      user: data.users,
-      items: data.order_items,
+    
+    // Check if user is admin or owns the order
+    if (currentUser.role !== "admin" && data.user_id !== currentUser.id) {
+      console.error("Unauthorized attempt to view order")
+      return null
     }
+    
+    return data
   } catch {
     return null
   }
 }
 
 export async function getUserOrders(userId: string): Promise<Order[]> {
+  // Authentication wall - users can only view their own orders
+  const currentUser = await getCurrentUser()
+  if (!currentUser || currentUser.id !== userId) {
+    console.error("Unauthorized attempt to view user orders")
+    return []
+  }
+
+  const serverClient = createServerClient()
   try {
-    const serverClient = createServerClient()
-    const { data, error } = await serverClient
-      .from("orders")
-      .select(`*,users(id, name, email, phone, address),order_items(*)`)
-      .eq("user_id", userId)
-      .order("created_at", { ascending: false })
+    const { data, error } = await serverClient.from("orders").select("*").eq("user_id", userId).order("created_at", { ascending: false })
     if (error) return []
-    return (
-      data?.map((order: any) => ({
-        ...order,
-        user: order.users,
-        items: order.order_items,
-      })) || []
-    )
+    return data
   } catch {
     return []
   }
 }
 
-export async function createOrder(
-  orderData: Database["public"]["Tables"]["orders"]["Insert"],
-  items: Database["public"]["Tables"]["order_items"]["Insert"][],
-): Promise<Order | null> {
+export async function createOrder(orderData: Database["public"]["Tables"]["orders"]["Insert"]): Promise<Order | null> {
+  // Authentication wall - users can only create orders for themselves
+  const currentUser = await getCurrentUser()
+  if (!currentUser || currentUser.id !== orderData.user_id) {
+    console.error("Unauthorized attempt to create order")
+    return null
+  }
+
+  const serverClient = createServerClient()
   try {
-    const serverClient = createServerClient()
-    const { data: order, error: orderError } = await serverClient.from("orders").insert(orderData).select().single()
-    if (orderError) return null
-    const orderItems = items.map((item) => ({ ...item, order_id: order.id }))
-    const { error: itemsError } = await serverClient.from("order_items").insert(orderItems)
-    if (itemsError) {
-      await serverClient.from("orders").delete().eq("id", order.id)
-      return null
-    }
-    return await getOrder(order.id)
+    const { data, error } = await serverClient.from("orders").insert(orderData).select().single()
+    if (error) return null
+    return data
   } catch {
     return null
   }
 }
 
 export async function updateOrderStatus(id: string, status: Database["public"]["Tables"]["orders"]["Row"]["status"]): Promise<Order | null> {
+  // Authentication wall - only admins can update order status
+  const isAdmin = await isCurrentUserAdmin()
+  if (!isAdmin) {
+    console.error("Unauthorized attempt to update order status")
+    return null
+  }
+
+  const serverClient = createServerClient()
   try {
-    const serverClient = createServerClient()
-    const { data, error } = await serverClient
-      .from("orders")
-      .update({ status })
-      .eq("id", id)
-      .select(`*,users(id, name, email, phone, address),order_items(*)`)
-      .single()
+    const { data, error } = await serverClient.from("orders").update({ status }).eq("id", id).select().single()
     if (error) return null
-    return {
-      ...data,
-      user: data.users,
-      items: data.order_items,
-    }
+    return data
   } catch {
     return null
   }
 }
 
 export async function deleteOrder(id: string): Promise<boolean> {
+  // Authentication wall - only admins can delete orders
+  const isAdmin = await isCurrentUserAdmin()
+  if (!isAdmin) {
+    console.error("Unauthorized attempt to delete order")
+    return false
+  }
+
+  const serverClient = createServerClient()
   try {
-    const serverClient = createServerClient()
     const { error } = await serverClient.from("orders").delete().eq("id", id)
     return !error
   } catch {
@@ -364,16 +522,321 @@ export async function deleteOrder(id: string): Promise<boolean> {
   }
 }
 
-// --- USER PROFILE ACTIONS ---
-export async function updateUserProfile(userId: string, updates: Partial<Database["public"]["Tables"]["users"]["Update"]>) {
+// --- USER ACTIONS ---
+export async function updateUserProfile(userId: string, updates: Partial<Database["public"]["Tables"]["users"]["Update"]>): Promise<boolean> {
+  // Authentication wall - users can only update their own profile
+  const currentUser = await getCurrentUser()
+  if (!currentUser || currentUser.id !== userId) {
+    console.error("Unauthorized attempt to update user profile")
+    return false
+  }
+
   const serverClient = createServerClient()
-  const { error } = await serverClient.from("users").update(updates).eq("id", userId)
-  return !error
+  try {
+    const { error } = await serverClient.from("users").update(updates).eq("id", userId)
+    return !error
+  } catch {
+    return false
+  }
 }
 
 export async function isAdmin(userId: string): Promise<boolean> {
+  // Authentication wall - users can only check their own admin status
+  const currentUser = await getCurrentUser()
+  if (!currentUser || currentUser.id !== userId) {
+    console.error("Unauthorized attempt to check admin status")
+    return false
+  }
+
   const serverClient = createServerClient()
-  const { data, error } = await serverClient.from("users").select("role").eq("id", userId).single()
-  if (error || !data) return false
-  return data.role === "admin"
+  try {
+    const { data, error } = await serverClient.from("users").select("role").eq("id", userId).single()
+    if (error || !data) return false
+    return data.role === "admin"
+  } catch {
+    return false
+  }
+}
+
+// --- FAVORITES SERVER ACTION ---
+export async function toggleFavorite(prevState: any, formData: FormData) {
+  const userId = formData.get("userId") as string
+  const productId = formData.get("productId") as string
+  const isFavorite = formData.get("isFavorite") === "true"
+  console.log(userId, productId, isFavorite);
+  
+  // console.log("Toggle favorite called with:", { userId, productId, isFavorite })
+
+  if (!userId || !productId) {
+    return { error: "Missing user or product information" }
+  }
+
+  try {
+    const serverClient = createServerClient()
+    
+    // Update user favorites
+    const { data: user, error } = await serverClient.from("users").select("favorites").eq("id", userId).single()
+    
+    if (error || !user) {
+      console.error("User fetch error:", error)
+      return { error: "Failed to fetch user data" }
+    }
+
+    // console.log("Current user favorites:", user.favorites)
+    let favorites = user.favorites || []
+    
+    if (isFavorite) {
+      // Remove from favorites
+      favorites = favorites.filter((fav: any) => fav.productId !== productId)
+      // console.log("Removing from favorites, new array:", favorites)
+    } else {
+      // Add to favorites
+      const existingIndex = favorites.findIndex((fav: any) => fav.productId === productId)
+      if (existingIndex === -1) {
+        favorites.push({ productId, addedAt: new Date().toISOString() })
+        // console.log("Adding to favorites, new array:", favorites)
+      }
+    }
+
+    // Update user favorites
+    const { error: updateUserError } = await serverClient.from("users").update({ favorites }).eq("id", userId)
+    
+    if (updateUserError) {
+      console.error("Update user error:", updateUserError)
+      return { error: "Failed to update favorites" }
+    }
+
+    // Update product likes count
+    const { data: product, error: productError } = await serverClient.from("products").select("likes").eq("id", productId).single()
+    
+    if (productError || !product) {
+      console.error("Product fetch error:", productError)
+      return { error: "Failed to fetch product data" }
+    }
+
+    const newLikes = isFavorite ? Math.max(0, product.likes - 1) : product.likes + 1
+    
+    const { error: updateProductError } = await serverClient.from("products").update({ likes: newLikes }).eq("id", productId)
+    
+    if (updateProductError) {
+      console.error("Update product error:", updateProductError)
+      return { error: "Failed to update product likes" }
+    }
+
+    // console.log("Successfully updated favorites and likes")
+    return { 
+      success: true, 
+      isFavorite: !isFavorite,
+      likes: newLikes,
+      message: isFavorite ? "Removed from favorites" : "Added to favorites"
+    }
+  } catch (error) {
+    console.error("Toggle favorite error:", error)
+    return { error: "An error occurred while updating favorites" }
+  }
+}
+
+// --- CART SERVER ACTIONS ---
+export async function addToCartAction(prevState: any, formData: FormData) {
+  const userId = formData.get("userId") as string
+  const productId = formData.get("productId") as string
+  const quantity = parseInt(formData.get("quantity") as string) || 1
+
+  // console.log("Add to cart called with:", { userId, productId, quantity })
+
+  if (!userId || !productId) {
+    return { error: "Missing user or product information" }
+  }
+
+  try {
+    const serverClient = createServerClient()
+    const { data: user, error } = await serverClient.from("users").select("cart").eq("id", userId).single()
+    
+    if (error || !user) {
+      console.error("User fetch error:", error)
+      return { error: "Failed to fetch user data" }
+    }
+
+    // console.log("Current user cart:", user.cart)
+    let cart = user.cart || []
+    const existingItemIndex = cart.findIndex((item: any) => item.productId === productId)
+    
+    if (existingItemIndex > -1) {
+      // Update existing item quantity
+      cart[existingItemIndex].quantity += quantity
+      // console.log("Updated existing cart item, new quantity:", cart[existingItemIndex].quantity)
+    } else {
+      // Add new item to cart
+      cart.push({ productId, quantity })
+      // console.log("Added new item to cart:", { productId, quantity })
+    }
+
+    const { error: updateError } = await serverClient.from("users").update({ cart }).eq("id", userId)
+    
+    if (updateError) {
+      console.error("Update cart error:", updateError)
+      return { error: "Failed to update cart" }
+    }
+
+    // console.log("Successfully updated cart")
+    return { 
+      success: true, 
+      message: existingItemIndex > -1 ? "Cart updated" : "Added to cart",
+      cartItemCount: cart.length
+    }
+  } catch (error) {
+    console.error("Add to cart error:", error)
+    return { error: "An error occurred while updating cart" }
+  }
+}
+
+// --- USER DATA ACTIONS ---
+export async function getUserCartCount(userId: string): Promise<number> {
+  const serverClient = createServerClient()
+  try {
+    const { data, error } = await serverClient.from("users").select("cart").eq("id", userId).single()
+    if (error || !data) return 0
+    return data.cart?.length || 0
+  } catch {
+    return 0
+  }
+}
+
+export async function getUserFavoritesCount(userId: string): Promise<number> {
+  const serverClient = createServerClient()
+  try {
+    const { data, error } = await serverClient.from("users").select("favorites").eq("id", userId).single()
+    if (error || !data) return 0
+    return data.favorites?.length || 0
+  } catch {
+    return 0
+  }
+}
+
+// --- CART ITEMS ACTIONS ---
+export async function getUserCartItems(userId: string): Promise<any[]> {
+  const serverClient = createServerClient()
+  try {
+    const { data: user, error } = await serverClient.from("users").select("cart").eq("id", userId).single()
+    if (error || !user || !user.cart) return []
+    
+    // Get product details for each cart item
+    const cartItems = []
+    for (const cartItem of user.cart) {
+      const { data: product, error: productError } = await serverClient
+        .from("products")
+        .select("*")
+        .eq("id", cartItem.productId)
+        .single()
+      
+      if (!productError && product) {
+        cartItems.push({
+          productId: cartItem.productId,
+          productName: product.name,
+          price: product.price,
+          image: product.images?.[0] || null,
+          quantity: cartItem.quantity,
+          stock: product.stock
+        })
+      }
+    }
+    
+    return cartItems
+  } catch {
+    return []
+  }
+}
+
+// --- CART UPDATE ACTIONS ---
+export async function updateCartQuantityAction(prevState: any, formData: FormData) {
+  const userId = formData.get("userId") as string
+  const productId = formData.get("productId") as string
+  const quantity = parseInt(formData.get("quantity") as string) || 0
+
+  // console.log("Update cart quantity called with:", { userId, productId, quantity })
+
+  if (!userId || !productId) {
+    return { error: "Missing user or product information" }
+  }
+
+  try {
+    const serverClient = createServerClient()
+    const { data: user, error } = await serverClient.from("users").select("cart").eq("id", userId).single()
+    
+    if (error || !user) {
+      console.error("User fetch error:", error)
+      return { error: "Failed to fetch user data" }
+    }
+
+    let cart = user.cart || []
+    
+    if (quantity === 0) {
+      // Remove item from cart
+      cart = cart.filter((item: any) => item.productId !== productId)
+    } else {
+      // Update quantity
+      const existingItemIndex = cart.findIndex((item: any) => item.productId === productId)
+      if (existingItemIndex > -1) {
+        cart[existingItemIndex].quantity = quantity
+      }
+    }
+
+    const { error: updateError } = await serverClient.from("users").update({ cart }).eq("id", userId)
+    
+    if (updateError) {
+      console.error("Update cart error:", updateError)
+      return { error: "Failed to update cart" }
+    }
+
+    // console.log("Successfully updated cart")
+    return { 
+      success: true, 
+      message: quantity === 0 ? "Item removed from cart" : "Cart updated",
+      cartItemCount: cart.length
+    }
+  } catch (error) {
+    console.error("Update cart quantity error:", error)
+    return { error: "An error occurred while updating cart" }
+  }
+}
+
+export async function removeFromCartAction(prevState: any, formData: FormData) {
+  const userId = formData.get("userId") as string
+  const productId = formData.get("productId") as string
+
+  // console.log("Remove from cart called with:", { userId, productId })
+
+  if (!userId || !productId) {
+    return { error: "Missing user or product information" }
+  }
+
+  try {
+    const serverClient = createServerClient()
+    const { data: user, error } = await serverClient.from("users").select("cart").eq("id", userId).single()
+    
+    if (error || !user) {
+      console.error("User fetch error:", error)
+      return { error: "Failed to fetch user data" }
+    }
+
+    let cart = user.cart || []
+    cart = cart.filter((item: any) => item.productId !== productId)
+
+    const { error: updateError } = await serverClient.from("users").update({ cart }).eq("id", userId)
+    
+    if (updateError) {
+      console.error("Update cart error:", updateError)
+      return { error: "Failed to update cart" }
+    }
+
+    // console.log("Successfully removed item from cart")
+    return { 
+      success: true, 
+      message: "Item removed from cart",
+      cartItemCount: cart.length
+    }
+  } catch (error) {
+    console.error("Remove from cart error:", error)
+    return { error: "An error occurred while removing item from cart" }
+  }
 }

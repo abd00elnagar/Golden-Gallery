@@ -127,7 +127,7 @@ export default function AdminProductsPage() {
                         <div className="flex items-center gap-3">
                           <div className="relative w-12 h-12 rounded-lg overflow-hidden">
                             <Image
-                              src={product.image_url || "/placeholder.svg"}
+                              src={product.images?.[0] || "/placeholder.svg"}
                               alt={product.name}
                               fill
                               className="object-cover"

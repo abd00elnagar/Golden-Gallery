@@ -23,12 +23,12 @@ export interface User {
 export interface Product {
   id: string;
   name: string;
-  description: string;
+  description: string | null;
   price: number;
   stock: number;
-  image_url: string;
+  images: string[];
   colors: ProductColor[];
-  category_id: string;
+  category_id: string | null;
   likes: number;
   ordered: number;
   featured: boolean;
@@ -45,7 +45,7 @@ export interface ProductColor {
 export interface Category {
   id: string;
   name: string;
-  description: string;
+  description: string | null;
   created_at: string;
 }
 
