@@ -1,10 +1,10 @@
 "use server";
 
-import { updateUserProfile } from "@/lib/auth";
+import { getUser, updateUserProfile } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 
 export async function updateProfile(prevState: any, formData: FormData) {
-  const userId = formData.get("userId") as string;
+  const userId = (await getUser())?.id;
   if (!userId) return { error: "User ID is required" };
 
   const updates = {
@@ -18,6 +18,5 @@ export async function updateProfile(prevState: any, formData: FormData) {
   if (!result) {
     return { error: "Failed to update profile" };
   }
-
   return { success: true };
 }
