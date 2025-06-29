@@ -588,12 +588,28 @@ export async function toggleFavorite(prevState: any, formData: FormData) {
       return { error: "Failed to update favorites" }
     }
 
-    // Update product likes count
+    // Update product likes count (skip if product doesn't exist)
     const { data: product, error: productError } = await serverClient.from("products").select("likes").eq("id", productId).single()
     
-    if (productError || !product) {
-      console.error("Product fetch error:", productError)
-      return { error: "Failed to fetch product data" }
+    if (productError) {
+      // If product doesn't exist, just update user favorites without updating product likes
+      console.log("Product not found, skipping likes update for product:", productId)
+      return { 
+        success: true, 
+        isFavorite: !isFavorite,
+        likes: 0, // Product doesn't exist, so likes is 0
+        message: isFavorite ? "Removed from favorites" : "Added to favorites"
+      }
+    }
+
+    if (!product) {
+      // Product doesn't exist, just update user favorites
+      return { 
+        success: true, 
+        isFavorite: !isFavorite,
+        likes: 0,
+        message: isFavorite ? "Removed from favorites" : "Added to favorites"
+      }
     }
 
     const newLikes = isFavorite ? Math.max(0, product.likes - 1) : product.likes + 1

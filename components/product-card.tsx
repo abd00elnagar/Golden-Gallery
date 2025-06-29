@@ -9,8 +9,7 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
 import { useActionState } from "react"
-import { toggleFavorite, addToCartAction } from "@/lib/actions"
-import type { Product } from "@/lib/types"
+import { toggleFavorite, addToCartAction, type Product } from "@/lib/actions"
 import { useFormStatus } from "react-dom"
 
 interface ProductCardProps {
@@ -99,21 +98,22 @@ function FavoriteButton({ productId, userId, isFavorite, productLikes, onLikesUp
 }
 
 function AddToCartButton({ productId, userId, isOutOfStock }: { productId: string; userId?: string; isOutOfStock: boolean }) {
+  const { pending } = useFormStatus()
   const [state, formAction] = useActionState(addToCartAction, null)
   const { toast } = useToast()
-  const [pending, setPending] = useState(false)
+  const [isAdding, setIsAdding] = useState(false)
 
   // Handle form state changes
   useEffect(() => {
     if (state?.error) {
-      setPending(false)
+      setIsAdding(false)
       toast({
         title: "Error",
         description: state.error,
         variant: "destructive",
       })
     } else if (state?.success) {
-      setPending(false)
+      setIsAdding(false)
       toast({
         title: "Success",
         description: state.message,
@@ -121,15 +121,13 @@ function AddToCartButton({ productId, userId, isOutOfStock }: { productId: strin
     }
   }, [state, toast])
 
-  const handleButtonClick = (e: React.MouseEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setPending(true)
+  const handleSubmit = () => {
+    setIsAdding(true)
   }
 
   if (!userId) {
     return (
-      <Button className="w-full" disabled={isOutOfStock} onClick={handleButtonClick}>
+      <Button className="w-full" disabled={isOutOfStock}>
         <ShoppingCart className="h-4 w-4 mr-2" />
         {isOutOfStock ? "Out of Stock" : "Login to Add to Cart"}
       </Button>
@@ -137,12 +135,12 @@ function AddToCartButton({ productId, userId, isOutOfStock }: { productId: strin
   }
 
   return (
-    <form action={formAction} className="w-full">
+    <form action={formAction} className="w-full" onSubmit={handleSubmit}>
       <input type="hidden" name="productId" value={productId} />
       <input type="hidden" name="quantity" value="1" />
-      <Button type="submit" className="w-full" disabled={isOutOfStock || pending}>
+      <Button type="submit" className="w-full" disabled={isOutOfStock || pending || isAdding}>
         <ShoppingCart className="h-4 w-4 mr-2" />
-        {isOutOfStock ? "Out of Stock" : pending ? "Adding..." : "Add to Cart"}
+        {isOutOfStock ? "Out of Stock" : (pending || isAdding) ? "Adding..." : "Add to Cart"}
       </Button>
     </form>
   )

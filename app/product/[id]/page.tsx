@@ -17,7 +17,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
   }
 
   const product = await getProduct(id)
-  
+
   if (!product) {
     return (
       <div className="container py-8">

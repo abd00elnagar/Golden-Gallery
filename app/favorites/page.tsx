@@ -1,53 +1,47 @@
-"use client"
-
-import { useState } from "react"
 import Link from "next/link"
 import { Heart, ShoppingBag } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ProductCard } from "@/components/product-card"
-import { mockProducts, mockUser } from "@/lib/mock-data"
-import { useToast } from "@/hooks/use-toast"
+import { getUser } from "@/lib/auth"
+import SignInPage from "@/components/SigninPage"
+import { Category, Product, User } from "@/lib/types"
+import { getCategories, getCategory, getProduct } from "@/lib/actions"
+import ProductsList from "@/components/ProductsList"
 
-export default function FavoritesPage() {
-  const [favorites, setFavorites] = useState(mockUser.favorites)
-  const { toast } = useToast()
-
-  const favoriteProducts = mockProducts.filter((product) => favorites.includes(product.id))
-
-  const handleToggleFavorite = (productId: string) => {
-    setFavorites((prev) => {
-      const newFavorites = prev.includes(productId) ? prev.filter((id) => id !== productId) : [...prev, productId]
-
-      toast({
-        title: prev.includes(productId) ? "Removed from favorites" : "Added to favorites",
-        description: prev.includes(productId)
-          ? "Product removed from your favorites"
-          : "Product added to your favorites",
-      })
-
-      return newFavorites
+export default async function FavoritesPage() {
+  const user: User | null = (await getUser())
+  const favorites = user?.favorites || []
+  const keep: string[] = []
+  const products: (Product | { notFound: true; id: string })[] = await Promise.all(
+    favorites.map(async (fav) => {
+      const product = await getProduct(fav.productId)
+      if (!product) return { notFound: true, id: fav.productId }
+      product.category = product.category_id ? (await getCategory(product.category_id)) || undefined : undefined
+      if (product.category_id) {
+        keep.push(product.category_id)
+      }
+      return product
     })
+  )
+  const categories: Category[] = (await getCategories()).filter((cat) => keep.includes(cat.id))
+  console.log(categories)
+  if (!user) {
+    return (
+      <SignInPage /> 
+    )
   }
-
-  const handleAddToCart = (productId: string, colorId: string) => {
-    toast({
-      title: "Added to cart",
-      description: "Product has been added to your cart",
-    })
-  }
-
   return (
     <div className="container py-8 px-4 sm:px-6 lg:px-8">
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-3xl font-bold">My Favorites</h1>
           <p className="text-muted-foreground">
-            {favoriteProducts.length} {favoriteProducts.length === 1 ? "item" : "items"} in your favorites
+            {favorites.length} {favorites.length === 1 ? "item" : "items"} in your favorites
           </p>
         </div>
       </div>
 
-      {favoriteProducts.length === 0 ? (
+      {favorites.length === 0 ? (
         <div className="text-center max-w-md mx-auto">
           <Heart className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
           <h2 className="text-2xl font-bold mb-2">No favorites yet</h2>
@@ -62,17 +56,7 @@ export default function FavoritesPage() {
           </Button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {favoriteProducts.map((product) => (
-            <ProductCard
-              key={product.id}
-              product={product}
-              isFavorite={favorites.includes(product.id)}
-              onToggleFavorite={handleToggleFavorite}
-              onAddToCart={handleAddToCart}
-            />
-          ))}
-        </div>
+        <ProductsList products={products as Product[]} categories={categories} favorites={favorites.map((fav) => fav.productId)} userId={user.id || undefined}/>
       )}
     </div>
   )

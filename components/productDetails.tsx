@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { Heart, ShoppingCart, ArrowLeft } from "lucide-react"
+import { Heart, ShoppingCart, ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
@@ -83,7 +83,7 @@ function FavoriteButton({ productId, userId, isFavorite, productLikes, onLikesUp
         disabled={pending}
         onClick={() => setFavLook(!favLook)}
       >
-        <Heart className={`h-4 w-4 relative right-0${favLook ? "fill-red-500 text-red-500" : ""} ${pending ? "animate-pulse" : ""}`} />
+        <Heart className={`h-4 w-4 relative right-0 ${favLook ? "fill-red-500 text-red-500" : ""} ${pending ? "animate-pulse" : ""}`} />
         <span className="sr-only">Toggle favorite</span>
       </Button>
     </form>
@@ -96,27 +96,32 @@ function AddToCartButton({ productId, userId, quantity, isOutOfStock }: {
   quantity: number;
   isOutOfStock: boolean;
 }) {
+  const { pending } = useFormStatus()
   const [state, formAction] = useActionState(addToCartAction, null)
   const { toast } = useToast()
-  const [pending, setPending] = useState(false)
+  const [isAdding, setIsAdding] = useState(false)
 
   // Handle form state changes
   useEffect(() => {
     if (state?.error) {
-      setPending(false)
+      setIsAdding(false)
       toast({
         title: "Error",
         description: state.error,
         variant: "destructive",
       })
     } else if (state?.success) {
-      setPending(false)
+      setIsAdding(false)
       toast({
         title: "Success",
         description: state.message,
       })
     }
   }, [state, toast])
+
+  const handleSubmit = () => {
+    setIsAdding(true)
+  }
 
   if (!userId) {
     return (
@@ -128,12 +133,12 @@ function AddToCartButton({ productId, userId, quantity, isOutOfStock }: {
   }
 
   return (
-    <form action={formAction}>
+    <form action={formAction} onSubmit={handleSubmit}>
       <input type="hidden" name="productId" value={productId} />
       <input type="hidden" name="quantity" value={quantity.toString()} />
-      <Button type="submit" size="sm" disabled={isOutOfStock || pending}>
+      <Button type="submit" size="sm" disabled={isOutOfStock || pending || isAdding}>
         <ShoppingCart className="h-4 w-4 mr-2" />
-        {isOutOfStock ? "Out of Stock" : pending ? "Adding..." : "Add to Cart"}
+        {isOutOfStock ? "Out of Stock" : (pending || isAdding) ? "Adding..." : "Add to Cart"}
       </Button>
     </form>
   )
@@ -169,6 +174,28 @@ function ProductDetails({ product, isFavorite, userId }: {
 
   const selectedColor = product.colors[selectedColorIndex] || product.colors[0]
 
+  // Handle image navigation
+  const handlePreviousImage = () => {
+    if (selectedColorIndex > 0) {
+      setSelectedColorIndex(selectedColorIndex - 1)
+    } else {
+      setSelectedColorIndex(product.colors.length - 1)
+    }
+  }
+
+  const handleNextImage = () => {
+    if (selectedColorIndex < product.colors.length - 1) {
+      setSelectedColorIndex(selectedColorIndex + 1)
+    } else {
+      setSelectedColorIndex(0)
+    }
+  }
+
+  // Handle color selection and update image
+  const handleColorSelect = (index: number) => {
+    setSelectedColorIndex(index)
+  }
+
   return (
     <div className="container py-8 px-4 sm:px-6 lg:px-8">
       {/* Breadcrumb */}
@@ -202,6 +229,28 @@ function ProductDetails({ product, isFavorite, userId }: {
               className="object-cover"
               priority
             />
+            
+            {/* Navigation Arrows */}
+            {product.colors.length > 1 && (
+              <>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-background/80 hover:bg-background/90 backdrop-blur-sm"
+                  onClick={handlePreviousImage}
+                >
+                  <ChevronLeft className="h-6 w-6" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-background/80 hover:bg-background/90 backdrop-blur-sm"
+                  onClick={handleNextImage}
+                >
+                  <ChevronRight className="h-6 w-6" />
+                </Button>
+              </>
+            )}
           </div>
 
           {/* Color Images */}
@@ -211,7 +260,7 @@ function ProductDetails({ product, isFavorite, userId }: {
                 <button
                   key={index}
                   className={`aspect-square relative overflow-hidden rounded border-2 ${selectedColorIndex === index ? "border-primary" : "border-muted"}`}
-                  onClick={() => setSelectedColorIndex(index)}
+                  onClick={() => handleColorSelect(index)}
                   aria-label={`Select ${color.name} color`}
                 >
                   <Image
@@ -272,7 +321,7 @@ function ProductDetails({ product, isFavorite, userId }: {
                     key={index}
                     className={`w-10 h-10 rounded-full border-2 ${selectedColorIndex === index ? "border-primary" : "border-muted"}`}
                     style={{ backgroundColor: color.hex }}
-                    onClick={() => setSelectedColorIndex(index)}
+                    onClick={() => handleColorSelect(index)}
                     aria-label={`Select ${color.name} color`}
                   />
                 ))}
