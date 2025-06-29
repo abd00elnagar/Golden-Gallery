@@ -14,7 +14,7 @@ export default async function HomePage() {
   )
   const categories: Category[] = await getCategories()
   const user = await getUser()
-  const favorites: string[] | null = user?.favorites?.map(fav => fav.productId || '').filter(Boolean) || null
+  const favorites: string[] | undefined = user?.favorites?.map(fav => fav.productId || '').filter(Boolean)
   
   const userId: string | undefined = user?.id || undefined
   // console.log(favorites)
