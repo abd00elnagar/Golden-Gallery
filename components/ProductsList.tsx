@@ -344,10 +344,10 @@ function ProductsList({ products, categories, favorites, userId, selectedCat }: 
                         }
                         return (
                             <ProductCard
-                                key={product.id}
-                                product={product}
-                                isFavorite={favorites ? favorites.includes(product.id) : false}
-                                userId={userId}
+                            key={product.id}
+                            product={product}
+                            isFavorite={favorites ? favorites.includes(product.id) : false}
+                            userId={userId}
                             />
                         )
                     })}

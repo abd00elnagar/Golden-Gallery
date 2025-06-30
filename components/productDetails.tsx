@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { Heart, ShoppingCart, ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react"
+import { Heart, ShoppingCart, ArrowLeft, ChevronLeft, ChevronRight, ShoppingBag, MessageCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
@@ -13,6 +13,8 @@ import { useActionState } from "react"
 import { useFormStatus } from "react-dom"
 import { toggleFavorite, addToCartAction } from "@/lib/actions"
 import type { Product } from "@/lib/types"
+import { useRouter } from "next/navigation"
+import { FaWhatsapp } from "react-icons/fa"
 
 function FavoriteButton({ productId, userId, isFavorite, productLikes, onLikesUpdate }: {
   productId: string;
@@ -153,6 +155,7 @@ function ProductDetails({ product, isFavorite, userId }: {
   const [selectedColorIndex, setSelectedColorIndex] = useState(0)
   const [currentLikes, setCurrentLikes] = useState(product?.likes || 0)
   const [quantity, setQuantity] = useState(1)
+  const router = useRouter();
 
   // Update likes when product changes
   useEffect(() => {
@@ -195,6 +198,12 @@ function ProductDetails({ product, isFavorite, userId }: {
   const handleColorSelect = (index: number) => {
     setSelectedColorIndex(index)
   }
+
+  const handleBuyNow = () => {
+    router.push(`/checkout?productId=${product.id}&quantity=${quantity}`)
+  }
+  const waMessage = encodeURIComponent(`Hello, I want to order:\n${product.name} - ${product.price} EGP\n${typeof window !== 'undefined' ? window.location.href : ''}`)
+  const waLink = `https://wa.me/201234567890?text=${waMessage}`
 
   return (
     <div className="container py-8 px-4 sm:px-6 lg:px-8">
@@ -332,7 +341,7 @@ function ProductDetails({ product, isFavorite, userId }: {
           {/* Quantity and Add to Cart */}
           <div>
             <h3 className="font-semibold mb-3">Quantity</h3>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 mb-4">
               <Button
                 variant="outline"
                 size="icon"
@@ -350,12 +359,38 @@ function ProductDetails({ product, isFavorite, userId }: {
               >
                 +
               </Button>
-              <AddToCartButton
-                productId={product.id}
-                userId={userId}
-                quantity={quantity}
-                isOutOfStock={product.stock === 0}
-              />
+              <div className="flex-1">
+                <AddToCartButton
+                  productId={product.id}
+                  userId={userId}
+                  quantity={quantity}
+                  isOutOfStock={product.stock === 0}
+                />
+              </div>
+            </div>
+
+            {/* Action Buttons: Buy Now & WhatsApp */}
+            <div className="flex flex-col sm:flex-row gap-3 w-full mt-2">
+              <Button
+                size="lg"
+                className="flex-1 bg-gradient-to-r from-yellow-500 to-yellow-600 text-white font-semibold shadow hover:from-yellow-600 hover:to-yellow-700 transition-colors duration-200"
+                onClick={handleBuyNow}
+                disabled={product.stock === 0}
+                type="button"
+              >
+                <ShoppingBag className="h-5 w-5 mr-2" />
+                Buy Now
+              </Button>
+              <a href={waLink} target="_blank" rel="noopener noreferrer" className="flex-1">
+                <Button
+                  size="lg"
+                  className="w-full bg-[#25D366] hover:bg-[#128C7E] text-white font-semibold shadow transition-colors duration-200 flex items-center justify-center"
+                  type="button"
+                >
+                  <FaWhatsapp className="h-5 w-5 mr-2" />
+                  WhatsApp
+                </Button>
+              </a>
             </div>
           </div>
 

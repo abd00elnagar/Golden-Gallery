@@ -1,15 +1,56 @@
 import nodemailer from 'nodemailer'
 
-// Email configuration
-const transporter = nodemailer.createTransporter({
-  service: 'gmail', // or your email service
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS, // Use app password for Gmail
-  },
-})
+// Function to get the website URL
+function getWebsiteUrl(): string {
+  // Try to get from environment variables first
+  const envUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_URL || process.env.APP_URL
+  
+  if (envUrl) {
+    // Ensure it has the correct protocol
+    if (envUrl.startsWith('http')) {
+      return envUrl
+    } else {
+      return `https://${envUrl}`
+    }
+  }
+  
+  // Fallback URLs for different environments
+  if (process.env.NODE_ENV === 'production') {
+    return 'https://goldengallery.com' // Replace with your actual domain
+  } else if (process.env.NODE_ENV === 'development') {
+    return 'http://localhost:3000'
+  }
+  
+  // Final fallback
+  return 'https://goldengallery.com'
+}
+
+// Email configuration with better error handling
+function createEmailTransport() {
+  const emailUser = process.env.EMAIL_USER
+  const emailPass = process.env.EMAIL_PASS
+
+  if (!emailUser || !emailPass) {
+    console.error('Email configuration missing: EMAIL_USER or EMAIL_PASS not set')
+    return null
+  }
+
+  try {
+    return nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: emailUser,
+        pass: emailPass, // Use app password for Gmail
+      },
+    })
+  } catch (error) {
+    console.error('Failed to create email transport:', error)
+    return null
+  }
+}
 
 interface OrderEmailData {
+  orderId: string
   orderNumber: string
   customerName: string
   customerEmail: string
@@ -23,11 +64,16 @@ interface OrderEmailData {
   tax: number
   total: number
   shippingAddress: string
+  shippingPhone: string
   estimatedDelivery: string
+  orderDate: string
+  status: string
+  baseUrl?: string // for generating the order link
 }
 
 export async function sendOrderConfirmationEmail(data: OrderEmailData) {
   const {
+    orderId,
     orderNumber,
     customerName,
     customerEmail,
@@ -37,21 +83,16 @@ export async function sendOrderConfirmationEmail(data: OrderEmailData) {
     tax,
     total,
     shippingAddress,
+    shippingPhone,
     estimatedDelivery,
+    orderDate,
+    status,
+    baseUrl
   } = data
 
-  const itemsHtml = items
-    .map(
-      (item) => `
-        <tr>
-          <td style="padding: 12px; border-bottom: 1px solid #eee;">${item.productName}</td>
-          <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: center;">${item.quantity}</td>
-          <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: right;">$${item.price.toFixed(2)}</td>
-          <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: right;">$${(item.price * item.quantity).toFixed(2)}</td>
-        </tr>
-      `
-    )
-    .join('')
+  // Use the dynamic URL function
+  const websiteUrl = baseUrl || getWebsiteUrl()
+  const orderLink = `${websiteUrl}/orders/${orderId}`
 
   const emailHtml = `
     <!DOCTYPE html>
@@ -60,81 +101,82 @@ export async function sendOrderConfirmationEmail(data: OrderEmailData) {
       <meta charset="utf-8">
       <title>Order Confirmation - Golden Gallery</title>
       <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: #f8f9fa; padding: 20px; text-align: center; border-radius: 8px; }
-        .order-details { background: #fff; padding: 20px; margin: 20px 0; border: 1px solid #ddd; border-radius: 8px; }
-        .items-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-        .items-table th { background: #f8f9fa; padding: 12px; text-align: left; border-bottom: 2px solid #ddd; }
-        .total-section { background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; }
-        .footer { text-align: center; margin-top: 30px; color: #666; font-size: 14px; }
+        body { background: #fff; margin: 0; padding: 0; font-family: Arial, sans-serif; color: #000 !important; }
+        .container { max-width: 480px; margin: 32px auto; background: #fff; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border: 1px solid #e3e8f0; overflow: hidden; color: #000 !important; }
+        .header { padding: 28px 24px 12px 24px; text-align: center; border-bottom: 1px solid #e3e8f0; color: #000 !important; }
+        .title { font-size: 22px; font-weight: 700; margin-bottom: 6px; color: #000 !important; }
+        .subtitle { color: #000 !important; font-size: 15px; margin-bottom: 0; }
+        .order-link { margin: 28px 0 18px 0; text-align: center; color: #000 !important; }
+        .order-link a { display: inline-block; background: #181818; color: #fff !important; text-decoration: none; font-weight: 600; padding: 12px 28px; border-radius: 5px; font-size: 16px; letter-spacing: 0.5px; border: none; transition: background 0.2s; }
+        .order-link a:hover { background: #333; }
+        .section { padding: 20px 24px 10px 24px; border-bottom: 1px solid #e3e8f0; color: #000 !important; }
+        .section:last-child { border-bottom: none; }
+        .section-title { font-size: 16px; font-weight: 600; margin-bottom: 10px; color: #000 !important; }
+        .info-table { width: 100%; margin-bottom: 0; color: #000 !important; }
+        .info-table td { padding: 5px 0; font-size: 15px; color: #000 !important; }
+        .total-section { background: #fafafa; padding: 18px 24px; border-radius: 7px; margin: 18px 0 0 0; border: 1px solid #e3e8f0; text-align: right; color: #000 !important; }
+        .total-label { font-size: 15px; color: #000 !important; }
+        .total-value { font-size: 20px; font-weight: 700; color: #000 !important; margin-left: 8px; }
+        .footer { text-align: center; margin-top: 24px; color: #000 !important; font-size: 14px; background: #fafafa; border-top: 1px solid #e3e8f0; border-radius: 0 0 10px 10px; padding: 18px 0 10px 0; }
+        ul, li, p, a, table, tr, td, th, span, div { color: #000 !important; }
+        @media (max-width: 650px) {
+          .container { max-width: 99vw; margin: 8px; padding: 0; }
+          .section, .header, .total-section { padding: 12px 6px; }
+          .order-link a { font-size: 15px; padding: 10px 12px; }
+        }
       </style>
     </head>
     <body>
       <div class="container">
         <div class="header">
-          <h1>🎨 Golden Gallery</h1>
-          <h2>Order Confirmation</h2>
-          <p>Thank you for your purchase!</p>
+          <div class="title">Order Confirmed</div>
+          <div class="subtitle">Thank you for shopping with Golden Gallery!</div>
         </div>
-
-        <div class="order-details">
-          <h3>Order Information</h3>
-          <p><strong>Order Number:</strong> ${orderNumber}</p>
-          <p><strong>Order Date:</strong> ${new Date().toLocaleDateString()}</p>
-          <p><strong>Estimated Delivery:</strong> ${estimatedDelivery}</p>
-          <p><strong>Payment Method:</strong> Cash on Delivery (COD)</p>
+        <div class="order-link">
+          <a href="${orderLink}">View Order Details</a>
         </div>
-
-        <div class="order-details">
-          <h3>Shipping Address</h3>
-          <p>${shippingAddress}</p>
-        </div>
-
-        <div class="order-details">
-          <h3>Order Items</h3>
-          <table class="items-table">
-            <thead>
-              <tr>
-                <th>Product</th>
-                <th style="text-align: center;">Qty</th>
-                <th style="text-align: right;">Price</th>
-                <th style="text-align: right;">Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${itemsHtml}
-            </tbody>
+        <div class="section">
+          <div class="section-title">Order Summary</div>
+          <table class="info-table">
+            <tr><td><strong>Status:</strong></td><td>${status || 'N/A'}</td></tr>
+            <tr><td><strong>Order Date:</strong></td><td>${orderDate || 'N/A'}</td></tr>
+            <tr><td><strong>Order Number:</strong></td><td>${orderNumber || 'N/A'}</td></tr>
           </table>
         </div>
-
-        <div class="total-section">
-          <h3>Order Summary</h3>
-          <p><strong>Subtotal:</strong> $${subtotal.toFixed(2)}</p>
-          <p><strong>Shipping:</strong> ${shipping === 0 ? 'Free' : `$${shipping.toFixed(2)}`}</p>
-          <p><strong>Tax:</strong> $${tax.toFixed(2)}</p>
-          <hr style="border: none; border-top: 1px solid #ddd; margin: 10px 0;">
-          <p style="font-size: 18px; font-weight: bold;"><strong>Total:</strong> $${total.toFixed(2)}</p>
+        <div class="section">
+          <div class="section-title">Shipping Info</div>
+          <table class="info-table">
+            <tr><td><strong>Address:</strong></td><td>${shippingAddress || 'N/A'}</td></tr>
+            <tr><td><strong>Phone:</strong></td><td>${shippingPhone || 'N/A'}</td></tr>
+          </table>
         </div>
-
-        <div class="order-details">
-          <h3>Important Information</h3>
-          <ul>
-            <li>Please ensure your phone number is correct for delivery coordination</li>
-            <li>Payment will be collected in cash upon delivery</li>
-            <li>You will receive a call from our delivery team before arrival</li>
-            <li>Please have the exact amount ready for payment</li>
+        <div class="total-section">
+          <h3 class="total-label">Total Cost:</h3>
+          <span class="total-value">  EGP ${total?.toFixed(2) ?? 'N/A'}</span>
+        </div>
+        <div class="section">
+          <div class="section-title">Important Notes</div>
+          <ul style="margin: 0 0 0 18px; font-size: 15px; color: #444;">
+            <li>Please ensure your phone number is correct for delivery coordination.</li>
+            <li>Payment will be collected in cash upon delivery.</li>
+            <li>You will receive a call from our delivery team before arrival.</li>
+            <li>Please have the exact amount ready for payment.</li>
           </ul>
         </div>
-
         <div class="footer">
-          <p>If you have any questions, please contact us at support@goldengallery.com</p>
-          <p>© 2024 Golden Gallery. All rights reserved.</p>
+          <div>Need help? <a href="https://wa.me/201234567890" style="color:#000;text-decoration:underline;">Contact us on WhatsApp</a></div>
+          <div style="margin-top: 8px;">© 2024 Golden Gallery. All rights reserved.</div>
         </div>
       </div>
     </body>
     </html>
   `
+
+  const transport = createEmailTransport()
+  if (!transport) {
+    console.error('Email transport not available')
+    return { success: false, error: 'Email service not configured' }
+  }
 
   const mailOptions = {
     from: process.env.EMAIL_USER,
@@ -144,11 +186,12 @@ export async function sendOrderConfirmationEmail(data: OrderEmailData) {
   }
 
   try {
-    await transporter.sendMail(mailOptions)
+    await transport.sendMail(mailOptions)
+    console.log(`Order confirmation email sent successfully to ${customerEmail}`)
     return { success: true }
   } catch (error) {
     console.error('Email sending failed:', error)
-    return { success: false, error: error.message }
+    return { success: false, error: (error as any).message }
   }
 }
 
@@ -164,6 +207,12 @@ export async function sendOrderStatusUpdateEmail(
     shipped: 'Your order has been shipped and is on its way to you.',
     delivered: 'Your order has been successfully delivered.',
     cancelled: 'Your order has been cancelled.',
+  }
+
+  const transport = createEmailTransport()
+  if (!transport) {
+    console.error('Email transport not available')
+    return { success: false, error: 'Email service not configured' }
   }
 
   const emailHtml = `
@@ -211,10 +260,10 @@ export async function sendOrderStatusUpdateEmail(
   }
 
   try {
-    await transporter.sendMail(mailOptions)
+    await transport.sendMail(mailOptions)
     return { success: true }
   } catch (error) {
     console.error('Email sending failed:', error)
-    return { success: false, error: error.message }
+    return { success: false, error: (error as any).message }
   }
 } 

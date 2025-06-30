@@ -1,51 +1,65 @@
-import Link from "next/link"
-import { CheckCircle, Download, Mail, Package } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
-import { Badge } from "@/components/ui/badge"
-import { getOrder } from "@/lib/actions"
-import { getUser } from "@/lib/auth"
-import { redirect } from "next/navigation"
+"use client";
+import Link from "next/link";
+import { CheckCircle, Download, Mail, Package } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
+import { useActionState } from "react";
+import { resendOrderEmailAction } from "../actions";
+import { useToast } from "@/hooks/use-toast";
 
-interface OrderConfirmationPageProps {
-  searchParams: { orderId?: string }
-}
-
-export default async function OrderConfirmationPage({ searchParams }: OrderConfirmationPageProps) {
-  const user = await getUser()
-  if (!user) {
-    redirect('/auth/signin')
-  }
-
-  const orderId = searchParams.orderId
-  if (!orderId) {
-    redirect('/')
-  }
-
-  const order = await getOrder(orderId)
-  if (!order || order.user_id !== user.id) {
-    redirect('/')
-  }
+export default function OrderDetailsClient({ order }: { order: any }) {
+  const { toast } = useToast();
+  const [resendState, resendAction] = useActionState(async (prev, formData) => {
+    const result = await resendOrderEmailAction(formData);
+    if (result.success) {
+      toast({ 
+        title: "Email Sent", 
+        description: "Order confirmation email has been resent successfully." 
+      });
+    } else {
+      toast({ 
+        title: "Email Failed", 
+        description: result.error || "Failed to resend email. Please check your email configuration.", 
+        variant: "destructive" 
+      });
+    }
+    return result;
+  }, null);
 
   // Calculate totals
-  const subtotal = order.items.reduce((sum, item) => sum + item.price * item.quantity, 0)
-  const shipping = subtotal > 100 ? 0 : 15
-  const tax = subtotal * 0.08
-  const total = order.total_amount
-
-  const estimatedDelivery = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString()
+  const subtotal = order.items.reduce((sum: number, item: any) => sum + item.price * item.quantity, 0);
+  const shipping = subtotal > 100 ? 0 : 15;
+  const tax = subtotal * 0.08;
+  const total = order.total_amount;
+  const estimatedDelivery = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString();
+  const orderDate = new Date(order.created_at);
+  const now = new Date();
+  const isRecent = (now.getTime() - orderDate.getTime()) < 7 * 24 * 60 * 60 * 1000;
 
   return (
     <div className="container py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">
         {/* Success Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
-            <CheckCircle className="h-8 w-8 text-green-600" />
-          </div>
-          <h1 className="text-3xl font-bold mb-2">Order Confirmed!</h1>
-          <p className="text-muted-foreground">Thank you for your purchase. Your order has been successfully placed.</p>
+          {isRecent ? (
+            <>
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
+                <CheckCircle className="h-8 w-8 text-green-600" />
+              </div>
+              <h1 className="text-3xl font-bold mb-2">Order Confirmed!</h1>
+              <p className="text-muted-foreground">Thank you for your purchase. Your order has been successfully placed.</p>
+            </>
+          ) : (
+            <>
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
+                <Package className="h-8 w-8 text-gray-600" />
+              </div>
+              <h1 className="text-3xl font-bold mb-2">Order Details</h1>
+              <p className="text-muted-foreground">This order was placed on {orderDate.toLocaleDateString()}.</p>
+            </>
+          )}
         </div>
 
         {/* Order Details */}
@@ -82,7 +96,7 @@ export default async function OrderConfirmationPage({ searchParams }: OrderConfi
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {order.items.map((item, index) => (
+              {order.items.map((item: any, index: number) => (
                 <div key={index} className="flex gap-4 p-4 border rounded-lg">
                   <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center">
                     {item.image ? (
@@ -167,14 +181,13 @@ export default async function OrderConfirmationPage({ searchParams }: OrderConfi
 
         {/* Actions */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Button variant="outline" disabled>
-            <Download className="h-4 w-4 mr-2" />
-            Download Receipt
-          </Button>
-          <Button variant="outline" disabled>
-            <Mail className="h-4 w-4 mr-2" />
-            Resend Email
-          </Button>
+          <form action={resendAction}>
+            <input type="hidden" name="orderId" value={order.id} />
+            <Button variant="outline" type="submit">
+              <Mail className="h-4 w-4 mr-2" />
+              Resend Email
+            </Button>
+          </form>
           <Button asChild>
             <Link href="/orders">View All Orders</Link>
           </Button>
@@ -219,5 +232,5 @@ export default async function OrderConfirmationPage({ searchParams }: OrderConfi
         </Card>
       </div>
     </div>
-  )
-}
+  );
+} 

@@ -46,6 +46,8 @@ export default function CheckoutForm({ user, cartItems }: CheckoutFormProps) {
   const tax = subtotal * 0.08
   const total = subtotal + shipping + tax
 
+  const isBuyNow = cartItems.length === 1 && !user.cart.some(item => item.productId === cartItems[0].productId)
+
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -73,6 +75,10 @@ export default function CheckoutForm({ user, cartItems }: CheckoutFormProps) {
       formData.append('governorate', '') // Empty for now
       formData.append('district', '') // Empty for now
       formData.append('village', '') // Empty for now
+      if (isBuyNow) {
+        formData.append('buyNow', '1')
+        formData.append('cartItems', JSON.stringify(cartItems))
+      }
 
       // Submit the form
       const result = await createOrderAction({ success: false, error: null }, formData)
@@ -82,7 +88,7 @@ export default function CheckoutForm({ user, cartItems }: CheckoutFormProps) {
           title: "Order placed successfully!",
           description: "You will receive a confirmation email shortly. Pay cash on delivery.",
         })
-        router.push(`/order-confirmation?orderId=${result.orderId}`)
+        router.push(`/orders/${result.orderId}`)
       } else {
         toast({
           title: "Order failed",
@@ -111,6 +117,7 @@ export default function CheckoutForm({ user, cartItems }: CheckoutFormProps) {
       </div>
 
       <form onSubmit={handleSubmit}>
+        {isBuyNow && <input type="hidden" name="buyNow" value="1" />}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">

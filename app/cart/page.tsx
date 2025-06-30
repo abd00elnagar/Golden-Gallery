@@ -14,7 +14,7 @@ export default async function CartPage() {
   const cartItems = await getUserCartItems(user.id)
 
   return (
-    <div className="container py-8 px-4 sm:px-6 lg:px-8">
+    <div className="w-full py-8 px-4 sm:px-6 lg:px-8">
       <h1 className="text-3xl font-bold mb-8">Shopping Cart</h1>
       <CartList cartItems={cartItems} />
     </div>

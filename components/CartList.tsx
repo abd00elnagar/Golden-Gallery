@@ -19,6 +19,7 @@ interface CartItem {
   image: string | null
   quantity: number
   stock: number
+  notFound?: boolean
 }
 
 function CartItemActions({ item, onUpdate, onRemove }: {
@@ -187,6 +188,80 @@ function CartItemActions({ item, onUpdate, onRemove }: {
   )
 }
 
+function NotFoundCartItem({ item, onRemove }: { item: CartItem, onRemove: (productId: string) => void }) {
+  const [isPending, startTransition] = useTransition()
+  const { toast } = useToast()
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+
+  const handleRemove = useCallback(() => {
+    setShowDeleteDialog(false)
+    onRemove(item.productId)
+    startTransition(async () => {
+      try {
+        const formData = new FormData()
+        formData.append('productId', item.productId)
+        const result = await removeFromCartAction(null, formData)
+        if (result?.error) {
+          toast({
+            title: "Error",
+            description: result.error,
+            variant: "destructive",
+          })
+        } else {
+          toast({
+            title: "Success",
+            description: result?.message || "Item removed",
+          })
+        }
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to remove item",
+          variant: "destructive",
+        })
+      }
+    })
+  }, [item.productId, onRemove, startTransition, toast])
+
+  return (
+    <Card className="border-dashed border-muted-foreground/20">
+      <CardContent className="p-4 flex items-center gap-4">
+        <div className="w-20 h-20 flex items-center justify-center bg-muted rounded-lg">
+          <span className="text-3xl">❓</span>
+        </div>
+        <div className="flex-1">
+          <h3 className="font-semibold text-muted-foreground">Product unavailable</h3>
+          <p className="text-sm text-muted-foreground">This product is no longer available.</p>
+        </div>
+        <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+          <DialogTrigger asChild>
+            <Button variant="ghost" size="icon" disabled={isPending}>
+              <Trash2 className="h-4 w-4" />
+              <span className="sr-only">Remove item</span>
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Remove Item</DialogTitle>
+              <DialogDescription>
+                Are you sure you want to remove this unavailable product from your cart?
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
+                Cancel
+              </Button>
+              <Button variant="destructive" onClick={handleRemove} disabled={isPending}>
+                Remove
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </CardContent>
+    </Card>
+  )
+}
+
 export default function CartList({ cartItems: initialCartItems }: { cartItems: CartItem[] }) {
   const [cartItems, setCartItems] = useState<CartItem[]>(initialCartItems)
 
@@ -206,14 +281,16 @@ export default function CartList({ cartItems: initialCartItems }: { cartItems: C
     setCartItems(items => items.filter(item => item.productId !== productId))
   }, [])
 
-  const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
+  // Only valid items for summary/checkout
+  const validCartItems = cartItems.filter(item => !item.notFound)
+  const subtotal = validCartItems.reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 0), 0)
   const shipping = subtotal > 100 ? 0 : 15
   const tax = subtotal * 0.08
   const total = subtotal + shipping + tax
 
   if (cartItems.length === 0) {
     return (
-      <div className="text-center max-w-md mx-auto">
+      <div className="text-center w-full mx-auto">
         <ShoppingBag className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
         <h1 className="text-2xl font-bold mb-2">Your cart is empty</h1>
         <p className="text-muted-foreground mb-6">Looks like you haven't added any items to your cart yet.</p>
@@ -229,29 +306,33 @@ export default function CartList({ cartItems: initialCartItems }: { cartItems: C
       {/* Cart Items */}
       <div className="lg:col-span-2 space-y-4">
         {cartItems.map((item) => (
-          <Card key={item.productId}>
-            <CardContent className="p-4">
-              <div className="flex gap-4">
-                <div className="relative w-20 h-20 rounded-lg overflow-hidden">
-                  <Image
-                    src={item.image || "/placeholder.svg"}
-                    alt={item.productName}
-                    fill
-                    className="object-cover"
+          item.notFound ? (
+            <NotFoundCartItem key={item.productId} item={item} onRemove={handleRemove} />
+          ) : (
+            <Card key={item.productId}>
+              <CardContent className="p-4">
+                <div className="flex gap-4">
+                  <div className="relative w-20 h-20 rounded-lg overflow-hidden">
+                    <Image
+                      src={item.image || "/placeholder.svg"}
+                      alt={item.productName || "Product"}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold">{item.productName || "Product"}</h3>
+                    <p className="text-lg font-bold mt-2">${item.price || 0}</p>
+                  </div>
+                  <CartItemActions 
+                    item={item}
+                    onUpdate={handleUpdateQuantity} 
+                    onRemove={handleRemove} 
                   />
                 </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold">{item.productName}</h3>
-                  <p className="text-lg font-bold mt-2">${item.price}</p>
-                </div>
-                <CartItemActions 
-                  item={item}
-                  onUpdate={handleUpdateQuantity} 
-                  onRemove={handleRemove} 
-                />
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )
         ))}
       </div>
 
@@ -263,7 +344,7 @@ export default function CartList({ cartItems: initialCartItems }: { cartItems: C
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex justify-between">
-              <span>Subtotal ({cartItems.length} items)</span>
+              <span>Subtotal ({validCartItems.length} items)</span>
               <span>${subtotal.toFixed(2)}</span>
             </div>
             <div className="flex justify-between">
@@ -280,7 +361,7 @@ export default function CartList({ cartItems: initialCartItems }: { cartItems: C
               <span>${total.toFixed(2)}</span>
             </div>
             {shipping > 0 && <p className="text-sm text-muted-foreground">Free shipping on orders over $100</p>}
-            <Button className="w-full" size="lg" asChild>
+            <Button className="w-full" size="lg" asChild disabled={validCartItems.length === 0}>
               <Link href="/checkout">Proceed to Checkout</Link>
             </Button>
             <Button variant="outline" className="w-full bg-transparent" asChild>
