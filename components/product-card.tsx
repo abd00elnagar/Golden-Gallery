@@ -166,23 +166,20 @@ export function ProductCard({ product, isFavorite, userId }: ProductCardProps) {
         onLikesUpdate={setCurrentLikes}
       />
       <div className="relative aspect-square overflow-hidden">
-        <Image
-          src={product.images?.[0]}
-          alt={product.name}
-          fill
-          className="object-cover transition-transform group-hover:scale-105"
-          priority
-        />
+        <Link href={`/product/${product.id}`} className="block w-full h-full">
+          <Image
+            src={product.images?.[0]}
+            alt={product.name}
+            fill
+            className="object-cover transition-transform group-hover:scale-105"
+            priority
+          />
+        </Link>
         {product.featured && (
           <Badge className="absolute top-2 left-2 bg-primary text-primary-foreground">
             Featured
           </Badge>
         )}
-        <Badge className="absolute top-2 right-12 w-8 h-8 p-0 bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center justify-center rounded-md">
-          <Link href={`/product/${product.id}`} className="flex items-center justify-center w-full h-full">
-            <ExternalLink className="h-4 w-4" />
-          </Link>
-        </Badge>
         {isOutOfStock && (
           <div className="absolute inset-0 bg-background/80 flex items-center justify-center">
             <Badge variant="secondary" className="text-lg">
@@ -193,9 +190,16 @@ export function ProductCard({ product, isFavorite, userId }: ProductCardProps) {
       </div>
 
       <CardContent className="p-4">
-        <h3 className="font-semibold text-lg mb-2 line-clamp-1 hover:text-primary transition-colors">
-          {product.name}
-        </h3>
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="font-semibold text-lg line-clamp-1 hover:text-primary transition-colors">
+            {product.name}
+          </h3>
+          <Link href={`/product/${product.id}`}>
+            <Badge className="w-8 h-8 p-0 bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center justify-center rounded-md">
+              <ExternalLink className="h-4 w-4" />
+            </Badge>
+          </Link>
+        </div>
         {product.category && (
           <Badge variant="outline" className="mb-2 text-xs">
             {product.category.name}

@@ -1,44 +1,40 @@
-"use client"
-
 import Link from "next/link"
 import { CheckCircle, Download, Mail, Package } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
-import { mockUser } from "@/lib/mock-data"
-import { useToast } from "@/hooks/use-toast"
+import { getOrder } from "@/lib/actions"
+import { getUser } from "@/lib/auth"
+import { redirect } from "next/navigation"
 
-export default function OrderConfirmationPage() {
-  const { toast } = useToast()
+interface OrderConfirmationPageProps {
+  searchParams: { orderId?: string }
+}
 
-  // Mock order data
-  const orderData = {
-    orderNumber: "ORD-2024-001234",
-    date: new Date().toLocaleDateString(),
-    estimatedDelivery: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString(),
-    items: mockUser.cart,
-    subtotal: mockUser.cart.reduce((sum, item) => sum + item.price * item.quantity, 0),
-    shipping: 0,
-    tax: mockUser.cart.reduce((sum, item) => sum + item.price * item.quantity, 0) * 0.08,
-    total: mockUser.cart.reduce((sum, item) => sum + item.price * item.quantity, 0) * 1.08,
-    shippingAddress: "123 Main Street, New York, NY 10001",
-    paymentMethod: "•••• •••• •••• 1234",
+export default async function OrderConfirmationPage({ searchParams }: OrderConfirmationPageProps) {
+  const user = await getUser()
+  if (!user) {
+    redirect('/auth/signin')
   }
 
-  const handleDownloadReceipt = () => {
-    toast({
-      title: "Download started",
-      description: "Your receipt is being downloaded.",
-    })
+  const orderId = searchParams.orderId
+  if (!orderId) {
+    redirect('/')
   }
 
-  const handleResendEmail = () => {
-    toast({
-      title: "Email sent",
-      description: "Confirmation email has been resent to your email address.",
-    })
+  const order = await getOrder(orderId)
+  if (!order || order.user_id !== user.id) {
+    redirect('/')
   }
+
+  // Calculate totals
+  const subtotal = order.items.reduce((sum, item) => sum + item.price * item.quantity, 0)
+  const shipping = subtotal > 100 ? 0 : 15
+  const tax = subtotal * 0.08
+  const total = order.total_amount
+
+  const estimatedDelivery = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString()
 
   return (
     <div className="container py-8 px-4 sm:px-6 lg:px-8">
@@ -61,19 +57,19 @@ export default function OrderConfirmationPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <p className="text-sm text-muted-foreground">Order Number</p>
-                <p className="font-medium">{orderData.orderNumber}</p>
+                <p className="font-medium">{order.order_number}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Order Date</p>
-                <p className="font-medium">{orderData.date}</p>
+                <p className="font-medium">{new Date(order.created_at).toLocaleDateString()}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Estimated Delivery</p>
-                <p className="font-medium">{orderData.estimatedDelivery}</p>
+                <p className="font-medium">{estimatedDelivery}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Status</p>
-                <Badge variant="secondary">Processing</Badge>
+                <Badge variant="secondary" className="capitalize">{order.status}</Badge>
               </div>
             </div>
           </CardContent>
@@ -86,14 +82,24 @@ export default function OrderConfirmationPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {orderData.items.map((item) => (
-                <div key={`${item.product_id}-${item.color_id}`} className="flex gap-4 p-4 border rounded-lg">
+              {order.items.map((item, index) => (
+                <div key={index} className="flex gap-4 p-4 border rounded-lg">
                   <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center">
-                    <Package className="h-6 w-6 text-muted-foreground" />
+                    {item.image ? (
+                      <img 
+                        src={item.image} 
+                        alt={item.product_name}
+                        className="w-full h-full object-cover rounded-lg"
+                      />
+                    ) : (
+                      <Package className="h-6 w-6 text-muted-foreground" />
+                    )}
                   </div>
                   <div className="flex-1">
                     <h4 className="font-medium">{item.product_name}</h4>
-                    <p className="text-sm text-muted-foreground">Color: {item.color_name}</p>
+                    {item.color_name && (
+                      <p className="text-sm text-muted-foreground">Color: {item.color_name}</p>
+                    )}
                     <p className="text-sm">Quantity: {item.quantity}</p>
                   </div>
                   <div className="text-right">
@@ -115,20 +121,20 @@ export default function OrderConfirmationPage() {
             <div className="space-y-2">
               <div className="flex justify-between">
                 <span>Subtotal</span>
-                <span>${orderData.subtotal.toFixed(2)}</span>
+                <span>${subtotal.toFixed(2)}</span>
               </div>
               <div className="flex justify-between">
                 <span>Shipping</span>
-                <span>{orderData.shipping === 0 ? "Free" : `$${orderData.shipping.toFixed(2)}`}</span>
+                <span>{shipping === 0 ? "Free" : `$${shipping.toFixed(2)}`}</span>
               </div>
               <div className="flex justify-between">
                 <span>Tax</span>
-                <span>${orderData.tax.toFixed(2)}</span>
+                <span>${tax.toFixed(2)}</span>
               </div>
               <Separator />
               <div className="flex justify-between font-bold text-lg">
                 <span>Total</span>
-                <span>${orderData.total.toFixed(2)}</span>
+                <span>${total.toFixed(2)}</span>
               </div>
             </div>
           </CardContent>
@@ -141,7 +147,8 @@ export default function OrderConfirmationPage() {
               <CardTitle>Shipping Address</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm">{orderData.shippingAddress}</p>
+              <p className="text-sm">{order.shipping_address}</p>
+              <p className="text-sm text-muted-foreground mt-1">Phone: {order.shipping_phone}</p>
             </CardContent>
           </Card>
 
@@ -150,18 +157,21 @@ export default function OrderConfirmationPage() {
               <CardTitle>Payment Method</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm">Credit Card ending in {orderData.paymentMethod}</p>
+              <p className="text-sm capitalize">{order.payment_method}</p>
+              {order.payment_method === 'cod' && (
+                <p className="text-sm text-muted-foreground mt-1">Pay cash on delivery</p>
+              )}
             </CardContent>
           </Card>
         </div>
 
         {/* Actions */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Button onClick={handleDownloadReceipt} variant="outline">
+          <Button variant="outline" disabled>
             <Download className="h-4 w-4 mr-2" />
             Download Receipt
           </Button>
-          <Button onClick={handleResendEmail} variant="outline">
+          <Button variant="outline" disabled>
             <Mail className="h-4 w-4 mr-2" />
             Resend Email
           </Button>
@@ -201,7 +211,7 @@ export default function OrderConfirmationPage() {
                 </div>
                 <div>
                   <p className="font-medium">Delivery</p>
-                  <p className="text-muted-foreground">Your order will arrive by {orderData.estimatedDelivery}.</p>
+                  <p className="text-muted-foreground">Your order will arrive by {estimatedDelivery}.</p>
                 </div>
               </div>
             </div>

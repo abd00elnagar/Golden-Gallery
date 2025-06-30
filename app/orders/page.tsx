@@ -1,15 +1,12 @@
-"use client"
-
-import { useState } from "react"
 import Link from "next/link"
 import { Eye, Download, Mail, Package, Truck, CheckCircle, XCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { mockOrders } from "@/lib/mock-data"
-import type { Order } from "@/lib/types"
-import { useToast } from "@/hooks/use-toast"
+import { getUserOrders } from "@/lib/actions"
+import { getUser } from "@/lib/auth"
+import { redirect } from "next/navigation"
 
 const statusIcons = {
   pending: Package,
@@ -27,23 +24,13 @@ const statusColors = {
   cancelled: "destructive",
 } as const
 
-export default function OrdersPage() {
-  const [orders] = useState<Order[]>(mockOrders)
-  const { toast } = useToast()
-
-  const handleResendEmail = (orderNumber: string) => {
-    toast({
-      title: "Email sent",
-      description: `Confirmation email for order ${orderNumber} has been resent.`,
-    })
+export default async function OrdersPage() {
+  const user = await getUser()
+  if (!user) {
+    redirect('/auth/signin')
   }
 
-  const handleDownloadInvoice = (orderNumber: string) => {
-    toast({
-      title: "Download started",
-      description: `Invoice for order ${orderNumber} is being downloaded.`,
-    })
-  }
+  const orders = await getUserOrders(user.id)
 
   return (
     <div className="container py-8 px-4 sm:px-6 lg:px-8">
@@ -131,14 +118,24 @@ export default function OrdersPage() {
                             <div>
                               <h3 className="font-semibold mb-3">Items ({order.items.length})</h3>
                               <div className="space-y-3">
-                                {order.items.map((item) => (
-                                  <div key={item.id} className="flex gap-3 p-3 border rounded-lg">
+                                {order.items.map((item, index) => (
+                                  <div key={index} className="flex gap-3 p-3 border rounded-lg">
                                     <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center">
-                                      <Package className="h-6 w-6 text-muted-foreground" />
+                                      {item.image ? (
+                                        <img 
+                                          src={item.image} 
+                                          alt={item.product_name}
+                                          className="w-full h-full object-cover rounded-lg"
+                                        />
+                                      ) : (
+                                        <Package className="h-6 w-6 text-muted-foreground" />
+                                      )}
                                     </div>
                                     <div className="flex-1">
                                       <h4 className="font-medium">{item.product_name}</h4>
-                                      <p className="text-sm text-muted-foreground">Color: {item.color_name}</p>
+                                      {item.color_name && (
+                                        <p className="text-sm text-muted-foreground">Color: {item.color_name}</p>
+                                      )}
                                       <p className="text-sm">Quantity: {item.quantity}</p>
                                     </div>
                                     <div className="text-right">
@@ -155,7 +152,7 @@ export default function OrdersPage() {
                               <h3 className="font-semibold mb-3">Shipping Information</h3>
                               <div className="p-3 border rounded-lg space-y-1">
                                 <p className="text-sm">{order.shipping_address}</p>
-                                <p className="text-sm">{order.shipping_phone}</p>
+                                <p className="text-sm">Phone: {order.shipping_phone}</p>
                               </div>
                             </div>
 
@@ -167,19 +164,19 @@ export default function OrdersPage() {
                                   <span>Total</span>
                                   <span>${order.total_amount.toFixed(2)}</span>
                                 </div>
-                                <p className="text-sm text-muted-foreground">Paid via {order.payment_method}</p>
+                                <p className="text-sm text-muted-foreground capitalize">Paid via {order.payment_method}</p>
                               </div>
                             </div>
                           </div>
                         </DialogContent>
                       </Dialog>
 
-                      <Button variant="outline" size="sm" onClick={() => handleResendEmail(order.order_number)}>
+                      <Button variant="outline" size="sm" disabled>
                         <Mail className="h-4 w-4 mr-2" />
                         Resend Email
                       </Button>
 
-                      <Button variant="outline" size="sm" onClick={() => handleDownloadInvoice(order.order_number)}>
+                      <Button variant="outline" size="sm" disabled>
                         <Download className="h-4 w-4 mr-2" />
                         Invoice
                       </Button>

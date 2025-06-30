@@ -4,32 +4,14 @@ import { supabaseClient, createServerClient } from "@/lib/supabase";
 import type { Database } from "./supabase";
 import { getServerSession } from "next-auth";
 import { authOptions, getUser } from "./auth";
-import { createClient } from "@/lib/supabase";
 import { Category } from "./types";
+import { sendOrderConfirmationEmail } from './email'
+import type { User } from './types';
 
-// Helper function to get current authenticated user
-async function getCurrentUser() {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return null;
-    }
-    return session.user as {
-      id: string;
-      role?: string;
-      name?: string;
-      email?: string;
-      image?: string;
-    };
-  } catch (error) {
-    console.error("Error getting current user:", error);
-    return null;
-  }
-}
 
 // Helper function to check if user is admin
 async function isCurrentUserAdmin() {
-  const user = await getCurrentUser();
+  const user = await getUser();
   return user?.role === "admin";
 }
 
@@ -44,7 +26,6 @@ export type Product = Database["public"]["Tables"]["products"]["Row"] & {
   category?: Database["public"]["Tables"]["categories"]["Row"];
 };
 
-export type User = Database["public"]["Tables"]["users"]["Row"];
 export type Order = Database["public"]["Tables"]["orders"]["Row"] & {
   user?: Database["public"]["Tables"]["users"]["Row"];
 };
@@ -283,7 +264,7 @@ export async function addToCart(
   quantity: number = 1
 ): Promise<boolean> {
   // Authentication wall - users can only modify their own cart
-  const currentUser = await getCurrentUser();
+  const currentUser = await getUser();
   if (!currentUser || currentUser.id !== userId) {
     console.error("Unauthorized attempt to modify cart");
     return false;
@@ -319,7 +300,7 @@ export async function removeFromCart(
   productId: string
 ): Promise<boolean> {
   // Authentication wall - users can only modify their own cart
-  const currentUser = await getCurrentUser();
+  const currentUser = await getUser();
   if (!currentUser || currentUser.id !== userId) {
     console.error("Unauthorized attempt to modify cart");
     return false;
@@ -351,7 +332,7 @@ export async function updateCartQuantity(
   quantity: number
 ): Promise<boolean> {
   // Authentication wall - users can only modify their own cart
-  const currentUser = await getCurrentUser();
+  const currentUser = await getUser();
   if (!currentUser || currentUser.id !== userId) {
     console.error("Unauthorized attempt to modify cart");
     return false;
@@ -387,7 +368,7 @@ export async function addToFavorites(
   productId: string
 ): Promise<boolean> {
   // Authentication wall - users can only modify their own favorites
-  const currentUser = await getCurrentUser();
+  const currentUser = await getUser();
   if (!currentUser || currentUser.id !== userId) {
     console.error("Unauthorized attempt to modify favorites");
     return false;
@@ -424,7 +405,7 @@ export async function removeFromFavorites(
   productId: string
 ): Promise<boolean> {
   // Authentication wall - users can only modify their own favorites
-  const currentUser = await getCurrentUser();
+  const currentUser = await getUser();
   if (!currentUser || currentUser.id !== userId) {
     console.error("Unauthorized attempt to modify favorites");
     return false;
@@ -486,7 +467,7 @@ export async function addToFavoritesServerAction(
   productId: string
 ): Promise<boolean> {
   // Authentication wall - users can only modify their own favorites
-  const currentUser = await getCurrentUser();
+  const currentUser = await getUser();
   if (!currentUser || currentUser.id !== userId) {
     console.error("Unauthorized attempt to modify favorites");
     return false;
@@ -518,7 +499,7 @@ export async function removeFromFavoritesServerAction(
   productId: string
 ): Promise<boolean> {
   // Authentication wall - users can only modify their own favorites
-  const currentUser = await getCurrentUser();
+  const currentUser = await getUser();
   if (!currentUser || currentUser.id !== userId) {
     console.error("Unauthorized attempt to modify favorites");
     return false;
@@ -568,7 +549,7 @@ export async function getOrders(): Promise<Order[]> {
 
 export async function getOrder(id: string): Promise<Order | null> {
   // Authentication wall - users can only view their own orders, admins can view any order
-  const currentUser = await getCurrentUser();
+  const currentUser = await getUser();
   if (!currentUser) {
     console.error("Unauthorized attempt to view order");
     return null;
@@ -597,7 +578,7 @@ export async function getOrder(id: string): Promise<Order | null> {
 
 export async function getUserOrders(userId: string): Promise<Order[]> {
   // Authentication wall - users can only view their own orders
-  const currentUser = await getCurrentUser();
+  const currentUser = await getUser();
   if (!currentUser || currentUser.id !== userId) {
     console.error("Unauthorized attempt to view user orders");
     return [];
@@ -621,7 +602,7 @@ export async function createOrder(
   orderData: Database["public"]["Tables"]["orders"]["Insert"]
 ): Promise<Order | null> {
   // Authentication wall - users can only create orders for themselves
-  const currentUser = await getCurrentUser();
+  const currentUser = await getUser();
   if (!currentUser || currentUser.id !== orderData.user_id) {
     console.error("Unauthorized attempt to create order");
     return null;
@@ -690,7 +671,7 @@ export async function updateUserProfile(
   updates: Partial<Database["public"]["Tables"]["users"]["Update"]>
 ): Promise<boolean> {
   // Authentication wall - users can only update their own profile
-  const currentUser = await getCurrentUser();
+  const currentUser = await getUser();
   if (!currentUser || currentUser.id !== userId) {
     console.error("Unauthorized attempt to update user profile");
     return false;
@@ -710,7 +691,7 @@ export async function updateUserProfile(
 
 export async function isAdmin(userId: string): Promise<boolean> {
   // Authentication wall - users can only check their own admin status
-  const currentUser = await getCurrentUser();
+  const currentUser = await getUser();
   if (!currentUser || currentUser.id !== userId) {
     console.error("Unauthorized attempt to check admin status");
     return false;
@@ -775,12 +756,12 @@ export async function toggleFavorite(prevState: any, formData: FormData) {
 
     // Update product likes count (skip if product doesn't exist)
     const { data: product, error: productError } = await serverClient.from("products").select("likes").eq("id", productId).single()
-    
+
     if (productError) {
       // If product doesn't exist, just update user favorites without updating product likes
       console.log("Product not found, skipping likes update for product:", productId)
-      return { 
-        success: true, 
+      return {
+        success: true,
         isFavorite: !isFavorite,
         likes: 0, // Product doesn't exist, so likes is 0
         message: isFavorite ? "Removed from favorites" : "Added to favorites"
@@ -789,8 +770,8 @@ export async function toggleFavorite(prevState: any, formData: FormData) {
 
     if (!product) {
       // Product doesn't exist, just update user favorites
-      return { 
-        success: true, 
+      return {
+        success: true,
         isFavorite: !isFavorite,
         likes: 0,
         message: isFavorite ? "Removed from favorites" : "Added to favorites"
@@ -1029,5 +1010,90 @@ export async function removeFromCartAction(prevState: any, formData: FormData) {
   } catch (error) {
     console.error("Remove from cart error:", error);
     return { error: "An error occurred while removing item from cart" };
+  }
+}
+
+export async function createOrderAction(prevState: any, formData: FormData) {
+  try {
+    const user = await getUser()
+    if (!user){
+      return({error: "User not authenticated"})
+    }
+
+    // Extract shipping and order info from formData
+    const firstName = formData.get('firstName') as string;
+    const lastName = formData.get('lastName') as string;
+    const email = formData.get('email') as string;
+    const phone = formData.get('phone') as string;
+    const address = formData.get('address') as string;
+
+    // Get cart items
+    const cartItems = await getUserCartItems(user && user.id);
+    if (!cartItems.length) return { error: 'Cart is empty' };
+
+    // Calculate totals
+    const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const shipping = subtotal > 100 ? 0 : 15;
+    const tax = subtotal * 0.08;
+    const total = subtotal + shipping + tax;
+
+    // Create order object
+    const orderData = {
+      user_id: user && user.id,
+      order_number: `ORD-${Date.now()}`,
+      status: 'processing' as 'processing',
+      payment_method: 'cod' as 'cod',
+      shipping_address: address,
+      shipping_phone: phone,
+      total_amount: total,
+      items: cartItems.map(item => ({
+        product_id: item.productId,
+        product_name: item.productName,
+        quantity: item.quantity,
+        price: item.price,
+        image: item.image,
+        color_name: item.color_name || '',
+      })),
+      created_at: new Date().toISOString(),
+    };
+
+    // Save order in DB
+    const order = await createOrder(orderData);
+    if (!order) return { error: 'Failed to create order' };
+
+    // Clear user's cart
+    const serverClient = createServerClient();
+    await serverClient.from('users').update({ 
+      cart: [], 
+      orders: [...(user.orders || []), order.id] 
+    }).eq('id', user.id);
+
+    // Send confirmation email
+    // try {
+    //   await sendOrderConfirmationEmail({
+    //     orderNumber: order.order_number,
+    //     customerName: `${firstName} ${lastName}`,
+    //     customerEmail: email,
+    //     items: cartItems.map(item => ({
+    //       productName: item.productName,
+    //       quantity: item.quantity,
+    //       price: item.price,
+    //     })),
+    //     subtotal,
+    //     shipping,
+    //     tax,
+    //     total,
+    //     shippingAddress: orderData.shipping_address,
+    //     estimatedDelivery: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString(),
+    //   });
+    // } catch (emailError) {
+    //   console.error('Failed to send confirmation email:', emailError);
+    //   // Don't fail the order if email fails
+    // }
+
+    return { success: true, orderId: order.id };
+  } catch (error: any) {
+    console.error('Order creation error:', error);
+    return { error: error.message || 'Order failed' };
   }
 }
