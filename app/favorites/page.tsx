@@ -24,14 +24,14 @@ export default async function FavoritesPage() {
     })
   )
   const categories: Category[] = (await getCategories()).filter((cat) => keep.includes(cat.id))
-  console.log(categories)
+  // console.log(categories)
   if (!user) {
     return (
       <SignInPage /> 
     )
   }
   return (
-    <div className="container py-8 px-4 sm:px-6 lg:px-8">
+    <div className="w-full py-8 px-4 sm:px-6 lg:px-8">
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-3xl font-bold">My Favorites</h1>
