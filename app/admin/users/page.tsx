@@ -23,87 +23,20 @@ import { createServerClient } from "@/lib/supabase";
 import UserDetails from "./UserDetails";
 import UsersTableSkeleton from "./loading";
 import SearchUsers from "./SearchUsers";
+import { getAllUsers } from "@/lib/auth";
+import { exportUsersAction } from "./actions";
 
-async function getUsers(query?: string) {
-  const supabase = createServerClient();
-  let userQuery = supabase
-    .from("users")
-    .select("*")
-    .order("created_at", { ascending: false });
+async function getFilteredUsers(query?: string) {
+  const users = await getAllUsers();
 
-  // Apply search filter if query exists
-  if (query) {
-    userQuery = userQuery.or(
-      `name.ilike.%${query}%,email.ilike.%${query}%,phone.ilike.%${query}%`
-    );
-  }
+  if (!query) return users;
 
-  const { data: users, error } = await userQuery;
-
-  if (error) {
-    console.error("Error fetching users:", error);
-    return [];
-  }
-
-  return users;
-}
-
-async function exportUsersAction() {
-  "use server";
-
-  const supabase = createServerClient();
-  const { data: users, error } = await supabase
-    .from("users")
-    .select("*")
-    .order("created_at", { ascending: false });
-
-  if (error) {
-    console.error("Error fetching users:", error);
-    return null;
-  }
-
-  // Create CSV content with styling
-  const csvRows = [
-    // Headers with background color
-    [
-      "ID",
-      "Name",
-      "Email",
-      "Phone",
-      "Address",
-      "Created At",
-      "Orders Count",
-      "Favorites Count",
-      "Cart Items Count",
-    ].join(","),
-    // Data rows
-    ...users.map((user) =>
-      [
-        user.id,
-        `"${user.name || "Anonymous User"}"`,
-        `"${user.email}"`,
-        `"${user.phone || "Not provided"}"`,
-        `"${user.address || "Not provided"}"`,
-        new Date(user.created_at).toLocaleDateString(),
-        user.orders?.length || 0,
-        user.favorites?.length || 0,
-        user.cart?.length || 0,
-      ].join(",")
-    ),
-  ].join("\n");
-
-  // Add Excel styling
-  const excelContent = `sep=,\n${csvRows}`;
-
-  // Create headers for Excel with UTF-8 BOM for proper character encoding
-  const headers = new Headers();
-  headers.set("Content-Type", "text/csv; charset=utf-8");
-  headers.set(
-    "Content-Disposition",
-    `attachment; filename="users-${new Date().toISOString().split("T")[0]}.csv"`
+  const searchTerm = query.toLowerCase();
+  return users.filter(
+    (user) =>
+      user.name?.toLowerCase().includes(searchTerm) ||
+      user.email?.toLowerCase().includes(searchTerm)
   );
-
-  return new Response("\ufeff" + excelContent, { headers });
 }
 
 export default async function AdminUsersPage({
@@ -111,7 +44,7 @@ export default async function AdminUsersPage({
 }: {
   searchParams?: { q?: string };
 }) {
-  const users = await getUsers(searchParams?.q);
+  const users = await getFilteredUsers(searchParams?.q);
 
   return (
     <div className="container py-8 px-4 sm:px-6 lg:px-8">
