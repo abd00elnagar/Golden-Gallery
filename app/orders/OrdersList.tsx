@@ -41,8 +41,8 @@ export default function OrdersList({ orders }: { orders: Order[] }) {
   }, null);
 
   return (
-    <div className="container py-8 px-4 sm:px-6 lg:px-8">
-      <div className="flex justify-between items-center mb-8">
+    <div className="w-full max-w-5xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+      <div className="flex flex-col items-center text-center mb-8">
         <div>
           <h1 className="text-3xl font-bold">My Orders</h1>
           <p className="text-muted-foreground">Track and manage your orders</p>
@@ -50,7 +50,7 @@ export default function OrdersList({ orders }: { orders: Order[] }) {
       </div>
 
       {orders.length === 0 ? (
-        <Card>
+        <Card className="max-w-2xl mx-auto">
           <CardContent className="text-center py-12">
             <Package className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
             <h2 className="text-xl font-semibold mb-2">No orders yet</h2>
@@ -61,7 +61,7 @@ export default function OrdersList({ orders }: { orders: Order[] }) {
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-6 max-w-4xl mx-auto">
           {orders.map((order) => {
             const StatusIcon = statusIcons[order.status]
             return (
@@ -101,16 +101,16 @@ export default function OrdersList({ orders }: { orders: Order[] }) {
                     <div className="flex flex-col sm:flex-row gap-2">
                       <Button asChild variant="outline" size="sm">
                         <Link href={`/orders/${order.id}`}>
-                            <Eye className="h-4 w-4 mr-2" />
-                            View Details
+                          <Eye className="h-4 w-4 mr-2" />
+                          View Details
                         </Link>
-                          </Button>
+                      </Button>
                       <form action={resendAction}>
                         <input type="hidden" name="orderId" value={order.id} />
                         <Button variant="outline" size="sm" type="submit">
-                        <Mail className="h-4 w-4 mr-2" />
-                        Resend Email
-                      </Button>
+                          <Mail className="h-4 w-4 mr-2" />
+                          Resend Email
+                        </Button>
                       </form>
                     </div>
                   </div>

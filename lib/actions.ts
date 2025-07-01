@@ -5,9 +5,11 @@ import type { Database } from "./supabase";
 import { getServerSession } from "next-auth";
 import { authOptions, getUser } from "./auth";
 import { Category } from "./types";
-import { sendOrderConfirmationEmail } from './email'
-import type { User } from './types';
-
+import {
+  sendOrderConfirmationEmail,
+  sendOrderStatusUpdateEmail,
+} from "./email";
+import type { User } from "./types";
 
 // Helper function to check if user is admin
 async function isCurrentUserAdmin() {
@@ -41,8 +43,8 @@ export async function uploadImage(
     const { data, error } = await serverClient.storage
       .from("images")
       .upload(filePath, file, {
-      cacheControl: "3600",
-      upsert: false,
+        cacheControl: "3600",
+        upsert: false,
       });
     if (error) return null;
     const { data: urlData } = serverClient.storage
@@ -237,23 +239,62 @@ export async function updateCategory(
   }
 }
 
-export async function deleteCategory(id: string): Promise<boolean> {
+export async function getCategoryProductCount(id: string): Promise<number> {
+  const serverClient = createServerClient();
+  try {
+    const { count, error } = await serverClient
+      .from("products")
+      .select("*", { count: "exact", head: true })
+      .eq("category_id", id);
+
+    if (error) {
+      console.error("Error counting products in category:", error);
+      return 0;
+    }
+
+    return count || 0;
+  } catch (error) {
+    console.error("Exception counting products in category:", error);
+    return 0;
+  }
+}
+
+export async function deleteCategory(
+  id: string
+): Promise<{ success: boolean; error?: string }> {
   // Authentication wall - only admins can delete categories
   const isAdmin = await isCurrentUserAdmin();
   if (!isAdmin) {
     console.error("Unauthorized attempt to delete category");
-    return false;
+    return { success: false, error: "Unauthorized" };
   }
 
   const serverClient = createServerClient();
   try {
+    // Check for products in the category
+    const productCount = await getCategoryProductCount(id);
+    if (productCount > 0) {
+      return {
+        success: false,
+        error: `Cannot delete category: ${productCount} product(s) are using this category. Please move or delete the products first.`,
+      };
+    }
+
+    // If no products, proceed with deletion
     const { error } = await serverClient
       .from("categories")
       .delete()
       .eq("id", id);
-    return !error;
-  } catch {
-    return false;
+
+    if (error) {
+      console.error("Error deleting category:", error);
+      return { success: false, error: "Failed to delete category" };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error("Exception deleting category:", error);
+    return { success: false, error: "An unexpected error occurred" };
   }
 }
 
@@ -563,13 +604,13 @@ export async function getOrder(id: string): Promise<Order | null> {
       .eq("id", id)
       .single();
     if (error) return null;
-    
+
     // Check if user is admin or owns the order
     if (currentUser.role !== "admin" && data.user_id !== currentUser.id) {
       console.error("Unauthorized attempt to view order");
       return null;
     }
-    
+
     return data;
   } catch {
     return null;
@@ -635,15 +676,49 @@ export async function updateOrderStatus(
 
   const serverClient = createServerClient();
   try {
-    const { data, error } = await serverClient
+    // First get the order to get user details
+    const { data: order, error: orderError } = await serverClient
+      .from("orders")
+      .select("*, user:user_id(*)")
+      .eq("id", id)
+      .single();
+
+    if (orderError || !order) {
+      console.error("Error fetching order:", orderError);
+      return null;
+    }
+
+    // Update the order status
+    const { data: updatedOrder, error: updateError } = await serverClient
       .from("orders")
       .update({ status })
       .eq("id", id)
       .select()
       .single();
-    if (error) return null;
-    return data;
-  } catch {
+
+    if (updateError) {
+      console.error("Error updating order status:", updateError);
+      return null;
+    }
+
+    // Send email notification to the user
+    if (order.user && order.user.email) {
+      try {
+        await sendOrderStatusUpdateEmail(
+          order.user.email,
+          order.user.name || "Valued Customer",
+          order.order_number,
+          status
+        );
+      } catch (emailError) {
+        console.error("Failed to send status update email:", emailError);
+        // Don't fail the update if email fails
+      }
+    }
+
+    return updatedOrder;
+  } catch (error) {
+    console.error("Error in updateOrderStatus:", error);
     return null;
   }
 }
@@ -716,17 +791,17 @@ export async function toggleFavorite(prevState: any, formData: FormData) {
   const productId = formData.get("productId") as string;
   const isFavorite = formData.get("isFavorite") === "true";
   const user = await getUser();
-  
+
   if (!user || !productId) {
     return { error: "Missing user or product information" };
   }
 
   try {
     const serverClient = createServerClient();
-    
+
     // console.log("Current user favorites:", user.favorites)
     let favorites = user.favorites || [];
-    
+
     if (isFavorite) {
       // Remove from favorites
       favorites = favorites.filter((fav: any) => fav.productId !== productId);
@@ -747,25 +822,31 @@ export async function toggleFavorite(prevState: any, formData: FormData) {
       .from("users")
       .update({ favorites })
       .eq("id", user.id);
-    
+
     if (updateUserError) {
       console.error("Update user error:", updateUserError);
       return { error: "Failed to update favorites" };
     }
 
-
     // Update product likes count (skip if product doesn't exist)
-    const { data: product, error: productError } = await serverClient.from("products").select("likes").eq("id", productId).single()
-    
+    const { data: product, error: productError } = await serverClient
+      .from("products")
+      .select("likes")
+      .eq("id", productId)
+      .single();
+
     if (productError) {
       // If product doesn't exist, just update user favorites without updating product likes
-      console.log("Product not found, skipping likes update for product:", productId)
+      console.log(
+        "Product not found, skipping likes update for product:",
+        productId
+      );
       return {
         success: true,
         isFavorite: !isFavorite,
         likes: 0, // Product doesn't exist, so likes is 0
-        message: isFavorite ? "Removed from favorites" : "Added to favorites"
-      }
+        message: isFavorite ? "Removed from favorites" : "Added to favorites",
+      };
     }
 
     if (!product) {
@@ -774,9 +855,8 @@ export async function toggleFavorite(prevState: any, formData: FormData) {
         success: true,
         isFavorite: !isFavorite,
         likes: 0,
-        message: isFavorite ? "Removed from favorites" : "Added to favorites"
-      }
-
+        message: isFavorite ? "Removed from favorites" : "Added to favorites",
+      };
     }
 
     const newLikes = isFavorite
@@ -787,15 +867,15 @@ export async function toggleFavorite(prevState: any, formData: FormData) {
       .from("products")
       .update({ likes: newLikes })
       .eq("id", productId);
-    
+
     if (updateProductError) {
       console.error("Update product error:", updateProductError);
       return { error: "Failed to update product likes" };
     }
 
     // console.log("Successfully updated favorites and likes")
-    return { 
-      success: true, 
+    return {
+      success: true,
       isFavorite: !isFavorite,
       likes: newLikes,
       message: isFavorite ? "Removed from favorites" : "Added to favorites",
@@ -818,13 +898,13 @@ export async function addToCartAction(prevState: any, formData: FormData) {
 
   try {
     const serverClient = createServerClient();
-    
+
     // console.log("Current user cart:", user.cart)
     let cart = user.cart || [];
     const existingItemIndex = cart.findIndex(
       (item: any) => item.productId === productId
     );
-    
+
     if (existingItemIndex > -1) {
       // Update existing item quantity
       cart[existingItemIndex].quantity += quantity;
@@ -839,15 +919,15 @@ export async function addToCartAction(prevState: any, formData: FormData) {
       .from("users")
       .update({ cart })
       .eq("id", user.id);
-    
+
     if (updateError) {
       console.error("Update cart error:", updateError);
       return { error: "Failed to update cart" };
     }
 
     // console.log("Successfully updated cart")
-    return { 
-      success: true, 
+    return {
+      success: true,
       message: existingItemIndex > -1 ? "Cart updated" : "Added to cart",
       cartItemCount: cart.length,
     };
@@ -898,7 +978,7 @@ export async function getUserCartItems(userId: string): Promise<any[]> {
       .eq("id", userId)
       .single();
     if (error || !user || !user.cart) return [];
-    
+
     // Get product details for each cart item
     const cartItems = [];
     for (const cartItem of user.cart) {
@@ -907,7 +987,7 @@ export async function getUserCartItems(userId: string): Promise<any[]> {
         .select("*")
         .eq("id", cartItem.productId)
         .single();
-      
+
       if (!productError && product) {
         cartItems.push({
           productId: cartItem.productId,
@@ -920,8 +1000,8 @@ export async function getUserCartItems(userId: string): Promise<any[]> {
       } else {
         cartItems.push({
           productId: cartItem.productId,
-          notFound: true
-        })
+          notFound: true,
+        });
       }
     }
 
@@ -946,9 +1026,9 @@ export async function updateCartQuantityAction(
 
   try {
     const serverClient = createServerClient();
-    
+
     let cart = user.cart || [];
-    
+
     if (quantity === 0) {
       // Remove item from cart
       cart = cart.filter((item: any) => item.productId !== productId);
@@ -966,14 +1046,14 @@ export async function updateCartQuantityAction(
       .from("users")
       .update({ cart })
       .eq("id", user.id);
-    
+
     if (updateError) {
       console.error("Update cart error:", updateError);
       return { error: "Failed to update cart" };
     }
 
-    return { 
-      success: true, 
+    return {
+      success: true,
       message: quantity === 0 ? "Item removed from cart" : "Cart updated",
       cartItemCount: cart.length,
     };
@@ -993,7 +1073,7 @@ export async function removeFromCartAction(prevState: any, formData: FormData) {
 
   try {
     const serverClient = createServerClient();
-    
+
     let cart = user.cart || [];
     cart = cart.filter((item: any) => item.productId !== productId);
 
@@ -1001,14 +1081,14 @@ export async function removeFromCartAction(prevState: any, formData: FormData) {
       .from("users")
       .update({ cart })
       .eq("id", user.id);
-    
+
     if (updateError) {
       console.error("Update cart error:", updateError);
       return { error: "Failed to update cart" };
     }
 
-    return { 
-      success: true, 
+    return {
+      success: true,
       message: "Item removed from cart",
       cartItemCount: cart.length,
     };
@@ -1020,24 +1100,24 @@ export async function removeFromCartAction(prevState: any, formData: FormData) {
 
 export async function createOrderAction(prevState: any, formData: FormData) {
   try {
-    const user = await getUser()
-    if (!user){
-      return({error: "User not authenticated"})
+    const user = await getUser();
+    if (!user) {
+      return { error: "User not authenticated" };
     }
 
     // Extract shipping and order info from formData
-    const firstName = formData.get('firstName') as string;
-    const lastName = formData.get('lastName') as string;
-    const email = formData.get('email') as string;
-    const phone = formData.get('phone') as string;
-    const address = formData.get('address') as string;
-    const isBuyNow = formData.get('buyNow') === '1';
+    const firstName = formData.get("firstName") as string;
+    const lastName = formData.get("lastName") as string;
+    const email = formData.get("email") as string;
+    const phone = formData.get("phone") as string;
+    const address = formData.get("address") as string;
+    const isBuyNow = formData.get("buyNow") === "1";
 
     // Get cart items - for Buy Now, we need to get from form data
     let cartItems = [];
     if (isBuyNow) {
       // For Buy Now, the cart items should be passed in the form data
-      const cartItemsJson = formData.get('cartItems') as string;
+      const cartItemsJson = formData.get("cartItems") as string;
       if (cartItemsJson) {
         cartItems = JSON.parse(cartItemsJson);
       }
@@ -1045,11 +1125,14 @@ export async function createOrderAction(prevState: any, formData: FormData) {
       // For regular cart checkout, get from user's cart
       cartItems = await getUserCartItems(user && user.id);
     }
-    
-    if (!cartItems.length) return { error: 'Cart is empty' };
+
+    if (!cartItems.length) return { error: "Cart is empty" };
 
     // Calculate totals
-    const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const subtotal = cartItems.reduce(
+      (sum, item) => sum + item.price * item.quantity,
+      0
+    );
     const shipping = subtotal > 100 ? 0 : 15;
     const tax = subtotal * 0.08;
     const total = subtotal + shipping + tax;
@@ -1058,50 +1141,58 @@ export async function createOrderAction(prevState: any, formData: FormData) {
     const orderData = {
       user_id: user && user.id,
       order_number: `ORD-${Date.now()}`,
-      status: 'pending' as 'pending',
-      payment_method: 'cod' as 'cod',
+      status: "pending" as "pending",
+      payment_method: "cod" as "cod",
       shipping_address: address,
       shipping_phone: phone,
       total_amount: total,
-      items: cartItems.map(item => ({
+      items: cartItems.map((item) => ({
         product_id: item.productId,
         product_name: item.productName,
         quantity: item.quantity,
         price: item.price,
         image: item.image,
-        color_name: item.color_name || '',
+        color_name: item.color_name || "",
       })),
       created_at: new Date().toISOString(),
     };
 
     // Save order in DB
     const order = await createOrder(orderData);
-    if (!order) return { error: 'Failed to create order' };
+    if (!order) return { error: "Failed to create order" };
 
     // Clear user's cart only if not Buy Now
     if (!isBuyNow) {
       const serverClient = createServerClient();
-      await serverClient.from('users').update({ 
-        cart: [], 
-        orders: [...(user.orders || []), order.id] 
-      }).eq('id', user.id);
+      await serverClient
+        .from("users")
+        .update({
+          cart: [],
+          orders: [...(user.orders || []), order.id],
+        })
+        .eq("id", user.id);
     } else {
       // Just add the order to user's orders
       const serverClient = createServerClient();
-      await serverClient.from('users').update({ 
-        orders: [...(user.orders || []), order.id] 
-      }).eq('id', user.id);
+      await serverClient
+        .from("users")
+        .update({
+          orders: [...(user.orders || []), order.id],
+        })
+        .eq("id", user.id);
     }
 
     // Send confirmation email
     try {
-      console.log(`Sending order confirmation email to ${email} for order ${order.order_number}`);
+      console.log(
+        `Sending order confirmation email to ${email} for order ${order.order_number}`
+      );
       const emailResult = await sendOrderConfirmationEmail({
         orderId: order.id,
         orderNumber: order.order_number,
         customerName: `${firstName} ${lastName}`,
         customerEmail: email,
-        items: cartItems.map(item => ({
+        items: cartItems.map((item) => ({
           productName: item.productName,
           quantity: item.quantity,
           price: item.price,
@@ -1112,25 +1203,30 @@ export async function createOrderAction(prevState: any, formData: FormData) {
         total,
         shippingAddress: orderData.shipping_address,
         shippingPhone: orderData.shipping_phone,
-        estimatedDelivery: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString(),
+        estimatedDelivery: new Date(
+          Date.now() + 7 * 24 * 60 * 60 * 1000
+        ).toLocaleDateString(),
         orderDate: orderData.created_at,
         status: orderData.status,
       });
-      
+
       if (emailResult.success) {
         console.log(`Order confirmation email sent successfully to ${email}`);
       } else {
-        console.error(`Failed to send order confirmation email to ${email}:`, emailResult.error);
+        console.error(
+          `Failed to send order confirmation email to ${email}:`,
+          emailResult.error
+        );
       }
     } catch (emailError) {
-      console.error('Failed to send confirmation email:', emailError);
+      console.error("Failed to send confirmation email:", emailError);
       // Don't fail the order if email fails
     }
 
     return { success: true, orderId: order.id };
   } catch (error: any) {
-    console.error('Order creation error:', error);
-    return { error: error.message || 'Order failed' };
+    console.error("Order creation error:", error);
+    return { error: error.message || "Order failed" };
   }
 }
 

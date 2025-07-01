@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Plus, Edit, Trash2, Search, Eye } from "lucide-react";
+import { Plus, Edit, Trash2, Search, Eye, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -98,6 +98,13 @@ export function ProductList({ initialProducts, categories }: { initialProducts: 
     <div className="space-y-8">
       <div className="min-h-screen flex justify-center">
         <div className="w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+          <Button variant="ghost" asChild className="mb-4">
+            <Link href="/admin">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Dashboard
+            </Link>
+          </Button>
+
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
             <div>
               <h1 className="text-3xl font-bold">Products Management</h1>
@@ -166,7 +173,7 @@ export function ProductList({ initialProducts, categories }: { initialProducts: 
                       <TableHead>Category</TableHead>
                       <TableHead>Price</TableHead>
                       <TableHead>Stock</TableHead>
-                      <TableHead>Status</TableHead>
+                      <TableHead className="text-center">Status</TableHead>
                       <TableHead>Colors</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
@@ -204,14 +211,14 @@ export function ProductList({ initialProducts, categories }: { initialProducts: 
                           <TableCell className="font-medium">
                             ${product.price}
                           </TableCell>
-                          <TableCell>{product.stock}</TableCell>
-                          <TableCell>
-                            <Badge variant={stockStatus.variant}>
+                          <TableCell className="text-center">{product.stock}</TableCell>
+                          <TableCell className="text-center">
+                            <Badge variant={stockStatus.variant} className="w-full text-center inline-flex items-center justify-center whitespace-nowrap">
                               {stockStatus.label}
                             </Badge>
                           </TableCell>
                           <TableCell>
-                            <div className="flex gap-1">
+                            <div className="flex gap-1 justify-center">
                               {product.colors
                                 .slice(0, 3)
                                 .map((color, index) => (

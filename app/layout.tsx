@@ -47,7 +47,7 @@ export default async function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <div className="min-h-screen flex flex-col">
             <Navbar cartCount={cartCount} favoritesCount={favoritesCount} user={user} />
-            <main className="flex-1 px-4 sm:px-6 lg:px-8">{children}</main>
+            <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">{children}</main>
             <Footer />
           </div>
           <Toaster />
