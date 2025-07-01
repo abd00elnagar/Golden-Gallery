@@ -9,5 +9,11 @@ export default async function Page() {
     return null;
   }
   const orders = await getUserOrders(user.id);
-  return <OrdersList orders={orders} />;
+  return (
+    <div className="min-h-screen flex flex-col items-center">
+      <div className="w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+        <OrdersList orders={orders} />
+      </div>
+    </div>
+  );
 }

@@ -1,22 +1,91 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
-import { Package, Users, ShoppingCart, DollarSign, AlertTriangle, Eye, BarChart3, Calendar } from "lucide-react"
-import Link from "next/link"
-import {  mockOrders } from "@/lib/mock-data"
-import { getCategories, getOrders, getProducts } from "@/lib/actions"
-import { getAllUsers } from "@/lib/auth"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import {
+  Package,
+  Users,
+  ShoppingCart,
+  DollarSign,
+  AlertTriangle,
+  Eye,
+  BarChart3,
+  Calendar,
+} from "lucide-react";
+import Link from "next/link";
+import { getCategories, getOrders, getProducts } from "@/lib/actions";
+import { getAllUsers } from "@/lib/auth";
+import { Suspense } from "react";
+import Loading from "./loading";
 
-export default async function AdminDashboard() {
-  const totalProducts = (await getProducts()).length
-  const totalCategories = (await getCategories()).length
-  const totalOrders = (await getOrders()).length
-  const totalUsers = (await getAllUsers()).length
-  const totalRevenue = (await getOrders()).reduce((sum, order) => sum + order.total_amount, 0)
-  const lowStockProducts = (await getProducts()).filter((p) => p.stock < 5)
-  const monthlyRevenue = 12450.0 // Mock data
-  const monthlyGrowth = 15.3 // Mock data
+async function DashboardContent() {
+  const [products, categories, orders, users] = await Promise.all([
+    getProducts(),
+    getCategories(),
+    getOrders(),
+    getAllUsers(),
+  ]);
+
+  const totalProducts = products.length;
+  const totalCategories = categories.length;
+  const totalOrders = orders.length;
+  const totalUsers = users.length;
+  const totalRevenue = orders.reduce(
+    (sum, order) => sum + order.total_amount,
+    0
+  );
+  const lowStockProducts = products.filter((p) => p.stock < 5);
+
+  // Calculate monthly revenue and growth
+  const now = new Date();
+  const thisMonth = orders.filter(
+    (order) => new Date(order.created_at).getMonth() === now.getMonth()
+  );
+  const lastMonth = orders.filter(
+    (order) =>
+      new Date(order.created_at).getMonth() === now.getMonth() - 1 ||
+      (now.getMonth() === 0 && new Date(order.created_at).getMonth() === 11)
+  );
+
+  const monthlyRevenue = thisMonth.reduce(
+    (sum, order) => sum + order.total_amount,
+    0
+  );
+  const lastMonthRevenue = lastMonth.reduce(
+    (sum, order) => sum + order.total_amount,
+    0
+  );
+  const monthlyGrowth = lastMonthRevenue
+    ? ((monthlyRevenue - lastMonthRevenue) / lastMonthRevenue) * 100
+    : 0;
+
+  // Calculate other growth metrics
+  const lastMonthProducts = products.filter(
+    (product) =>
+      new Date(product.created_at).getMonth() === now.getMonth() - 1 ||
+      (now.getMonth() === 0 && new Date(product.created_at).getMonth() === 11)
+  ).length;
+  const productGrowth = lastMonthProducts
+    ? ((totalProducts - lastMonthProducts) / lastMonthProducts) * 100
+    : 0;
+
+  const lastMonthOrders = orders.filter(
+    (order) =>
+      new Date(order.created_at).getMonth() === now.getMonth() - 1 ||
+      (now.getMonth() === 0 && new Date(order.created_at).getMonth() === 11)
+  ).length;
+  const orderGrowth = lastMonthOrders
+    ? ((totalOrders - lastMonthOrders) / lastMonthOrders) * 100
+    : 0;
+
+  const lastMonthUsers = users.filter(
+    (user) =>
+      new Date(user.created_at).getMonth() === now.getMonth() - 1 ||
+      (now.getMonth() === 0 && new Date(user.created_at).getMonth() === 11)
+  ).length;
+  const userGrowth = lastMonthUsers
+    ? ((totalUsers - lastMonthUsers) / lastMonthUsers) * 100
+    : 0;
 
   const stats = [
     {
@@ -24,15 +93,16 @@ export default async function AdminDashboard() {
       value: totalProducts,
       icon: Package,
       color: "text-blue-600",
-      change: "+12%",
-      changeType: "positive" as const,
+      change: `${productGrowth > 0 ? "+" : ""}${productGrowth.toFixed(1)}%`,
+      changeType:
+        productGrowth >= 0 ? ("positive" as const) : ("negative" as const),
     },
     {
       title: "Total Categories",
       value: totalCategories,
       icon: BarChart3,
       color: "text-purple-600",
-      change: "+2",
+      change: "Active",
       changeType: "positive" as const,
     },
     {
@@ -40,24 +110,27 @@ export default async function AdminDashboard() {
       value: totalOrders,
       icon: ShoppingCart,
       color: "text-green-600",
-      change: "+23%",
-      changeType: "positive" as const,
+      change: `${orderGrowth > 0 ? "+" : ""}${orderGrowth.toFixed(1)}%`,
+      changeType:
+        orderGrowth >= 0 ? ("positive" as const) : ("negative" as const),
     },
     {
       title: "Total Users",
       value: totalUsers,
       icon: Users,
       color: "text-indigo-600",
-      change: "+8%",
-      changeType: "positive" as const,
+      change: `${userGrowth > 0 ? "+" : ""}${userGrowth.toFixed(1)}%`,
+      changeType:
+        userGrowth >= 0 ? ("positive" as const) : ("negative" as const),
     },
     {
       title: "Total Revenue",
       value: `$${totalRevenue.toFixed(2)}`,
       icon: DollarSign,
       color: "text-yellow-600",
-      change: `+${monthlyGrowth}%`,
-      changeType: "positive" as const,
+      change: `${monthlyGrowth > 0 ? "+" : ""}${monthlyGrowth.toFixed(1)}%`,
+      changeType:
+        monthlyGrowth >= 0 ? ("positive" as const) : ("negative" as const),
     },
     {
       title: "Low Stock Items",
@@ -65,9 +138,12 @@ export default async function AdminDashboard() {
       icon: AlertTriangle,
       color: "text-red-600",
       change: lowStockProducts.length > 0 ? "Action needed" : "All good",
-      changeType: lowStockProducts.length > 0 ? ("negative" as const) : ("positive" as const),
+      changeType:
+        lowStockProducts.length > 0
+          ? ("negative" as const)
+          : ("positive" as const),
     },
-  ]
+  ];
 
   return (
     <div className="min-h-screen flex justify-center">
@@ -75,7 +151,9 @@ export default async function AdminDashboard() {
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-            <p className="text-muted-foreground">Welcome back! Here's what's happening with your store.</p>
+            <p className="text-muted-foreground">
+              Welcome back! Here's what's happening with your store.
+            </p>
           </div>
           <div className="flex items-center gap-2">
             <Calendar className="h-4 w-4 text-muted-foreground" />
@@ -97,17 +175,23 @@ export default async function AdminDashboard() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div className="space-y-2">
-                    <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
+                    <p className="text-sm font-medium text-muted-foreground">
+                      {stat.title}
+                    </p>
                     <p className="text-2xl font-bold">{stat.value}</p>
                     <div className="flex items-center gap-1">
                       <span
                         className={`text-xs font-medium ${
-                          stat.changeType === "positive" ? "text-green-600" : "text-red-600"
+                          stat.changeType === "positive"
+                            ? "text-green-600"
+                            : "text-red-600"
                         }`}
                       >
                         {stat.change}
                       </span>
-                      <span className="text-xs text-muted-foreground">from last month</span>
+                      <span className="text-xs text-muted-foreground">
+                        from last month
+                      </span>
                     </div>
                   </div>
                   <div className={`p-3 rounded-full bg-muted/50`}>
@@ -128,21 +212,33 @@ export default async function AdminDashboard() {
             </Link>
           </Button>
 
-          <Button asChild variant="outline" className="h-16 flex-col gap-2 bg-transparent">
+          <Button
+            asChild
+            variant="outline"
+            className="h-16 flex-col gap-2 bg-transparent"
+          >
             <Link href="/admin/categories">
               <BarChart3 className="h-5 w-5" />
               Manage Categories
             </Link>
           </Button>
 
-          <Button asChild variant="outline" className="h-16 flex-col gap-2 bg-transparent">
+          <Button
+            asChild
+            variant="outline"
+            className="h-16 flex-col gap-2 bg-transparent"
+          >
             <Link href="/admin/orders">
               <ShoppingCart className="h-5 w-5" />
               Manage Orders
             </Link>
           </Button>
 
-          <Button asChild variant="outline" className="h-16 flex-col gap-2 bg-transparent">
+          <Button
+            asChild
+            variant="outline"
+            className="h-16 flex-col gap-2 bg-transparent"
+          >
             <Link href="/admin/users">
               <Users className="h-5 w-5" />
               Manage Users
@@ -165,23 +261,30 @@ export default async function AdminDashboard() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {mockOrders.slice(0, 5).map((order) => (
-                  <div key={order.id} className="flex items-center justify-between p-3 border rounded-lg">
+                {orders.slice(0, 5).map((order) => (
+                  <div
+                    key={order.id}
+                    className="flex items-center justify-between p-3 border rounded-lg"
+                  >
                     <div className="space-y-1">
                       <p className="font-medium">{order.order_number}</p>
-                      <p className="text-sm text-muted-foreground">{new Date(order.created_at).toLocaleDateString()}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {new Date(order.created_at).toLocaleDateString()}
+                      </p>
                     </div>
                     <div className="text-right space-y-1">
-                      <p className="font-medium">${order.total_amount.toFixed(2)}</p>
+                      <p className="font-medium">
+                        ${order.total_amount.toFixed(2)}
+                      </p>
                       <Badge
                         variant={
                           order.status === "delivered"
                             ? "default"
                             : order.status === "shipped"
-                              ? "secondary"
-                              : order.status === "processing"
-                                ? "outline"
-                                : "destructive"
+                            ? "secondary"
+                            : order.status === "processing"
+                            ? "outline"
+                            : "destructive"
                         }
                         className="text-xs"
                       >
@@ -212,17 +315,25 @@ export default async function AdminDashboard() {
               <div className="space-y-4">
                 {lowStockProducts.length > 0 ? (
                   lowStockProducts.map((product) => (
-                    <div key={product.id} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div
+                      key={product.id}
+                      className="flex items-center justify-between p-3 border rounded-lg"
+                    >
                       <div className="space-y-1">
                         <p className="font-medium">{product.name}</p>
-                        <p className="text-sm text-muted-foreground">${product.price}</p>
+                        <p className="text-sm text-muted-foreground">
+                          ${product.price}
+                        </p>
                       </div>
                       <div className="text-right space-y-1">
                         <Badge variant="destructive" className="text-xs">
                           {product.stock} left
                         </Badge>
                         <div className="w-20">
-                          <Progress value={(product.stock / 10) * 100} className="h-2" />
+                          <Progress
+                            value={(product.stock / 10) * 100}
+                            className="h-2"
+                          />
                         </div>
                       </div>
                     </div>
@@ -230,8 +341,12 @@ export default async function AdminDashboard() {
                 ) : (
                   <div className="text-center py-8">
                     <Package className="h-12 w-12 mx-auto text-green-600 mb-2" />
-                    <p className="text-sm font-medium text-green-600">All products are well stocked!</p>
-                    <p className="text-xs text-muted-foreground">No inventory alerts at this time.</p>
+                    <p className="text-sm font-medium text-green-600">
+                      All products are well stocked!
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      No inventory alerts at this time.
+                    </p>
                   </div>
                 )}
               </div>
@@ -240,5 +355,13 @@ export default async function AdminDashboard() {
         </div>
       </div>
     </div>
-  )
+  );
+}
+
+export default function AdminDashboard() {
+  return (
+    <Suspense fallback={<Loading />}>
+      <DashboardContent />
+    </Suspense>
+  );
 }

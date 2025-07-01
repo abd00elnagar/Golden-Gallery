@@ -30,5 +30,11 @@ export default async function OrderPage({ params }: OrderPageProps) {
     customerEmail = userObj?.email;
   }
 
-  return <OrderDetailsClient order={{ ...order, customerEmail }} />
+  return (
+    <div className="min-h-screen flex flex-col items-center">
+      <div className="w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+        <OrderDetailsClient order={{ ...order, customerEmail }} />
+      </div>
+    </div>
+  )
 } 

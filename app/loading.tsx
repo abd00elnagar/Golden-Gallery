@@ -3,24 +3,26 @@ import { Skeleton } from "@/components/ui/skeleton"
 
 export default function Loading() {
   return (
-    <div className="container py-8 px-4 sm:px-6 lg:px-8">
+    <div className="container mx-auto max-w-7xl py-8 px-4 sm:px-6 lg:px-8">
       {/* Header Skeleton */}
-      <div className="mb-8">
-        <Skeleton className="h-10 w-96 mb-4" />
-        <Skeleton className="h-6 w-[600px]" />
+      <div className="mb-8 flex flex-col items-center">
+        <Skeleton className="h-10 w-full max-w-lg mb-4" />
+        <Skeleton className="h-6 w-full max-w-2xl" />
       </div>
 
       {/* Filters Skeleton */}
-      <div className="flex flex-col md:flex-row gap-4 mb-8">
-        <Skeleton className="h-10 flex-1" />
-        <Skeleton className="h-10 w-48" />
+      <div className="flex flex-col md:flex-row justify-center gap-4 mb-8">
+        <Skeleton className="h-10 w-full md:max-w-xl" />
+        <Skeleton className="h-10 w-full md:w-48" />
       </div>
 
       {/* Results count skeleton */}
-      <Skeleton className="h-6 w-48 mb-6" />
+      <div className="flex justify-center mb-6">
+        <Skeleton className="h-6 w-48" />
+      </div>
 
       {/* Products Grid Skeleton */}
-      <div className="grid gap-6 mb-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="grid gap-6 mb-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 max-w-7xl mx-auto">
         {Array.from({ length: 8 }).map((_, i) => (
           <Card key={i} className="overflow-hidden">
             <Skeleton className="aspect-square w-full" />
