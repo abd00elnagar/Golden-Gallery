@@ -17,10 +17,12 @@ export default async function HomePage() {
   const favorites: string[] | undefined = user?.favorites?.map(fav => fav.productId || '').filter(Boolean)
   
   const userId: string | undefined = user?.id || undefined
-  // console.log(favorites)
-  // console.log("cats: ",categories)
-  // console.log("data: ",products[0])
-  return (<>
-    <ProductsList products={products} categories={categories} favorites={favorites} userId={userId} />
-  </>)
+
+  return (
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="flex justify-center">
+        <ProductsList products={products} categories={categories} favorites={favorites} userId={userId} />
+      </div>
+    </div>
+  )
 }

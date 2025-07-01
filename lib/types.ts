@@ -1,12 +1,18 @@
 export interface User {
-  id: string
-  email: string
-  name: string
-  image: string | null
-  phone: string | null
-  address: string | null
-  role: 'user' | 'admin'
-
+  id: string;
+  email: string;
+  name: string;
+  image: string | null;
+  phone: string | null;
+  address: string | null;
+  role: "user" | "admin";
+  notifications: {
+    id: string;
+    orderId: string;
+    message: string;
+    read: boolean;
+    createdAt: string;
+  }[];
   favorites: {
     addedAt: string;
     productId: string;

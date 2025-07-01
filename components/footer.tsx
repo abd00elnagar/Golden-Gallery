@@ -2,6 +2,7 @@
 import Link from "next/link"
 import { useTheme } from "next-themes"
 import { useEffect, useState } from "react"
+import Image from "next/image"
 
 export function Footer() {
   const { theme } = useTheme()
@@ -17,21 +18,23 @@ export function Footer() {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 sm:gap-8 w-full place-items-center">
           <div className="flex flex-col items-center col-span-2 sm:col-span-4 md:col-span-1 mb-4 sm:mb-0">
             <div className="flex items-center space-x-2 mb-3 sm:mb-4">
-              <img
+              <Image
                 src={`/logo-${mounted ? (theme || "light") : "light"}.png`}
                 alt="Golden Gallery Logo"
                 className="h-6 w-6 sm:h-8 sm:w-8 rounded-full object-cover"
+                width={32}
+                height={32}
               />
-              <span className="text-lg sm:text-xl font-bold">Golden Gallery</span>
+              <span className="text-lg sm:text-xl font-bold">Aldahbi store</span>
             </div>
             <p className="text-muted-foreground text-xs sm:text-sm text-center max-w-[250px] sm:max-w-none">
               Discover and collect beautiful artwork from talented artists around the world.
             </p>
           </div>
 
-          <div className="flex flex-col items-center">
+          <div className="flex flex-col items-start">
             <h3 className="font-semibold mb-2 sm:mb-4 text-sm sm:text-base">Shop</h3>
-            <ul className="space-y-1 sm:space-y-2 text-xs sm:text-sm text-center">
+            <ul className="space-y-1 sm:space-y-2 text-xs sm:text-sm">
               <li>
                 <Link href="/" className="text-muted-foreground hover:text-primary">
                   All Products
@@ -55,9 +58,9 @@ export function Footer() {
             </ul>
           </div>
 
-          <div className="flex flex-col items-center">
+          <div className="flex flex-col items-start">
             <h3 className="font-semibold mb-2 sm:mb-4 text-sm sm:text-base">Account</h3>
-            <ul className="space-y-1 sm:space-y-2 text-xs sm:text-sm text-center">
+            <ul className="space-y-1 sm:space-y-2 text-xs sm:text-sm">
               <li>
                 <Link href="/profile" className="text-muted-foreground hover:text-primary">
                   Profile
@@ -81,9 +84,9 @@ export function Footer() {
             </ul>
           </div>
 
-          <div className="flex flex-col items-center">
+          <div className="flex flex-col items-start">
             <h3 className="font-semibold mb-2 sm:mb-4 text-sm sm:text-base">Support</h3>
-            <ul className="space-y-1 sm:space-y-2 text-xs sm:text-sm text-center">
+            <ul className="space-y-1 sm:space-y-2 text-xs sm:text-sm">
               <li>
                 <Link href="/contact" className="text-muted-foreground hover:text-primary">
                   Contact
