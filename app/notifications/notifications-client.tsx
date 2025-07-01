@@ -1,38 +1,79 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useOptimistic, startTransition } from "react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { markNotificationAsRead } from "@/lib/actions";
 import { User } from "@/lib/types";
-import { useOptimistic } from "react";
 
 export default function NotificationsClient({ user }: { user: User }) {
+  const [notifications, setNotifications] = useState(user.notifications || []);
   const [optimisticNotifications, addOptimisticNotification] = useOptimistic(
-    user.notifications || [],
-    (state, notificationId: string) =>
-      state.map((n) => (n.id === notificationId ? { ...n, read: true } : n))
+    notifications,
+    (state, notificationIds: string | string[]) => {
+      const ids = Array.isArray(notificationIds)
+        ? notificationIds
+        : [notificationIds];
+      return state.map((n) => (ids.includes(n.id) ? { ...n, read: true } : n));
+    }
   );
 
   const handleMarkAsRead = async (notificationId: string) => {
-    // Optimistically update UI
-    addOptimisticNotification(notificationId);
+    startTransition(() => {
+      addOptimisticNotification(notificationId);
+    });
 
     // Call server action
     const formData = new FormData();
     formData.append("notificationId", notificationId);
     await markNotificationAsRead(null, formData);
+
+    // Update local state after server action completes
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === notificationId ? { ...n, read: true } : n))
+    );
   };
+
+  const handleMarkAllAsRead = async () => {
+    const unreadIds = optimisticNotifications
+      .filter((n) => !n.read)
+      .map((n) => n.id);
+
+    if (unreadIds.length === 0) return;
+
+    startTransition(() => {
+      addOptimisticNotification(unreadIds);
+    });
+
+    // Mark each notification as read on the server
+    for (const id of unreadIds) {
+      const formData = new FormData();
+      formData.append("notificationId", id);
+      await markNotificationAsRead(null, formData);
+    }
+
+    // Update local state after all server actions complete
+    setNotifications((prev) =>
+      prev.map((n) => (unreadIds.includes(n.id) ? { ...n, read: true } : n))
+    );
+  };
+
+  const unreadCount = optimisticNotifications.filter((n) => !n.read).length;
 
   return (
     <div className="container max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">Notifications</h1>
-        <p className="text-sm text-muted-foreground">
-          {optimisticNotifications.filter((n) => !n.read).length} unread
-        </p>
+        <div className="flex items-center gap-4">
+          <p className="text-sm text-muted-foreground">{unreadCount} unread</p>
+          {unreadCount > 0 && (
+            <Button variant="outline" size="sm" onClick={handleMarkAllAsRead}>
+              Mark all as read
+            </Button>
+          )}
+        </div>
       </div>
 
       <div className="space-y-4">
