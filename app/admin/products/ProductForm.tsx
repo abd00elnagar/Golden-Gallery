@@ -45,6 +45,9 @@ export function ProductForm({
     (product?.colors as any[])?.map((c) => ({ name: c.name, hex: c.hex, image: c.image })) || []
   );
   
+  // Featured state
+  const [featured, setFeatured] = useState<boolean>(product?.featured ?? false);
+  
   const [serverError, setServerError] = useState<any>(null);
   const [formError, setFormError] = useState<string | null>(null);
   
@@ -53,7 +56,7 @@ export function ProductForm({
   const colorImageInputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   // useActionState for server validation
-  const initialState = { success: false, error: "", product: null };
+  const initialState = { success: false, error: "", product: undefined, redirect: undefined };
   const [state, formAction] = useActionState(createOrUpdateProductWithImages, initialState);
 
   // Handle redirect on success
@@ -131,12 +134,15 @@ export function ProductForm({
       // For editing, only validate color names and hex values
       if (colors.some((c) => !c.name || !c.hex)) {
         setFormError("Each color must have a name and hex value.");
-        return;
-      }
+            return;
+          }
     }
     
     const form = e.currentTarget;
     const formData = new FormData(form);
+    
+    // Add featured value to form data
+    formData.set("featured", featured.toString());
     
     if (!isEditing) {
       // For new products, append product images and color images
@@ -163,7 +169,7 @@ export function ProductForm({
     
     startTransition(() => {
       formAction(formData);
-    });
+        });
   };
 
   // Prefill test data for add mode
@@ -198,7 +204,7 @@ export function ProductForm({
           </AlertDescription>
         </Alert>
       )}
-      
+
       <Card>
         <CardHeader>
           <CardTitle>
@@ -236,13 +242,13 @@ export function ProductForm({
               <Input id="stock" name="stock" type="number" min="0" defaultValue={product?.stock || testDefaults.stock} required disabled={isPending} />
             </div>
           </div>
-          
+
           {/* Description */}
           <div className="space-y-2">
             <Label htmlFor="description">Description</Label>
             <Textarea id="description" name="description" defaultValue={product?.description || testDefaults.description} required disabled={isPending} />
           </div>
-          
+
           {/* Product Images */}
           <div className="space-y-2">
             <Label>Product Images {isEditing && "(Read-only)"}</Label>
@@ -297,7 +303,7 @@ export function ProductForm({
               }
             </p>
           </div>
-          
+
           {/* Colors */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
@@ -396,13 +402,19 @@ export function ProductForm({
               ))}
             </div>
           </div>
-          
+
           {/* Featured Switch */}
           <div className="flex items-center space-x-2">
-            <Switch id="featured" name="featured" defaultChecked={product?.featured ?? testDefaults.featured} disabled={isPending} />
+            <Switch 
+              id="featured" 
+              name="featured" 
+              checked={featured}
+              onCheckedChange={setFeatured}
+              disabled={isPending} 
+            />
             <Label htmlFor="featured">Featured Product</Label>
           </div>
-          
+
           {/* Submit Button */}
           <Button type="submit" className="w-full" disabled={isPending}>
             {isPending

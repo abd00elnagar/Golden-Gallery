@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { markNotificationAsRead } from "@/lib/actions";
+import { markNotificationAsRead, markAllNotificationsAsRead } from "@/lib/actions";
 import { User } from "@/lib/types";
 
 export default function NotificationsClient({ user }: { user: User }) {
@@ -47,17 +47,18 @@ export default function NotificationsClient({ user }: { user: User }) {
       addOptimisticNotification(unreadIds);
     });
 
-    // Mark each notification as read on the server
-    for (const id of unreadIds) {
-      const formData = new FormData();
-      formData.append("notificationId", id);
-      await markNotificationAsRead(null, formData);
-    }
+    // Mark all notifications as read in a single server action
+    const formData = new FormData();
+    const result = await markAllNotificationsAsRead(null, formData);
 
-    // Update local state after all server actions complete
-    setNotifications((prev) =>
-      prev.map((n) => (unreadIds.includes(n.id) ? { ...n, read: true } : n))
-    );
+    if (result.success) {
+      // Update local state after server action completes
+      setNotifications((prev) =>
+        prev.map((n) => (unreadIds.includes(n.id) ? { ...n, read: true } : n))
+      );
+    } else {
+      console.error("Failed to mark all notifications as read:", result.error);
+    }
   };
 
   const unreadCount = optimisticNotifications.filter((n) => !n.read).length;

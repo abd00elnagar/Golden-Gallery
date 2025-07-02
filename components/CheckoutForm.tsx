@@ -215,9 +215,22 @@ export default function CheckoutForm({ user, cartItems }: CheckoutFormProps) {
                 {/* Order Items */}
                 <div className="space-y-3">
                   {cartItems.map((item) => (
-                    <div key={item.productId} className="flex gap-3">
-                      <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center">
-                        <span className="text-xs font-medium">{item.quantity}x</span>
+                    <div key={item.productId} className="flex gap-3 items-center">
+                      <div className="relative w-16 h-16 flex-shrink-0">
+                        {item.image ? (
+                          <img
+                            src={item.image}
+                            alt={item.productName}
+                            className="w-16 h-16 object-cover rounded-lg border"
+                          />
+                        ) : (
+                          <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center text-xs text-muted-foreground border">
+                            No Image
+                          </div>
+                        )}
+                        <span className="absolute top-1 right-1 bg-primary text-white text-xs font-bold px-2 py-0.5 rounded-full shadow">
+                          {item.quantity}x
+                        </span>
                       </div>
                       <div className="flex-1">
                         <h4 className="font-medium text-sm">{item.productName}</h4>

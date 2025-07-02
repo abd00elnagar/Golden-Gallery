@@ -1,12 +1,12 @@
 import { getUserOrders } from "@/lib/actions";
 import OrdersList from "./OrdersList";
 import { getUser } from "@/lib/auth";
+import SignInPage from "@/components/SigninPage";
 
 export default async function Page() {
   const user = await getUser();
   if (!user) {
-    // Optionally, redirect or render a sign-in component
-    return null;
+    return <SignInPage />;
   }
   const orders = await getUserOrders(user.id);
   return (

@@ -21,6 +21,11 @@ export async function resendOrderEmailAction(formData: FormData) {
       return { success: false, error: 'Order not found' };
     }
 
+    // Check resend limit
+    if (order.resend_email_count !== undefined && order.resend_email_count >= 4) {
+      return { success: false, error: 'You have reached the maximum number of resends for this order.' };
+    }
+
     // Try to get email from order, else fetch user
     let customerEmail = order.email;
     if (!customerEmail && order.user_id) {
@@ -60,6 +65,13 @@ export async function resendOrderEmailAction(formData: FormData) {
     });
 
     if (emailResult.success) {
+      // Increment resend_email_count
+      const { createServerClient } = await import("@/lib/supabase");
+      const serverClient = createServerClient();
+      await serverClient
+        .from("orders")
+        .update({ resend_email_count: (order.resend_email_count || 0) + 1 })
+        .eq("id", order.id);
       console.log(`Resend email: Successfully sent to ${customerEmail}`);
       return { success: true };
     } else {

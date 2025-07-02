@@ -200,6 +200,7 @@ export async function sendOrderStatusUpdateEmail(
   trackingNumber?: string
 ) {
   const statusMessages = {
+    pending: 'Your order is pending and will be reviewed soon.',
     processing: 'Your order is being processed and prepared for shipment.',
     shipped: 'Your order has been shipped and is on its way to you.',
     delivered: 'Your order has been successfully delivered.',
