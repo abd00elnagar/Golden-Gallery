@@ -92,7 +92,7 @@ export async function sendOrderConfirmationEmail(data: OrderEmailData) {
 
   // Use the dynamic URL function
   const websiteUrl = baseUrl || getWebsiteUrl()
-  const orderLink = `${websiteUrl}/orders/${orderId}`
+  const orderLink = `http://localhost:3000/orders/${orderId}`
 
   const emailHtml = `
     <!DOCTYPE html>
@@ -148,11 +148,8 @@ export async function sendOrderConfirmationEmail(data: OrderEmailData) {
           <table class="info-table">
             <tr><td><strong>Address:</strong></td><td>${shippingAddress || 'N/A'}</td></tr>
             <tr><td><strong>Phone:</strong></td><td>${shippingPhone || 'N/A'}</td></tr>
+            <tr><td><strong>Total Cost:</strong></td><td>EGP ${total?.toFixed(2) ?? 'N/A'}</td></tr>  
           </table>
-        </div>
-        <div class="total-section">
-          <h3 class="total-label">Total Cost:</h3>
-          <span class="total-value">  EGP ${total?.toFixed(2) ?? 'N/A'}</span>
         </div>
         <div class="section">
           <div class="section-title">Important Notes</div>

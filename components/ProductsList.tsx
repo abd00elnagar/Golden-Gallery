@@ -219,95 +219,59 @@ function ProductsList({ products, categories, favorites, userId, selectedCat }: 
                                 d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                             />
                         </svg>
-                  </div>
-                {/* Category Dropdown */}
-                <div className="relative" ref={categoryDropdownRef}>
-                    <button
-                        onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                        className="flex items-center justify-between w-full sm:w-48 px-4 py-2 border border-input rounded-md bg-background hover:bg-accent hover:text-accent-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
-                    >
-                        <span className="truncate">{selectedCategoryName}</span>
-                        <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
-                    </button>
+                    </div>
+                    {/* Category Dropdown */}
+                    <div className="relative" ref={categoryDropdownRef}>
+                        <button
+                            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                            className="flex items-center justify-between w-full sm:w-48 px-4 py-2 border border-input rounded-md bg-background hover:bg-accent hover:text-accent-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+                        >
+                            <span className="truncate">{selectedCategoryName}</span>
+                            <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                        </button>
 
-                    {/* Dropdown Menu */}
-                    {isDropdownOpen && (
-                        <div className="absolute top-full left-0 right-0 mt-1 bg-background border border-input rounded-md shadow-lg z-40 max-h-60 overflow-y-auto min-w-[220px]">
-                            <button
-                                onClick={() => {
-                                    setSelectedCategory("all")
-                                    setIsDropdownOpen(false)
-                                }}
-                                className={`w-full px-4 py-2 text-left hover:bg-accent hover:text-accent-foreground transition-colors ${selectedCategory === "all" ? "bg-[#eee] text-black" : ""}
-                                    `}
-                            >
-                                All Categories
-                            </button>
-                            {categories.map((category) => (
+                        {/* Dropdown Menu */}
+                        {isDropdownOpen && (
+                            <div className="absolute top-full left-0 right-0 mt-1 bg-background border border-input rounded-md shadow-lg z-40 max-h-60 overflow-y-auto min-w-[220px]">
                                 <button
                                     onClick={() => {
                                         setSelectedCategory("all")
                                         setIsDropdownOpen(false)
                                     }}
-                                    className={`w-full px-4 py-2 text-left hover:bg-accent hover:text-accent-foreground transition-colors ${selectedCategory === category.id ? "bg-[#eee] text-black" : ""}
-                                        `}
+                                    className={`w-full px-4 py-2 text-left hover:bg-accent hover:text-accent-foreground transition-colors ${selectedCategory === "all" ? "bg-[#eee] text-black" : ""}
+                                    `}
                                 >
                                     All Categories
                                 </button>
-                            ))}
-                        </div>
-                    )}
-                </div>
-
-                {/* Sort Dropdown */}
-                <div className="relative" ref={sortDropdownRef}>
-                    <button
-                        onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}
-                        className="flex items-center justify-between w-full sm:w-48 px-4 py-2 border border-input rounded-md bg-background hover:bg-accent hover:text-accent-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
-                    >
-                        <div className="flex items-center gap-2">
-                            {selectedSortOption && (
-                                <selectedSortOption.icon 
-                                    className={`h-5 w-5 rounded-full p-1 shadow-sm ${selectedSortOption.selectedIconClass}`} 
-                                />
-                            )}
-                            <span className="truncate">{selectedSortOption?.label}</span>
-                        </div>
-                        <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isSortDropdownOpen ? 'rotate-180' : ''}`} />
-                    </button>
-
-                    {/* Sort Dropdown Menu */}
-                    {isSortDropdownOpen && (
-                        <div className="absolute top-full left-0 right-0 mt-1 bg-background border border-input rounded-md shadow-lg z-40 min-w-[220px]">
-                            {sortOptions.map((option) => {
-                                const IconComponent = option.icon
-                                const isSelected = selectedSort === option.value
-                                return (
+                                {categories.map((category) => (
                                     <button
                                         key={category.id}
                                         onClick={() => {
                                             setSelectedCategory(category.id)
                                             setIsDropdownOpen(false)
                                         }}
-                                        className={`w-full px-4 py-2 text-left hover:bg-accent hover:text-accent-foreground transition-colors flex items-center gap-2 ${isSelected ? "bg-[#eee] text-black" : ""}`}
+                                        className={`w-full px-4 py-2 text-left hover:bg-accent hover:text-accent-foreground transition-colors ${selectedCategory === category.id ? "bg-[#eee] text-black" : ""}
+                                        `}
                                     >
-                                        <IconComponent className={`h-5 w-5 rounded-full p-1 shadow-sm ${isSelected ? option.selectedIconClass : option.iconClass}`} />
-                                        {option.label}
-
+                                        {category.name}
                                     </button>
                                 ))}
                             </div>
                         )}
                     </div>
 
-                    {/* Sort Dropdown */}
+                    {/* Sort Dropdown (keep only this one with colored icons) */}
                     <div className="relative" ref={sortDropdownRef}>
                         <button
                             onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}
                             className="flex items-center justify-between w-full sm:w-48 px-4 py-2 border border-input rounded-md bg-background hover:bg-accent hover:text-accent-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
                         >
                             <div className="flex items-center gap-2">
-                                {selectedSortOption && <selectedSortOption.icon className="h-4 w-4" />}
+                                {selectedSortOption && (
+                                    <selectedSortOption.icon 
+                                        className={`h-5 w-5 rounded-full p-1 shadow-sm ${selectedSortOption.selectedIconClass}`} 
+                                    />
+                                )}
                                 <span className="truncate">{selectedSortOption?.label}</span>
                             </div>
                             <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isSortDropdownOpen ? 'rotate-180' : ''}`} />
@@ -315,9 +279,10 @@ function ProductsList({ products, categories, favorites, userId, selectedCat }: 
 
                         {/* Sort Dropdown Menu */}
                         {isSortDropdownOpen && (
-                            <div className="absolute top-full left-0 right-0 mt-1 bg-background border border-input rounded-md shadow-lg z-40">
+                            <div className="absolute top-full left-0 right-0 mt-1 bg-background border border-input rounded-md shadow-lg z-40 min-w-[220px]">
                                 {sortOptions.map((option) => {
                                     const IconComponent = option.icon
+                                    const isSelected = selectedSort === option.value
                                     return (
                                         <button
                                             key={option.value}
@@ -325,10 +290,9 @@ function ProductsList({ products, categories, favorites, userId, selectedCat }: 
                                                 setSelectedSort(option.value)
                                                 setIsSortDropdownOpen(false)
                                             }}
-                                            className={`w-full px-4 py-2 text-left hover:bg-accent hover:text-accent-foreground transition-colors flex items-center gap-2 ${selectedSort === option.value ? "bg-primary text-primary-foreground" : ""
-                                                }`}
+                                            className={`w-full px-4 py-2 text-left hover:bg-accent hover:text-accent-foreground transition-colors flex items-center gap-2 ${isSelected ? "bg-[#eee] text-black" : ""}`}
                                         >
-                                            <IconComponent className="h-4 w-4" />
+                                            <IconComponent className={`h-5 w-5 rounded-full p-1 shadow-sm ${isSelected ? option.selectedIconClass : option.iconClass}`} />
                                             {option.label}
                                         </button>
                                     )
