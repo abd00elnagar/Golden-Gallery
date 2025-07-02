@@ -187,9 +187,7 @@ export async function getAllUsers(): Promise<User[]> {
     const { data, error } = await serverClient
       .from("users")
       .select("*")
-      .eq("role", "user")
       .order("created_at", { ascending: false });
-
     if (error) {
       console.error("Error fetching users:", error);
       return [];

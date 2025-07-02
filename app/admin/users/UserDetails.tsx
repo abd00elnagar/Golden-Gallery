@@ -1,29 +1,10 @@
-import { User, ShoppingBag, Heart, Phone, MapPin } from "lucide-react";
+"use client";
+
+import { ShoppingBag, Heart, Phone, MapPin } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { createServerClient } from "@/lib/supabase";
 
-async function getUserDetails(userId: string) {
-  const supabase = createServerClient();
-
-  // Get user details with orders
-  const { data: user, error: userError } = await supabase
-    .from("users")
-    .select("*, orders(*)")
-    .eq("id", userId)
-    .single();
-
-  if (userError) {
-    console.error("Error fetching user details:", userError);
-    return null;
-  }
-
-  return user;
-}
-
-export default async function UserDetails({ userId }: { userId: string }) {
-  const user = await getUserDetails(userId);
-
+export default function UserDetailsClient({ user }: { user: any }) {
   if (!user) {
     return (
       <div className="p-4 text-center text-muted-foreground">
@@ -47,7 +28,7 @@ export default async function UserDetails({ userId }: { userId: string }) {
                 {user.name
                   ? user.name
                       .split(" ")
-                      .map((n) => n[0])
+                      .map((n: string) => n[0])
                       .join("")
                   : "U"}
               </AvatarFallback>
@@ -131,7 +112,9 @@ export default async function UserDetails({ userId }: { userId: string }) {
                           : "text-orange-600"
                       }`}
                     >
-                      {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                      {typeof order.status === "string" && order.status.length > 0
+                        ? order.status.charAt(0).toUpperCase() + order.status.slice(1)
+                        : "Unknown"}
                     </p>
                   </div>
                 </div>
@@ -144,4 +127,4 @@ export default async function UserDetails({ userId }: { userId: string }) {
       </Card>
     </div>
   );
-}
+} 

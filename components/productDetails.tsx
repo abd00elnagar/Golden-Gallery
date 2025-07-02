@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { Heart, ShoppingCart, ArrowLeft, ChevronLeft, ChevronRight, ShoppingBag, MessageCircle } from "lucide-react"
@@ -77,11 +77,11 @@ function FavoriteButton({ productId, userId, isFavorite, productLikes, onLikesUp
     <form action={formAction}>
       <input type="hidden" name="productId" value={productId} />
       <input type="hidden" name="isFavorite" value={fav.toString()} />
-      <Button 
-        type="submit" 
-        variant="ghost" 
+      <Button
+        type="submit"
+        variant="ghost"
         size="icon"
-        className="h-8 w-8" 
+        className="h-8 w-8"
         disabled={pending}
         onClick={() => setFavLook(!favLook)}
       >
@@ -92,9 +92,9 @@ function FavoriteButton({ productId, userId, isFavorite, productLikes, onLikesUp
   )
 }
 
-function AddToCartButton({ productId, userId, quantity, isOutOfStock }: { 
-  productId: string; 
-  userId?: string; 
+function AddToCartButton({ productId, userId, quantity, isOutOfStock }: {
+  productId: string;
+  userId?: string;
   quantity: number;
   isOutOfStock: boolean;
 }) {
@@ -127,7 +127,7 @@ function AddToCartButton({ productId, userId, quantity, isOutOfStock }: {
 
   if (!userId) {
     return (
-      <Button size="sm" disabled={isOutOfStock}>
+      <Button size="lg" className="w-full" disabled={isOutOfStock}>
         <ShoppingCart className="h-4 w-4 mr-2" />
         {isOutOfStock ? "Out of Stock" : "Login to use Cart"}
       </Button>
@@ -138,7 +138,7 @@ function AddToCartButton({ productId, userId, quantity, isOutOfStock }: {
     <form action={formAction} onSubmit={handleSubmit}>
       <input type="hidden" name="productId" value={productId} />
       <input type="hidden" name="quantity" value={quantity.toString()} />
-      <Button type="submit" size="sm" disabled={isOutOfStock || pending || isAdding}>
+      <Button type="submit" size="lg" className="w-full" disabled={isOutOfStock || pending || isAdding}>
         <ShoppingCart className="h-4 w-4 mr-2" />
         {isOutOfStock ? "Out of Stock" : (pending || isAdding) ? "Adding..." : "Add to Cart"}
       </Button>
@@ -146,21 +146,30 @@ function AddToCartButton({ productId, userId, quantity, isOutOfStock }: {
   )
 }
 
-function ProductDetails({ product, isFavorite, userId }: { 
-  product: Product & { category?: { id: string; name: string; description: string | null; created_at: string } }, 
+function ProductDetails({ product, isFavorite, userId }: {
+  product: Product & { category?: { id: string; name: string; description: string | null; created_at: string } },
   isFavorite: boolean;
   userId?: string;
 }) {
   const category = product?.category
-  const [selectedColorIndex, setSelectedColorIndex] = useState(0)
   const [currentLikes, setCurrentLikes] = useState(product?.likes || 0)
   const [quantity, setQuantity] = useState(1)
+  const [currentImageIndex, setCurrentImageIndex] = useState(0)
+  const [imageLoading, setImageLoading] = useState(true)
   const router = useRouter();
+
+  // Track manually selected color (not auto-selected)
+  const [selectedColorIndex, setSelectedColorIndex] = useState(-1)
 
   // Update likes when product changes
   useEffect(() => {
     setCurrentLikes(product?.likes || 0)
   }, [product?.likes])
+
+  // Reset loading state when image changes
+  useEffect(() => {
+    setImageLoading(true)
+  }, [currentImageIndex])
 
   if (!product) {
     return (
@@ -175,28 +184,109 @@ function ProductDetails({ product, isFavorite, userId }: {
     )
   }
 
-  const selectedColor = product.colors[selectedColorIndex] || product.colors[0]
+  // Create a combined array of all images: product images first, then color images
+  const allImages = [
+    ...(product.images || []),
+    ...(product.colors || []).map(color => color.image).filter(Boolean)
+  ]
 
-  // Handle image navigation
+  const currentImage = allImages[currentImageIndex] || "/placeholder.svg"
+
+  // Add error handling for image loading
+  const handleImageError = () => {
+    console.error('Failed to load image:', currentImage)
+    setImageLoading(false)
+  }
+
+  // Handle carousel navigation
   const handlePreviousImage = () => {
-    if (selectedColorIndex > 0) {
-      setSelectedColorIndex(selectedColorIndex - 1)
+    if (allImages.length <= 1) return
+    
+    let newIndex: number
+    if (currentImageIndex > 0) {
+      newIndex = currentImageIndex - 1
     } else {
-      setSelectedColorIndex(product.colors.length - 1)
+      newIndex = allImages.length - 1
+    }
+    
+    if (newIndex === currentImageIndex) {
+      return
+    }
+    
+    setImageLoading(true)
+    setCurrentImageIndex(newIndex)
+    
+    // Update color selection if navigating to a color image
+    const productImageCount = product.images?.length || 0
+    if (newIndex >= productImageCount) {
+      const colorIndex = newIndex - productImageCount
+      setSelectedColorIndex(colorIndex)
+    } else {
+      setSelectedColorIndex(-1)
     }
   }
 
   const handleNextImage = () => {
-    if (selectedColorIndex < product.colors.length - 1) {
-      setSelectedColorIndex(selectedColorIndex + 1)
+    if (allImages.length <= 1) return
+    
+    let newIndex: number
+    if (currentImageIndex < allImages.length - 1) {
+      newIndex = currentImageIndex + 1
     } else {
-      setSelectedColorIndex(0)
+      newIndex = 0
+    }
+    
+    if (newIndex === currentImageIndex) {
+      return
+    }
+    
+    setImageLoading(true)
+    setCurrentImageIndex(newIndex)
+    
+    // Update color selection if navigating to a color image
+    const productImageCount = product.images?.length || 0
+    if (newIndex >= productImageCount) {
+      const colorIndex = newIndex - productImageCount
+      setSelectedColorIndex(colorIndex)
+    } else {
+      setSelectedColorIndex(-1)
     }
   }
 
-  // Handle color selection and update image
-  const handleColorSelect = (index: number) => {
-    setSelectedColorIndex(index)
+  // Handle color button click - jump to that color's image and select it
+  const handleColorSelect = (colorIndex: number) => {
+    const productImageCount = product.images?.length || 0
+    const colorImageIndex = productImageCount + colorIndex
+    if (colorImageIndex == currentImageIndex) {
+      return
+    }
+    // Always update the image and selection, even if clicking the same color
+    setImageLoading(true)
+    setCurrentImageIndex(colorImageIndex)
+    setSelectedColorIndex(colorIndex)
+  }
+
+  // Handle image thumbnail selection
+  const handleImageSelect = (index: number) => {
+    if (index >= 0 && index < allImages.length) {
+      if (index == currentImageIndex) {
+        return
+      }
+      
+      const productImageCount = product.images?.length || 0
+      
+      if (index >= productImageCount) {
+        // This is a color image
+        const colorIndex = index - productImageCount
+        handleColorSelect(colorIndex)
+        return
+      } else {
+        // This is a product image
+        setSelectedColorIndex(-1)
+        setCurrentImageIndex(index)
+        setImageLoading(true)
+      }
+    }
   }
 
   const handleBuyNow = () => {
@@ -231,16 +321,23 @@ function ProductDetails({ product, isFavorite, userId }: {
         {/* Image Gallery */}
         <div className="space-y-4">
           <div className="aspect-square relative overflow-hidden rounded-lg border">
+            {imageLoading && (
+              <div className="absolute inset-0 bg-muted animate-pulse flex items-center justify-center">
+                <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+              </div>
+            )}
             <Image
-              src={selectedColor?.image || product.images?.[0] || "/placeholder.svg"}
+              src={currentImage}
               alt={product.name}
               fill
-              className="object-cover"
+              className={`object-cover transition-opacity duration-300 ${imageLoading ? 'opacity-0' : 'opacity-100'}`}
               priority
+              onLoad={() => setImageLoading(false)}
+              onError={handleImageError}
             />
-            
+
             {/* Navigation Arrows */}
-            {product.colors.length > 1 && (
+            {allImages.length > 1 && (
               <>
                 <Button
                   variant="ghost"
@@ -260,21 +357,35 @@ function ProductDetails({ product, isFavorite, userId }: {
                 </Button>
               </>
             )}
+
+            {/* Image Counter */}
+            {allImages.length > 1 && (
+              <div className="absolute bottom-2 right-2 bg-background/80 backdrop-blur-sm px-2 py-1 rounded text-xs">
+                {currentImageIndex + 1} / {allImages.length}
+              </div>
+            )}
+
+            {/* Color Badge */}
+            {selectedColorIndex >= 0 && product.colors[selectedColorIndex]?.name && (
+              <div className="absolute top-2 left-2 bg-background/80 backdrop-blur-sm px-2 py-1 rounded text-xs font-medium">
+                {product.colors[selectedColorIndex].name}
+              </div>
+            )}
           </div>
 
-          {/* Color Images */}
-          {product.colors.length > 1 && (
+          {/* Product Image Thumbnails */}
+          {allImages.length > 1 && (
             <div className="grid grid-cols-4 gap-2">
-              {product.colors.map((color, index) => (
+              {allImages.map((image, index) => (
                 <button
                   key={index}
-                  className={`aspect-square relative overflow-hidden rounded border-2 ${selectedColorIndex === index ? "border-primary" : "border-muted"}`}
-                  onClick={() => handleColorSelect(index)}
-                  aria-label={`Select ${color.name} color`}
+                  className={`aspect-square relative overflow-hidden rounded border-2 ${currentImageIndex === index ? "border-primary" : "border-muted"}`}
+                  onClick={() => handleImageSelect(index)}
+                  aria-label={`Select image ${index + 1}`}
                 >
                   <Image
-                    src={color.image || "/placeholder.svg"}
-                    alt={`${product.name} - ${color.name}`}
+                    src={image}
+                    alt={`${product.name} - Image ${index + 1}`}
                     fill
                     className="object-cover"
                   />
@@ -282,6 +393,7 @@ function ProductDetails({ product, isFavorite, userId }: {
               ))}
             </div>
           )}
+
         </div>
 
         {/* Product Details */}
@@ -321,20 +433,28 @@ function ProductDetails({ product, isFavorite, userId }: {
           <Separator />
 
           {/* Color Selection */}
-          {product.colors.length > 1 && (
+          {product.colors.length > 0 && (
             <div>
-              <h3 className="font-semibold mb-3">Color: {selectedColor?.name}</h3>
-              <div className="flex gap-3">
+              <h3 className="font-semibold mb-3">Colors</h3>
+              <div className="flex gap-2">
                 {product.colors.map((color, index) => (
                   <button
                     key={index}
-                    className={`w-10 h-10 rounded-full border-2 ${selectedColorIndex === index ? "border-primary" : "border-muted"}`}
+                    className={`relative w-8 h-8 border-2 transition-all duration-300 ease-in-out transform hover:scale-110 active:scale-95 ${
+                      selectedColorIndex === index
+                        ? "border-primary rounded-lg shadow-lg shadow-primary/30 ring-2 ring-primary/20"
+                        : "border-muted rounded-full hover:border-primary/50 hover:shadow-md"
+                    }`}
                     style={{ backgroundColor: color.hex }}
                     onClick={() => handleColorSelect(index)}
                     aria-label={`Select ${color.name} color`}
+                    title={color.name}
                   />
                 ))}
               </div>
+              <p className="text-sm text-muted-foreground mt-2">
+                Click on a color to see it in the carousel
+              </p>
             </div>
           )}
 

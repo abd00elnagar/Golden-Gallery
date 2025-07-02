@@ -101,16 +101,16 @@ export default function OrdersList({ orders }: { orders: Order[] }) {
                     <div className="flex flex-col sm:flex-row gap-2">
                       <Button asChild variant="outline" size="sm">
                         <Link href={`/orders/${order.id}`}>
-                          <Eye className="h-4 w-4 mr-2" />
-                          View Details
+                            <Eye className="h-4 w-4 mr-2" />
+                            View Details
                         </Link>
-                      </Button>
+                          </Button>
                       <form action={resendAction}>
                         <input type="hidden" name="orderId" value={order.id} />
                         <Button variant="outline" size="sm" type="submit">
-                          <Mail className="h-4 w-4 mr-2" />
-                          Resend Email
-                        </Button>
+                        <Mail className="h-4 w-4 mr-2" />
+                        Resend Email
+                      </Button>
                       </form>
                     </div>
                   </div>

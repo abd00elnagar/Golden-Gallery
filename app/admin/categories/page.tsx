@@ -220,6 +220,41 @@ function CategoriesContent() {
 
   return (
     <div className="min-h-screen flex flex-col items-center">
+      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Category</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleAddCategory} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="add-name">Category Name *</Label>
+              <Input
+                id="add-name"
+                value={formData.name}
+                onChange={e => setFormData({ ...formData, name: e.target.value })}
+                placeholder="Enter category name"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="add-description">Description</Label>
+              <Textarea
+                id="add-description"
+                value={formData.description}
+                onChange={e => setFormData({ ...formData, description: e.target.value })}
+                placeholder="Enter category description"
+                rows={3}
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit">Add Category</Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
       <div className="w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-8 w-full">
           <div className="text-center sm:text-left">
