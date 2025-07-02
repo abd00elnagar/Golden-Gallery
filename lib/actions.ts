@@ -701,6 +701,24 @@ export async function updateOrderStatus(
       return null;
     }
 
+    // Add notification for status update
+    if (order.user) {
+      const notifications = order.user.notifications || [];
+      notifications.unshift({
+        id: crypto.randomUUID(),
+        orderId: order.id,
+        message: `Your order #${order.order_number} status has been updated to ${status}.`,
+        read: false,
+        createdAt: new Date().toISOString(),
+      });
+
+      // Update user notifications
+      await serverClient
+        .from("users")
+        .update({ notifications })
+        .eq("id", order.user.id);
+    }
+
     // Send email notification to the user
     if (order.user && order.user.email) {
       try {
@@ -1161,23 +1179,33 @@ export async function createOrderAction(prevState: any, formData: FormData) {
     const order = await createOrder(orderData);
     if (!order) return { error: "Failed to create order" };
 
-    // Clear user's cart only if not Buy Now
+    // Add notification for order creation
+    const notifications = user.notifications || [];
+    notifications.unshift({
+      id: crypto.randomUUID(),
+      orderId: order.id,
+      message: `Your order #${order.order_number} has been placed successfully.`,
+      read: false,
+      createdAt: new Date().toISOString(),
+    });
+
+    // Update user with new notification and clear cart if needed
+    const serverClient = createServerClient();
     if (!isBuyNow) {
-      const serverClient = createServerClient();
       await serverClient
         .from("users")
         .update({
           cart: [],
           orders: [...(user.orders || []), order.id],
+          notifications,
         })
         .eq("id", user.id);
     } else {
-      // Just add the order to user's orders
-      const serverClient = createServerClient();
       await serverClient
         .from("users")
         .update({
           orders: [...(user.orders || []), order.id],
+          notifications,
         })
         .eq("id", user.id);
     }
@@ -1242,5 +1270,49 @@ export async function getUserById(userId: string): Promise<User | null> {
     return data;
   } catch {
     return null;
+  }
+}
+
+export async function markNotificationAsRead(
+  prevState: any,
+  formData: FormData
+) {
+  const notificationId = formData.get("notificationId") as string;
+  const user = await getUser();
+
+  if (!user || !notificationId) {
+    return { error: "Missing user or notification information" };
+  }
+
+  try {
+    const serverClient = createServerClient();
+    const notifications = user.notifications || [];
+
+    // Find and mark the notification as read
+    const updatedNotifications = notifications.map((notification) =>
+      notification.id === notificationId
+        ? { ...notification, read: true }
+        : notification
+    );
+
+    // Update user notifications
+    const { error: updateError } = await serverClient
+      .from("users")
+      .update({ notifications: updatedNotifications })
+      .eq("id", user.id);
+
+    if (updateError) {
+      console.error("Update notification error:", updateError);
+      return { error: "Failed to mark notification as read" };
+    }
+
+    return {
+      success: true,
+      message: "Notification marked as read",
+      notifications: updatedNotifications,
+    };
+  } catch (error) {
+    console.error("Mark notification as read error:", error);
+    return { error: "An error occurred while updating notification" };
   }
 }
