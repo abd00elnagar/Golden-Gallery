@@ -92,7 +92,7 @@ export async function sendOrderConfirmationEmail(data: OrderEmailData) {
 
   // Use the dynamic URL function
   const websiteUrl = baseUrl || getWebsiteUrl()
-  const orderLink = `${websiteUrl}/orders/${orderId}`
+  const orderLink = `http://localhost:3000/orders/${orderId}`
 
   const emailHtml = `
     <!DOCTYPE html>
