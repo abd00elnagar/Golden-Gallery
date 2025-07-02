@@ -30,6 +30,7 @@ export default async function CheckoutPage({ searchParams }: { searchParams: { p
     }
   } else {
     cartItems = await getUserCartItems(user.id)
+    cartItems = cartItems.filter((item) => !item.notFound)
   }
 
   if (cartItems.length === 0) {

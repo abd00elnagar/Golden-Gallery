@@ -188,7 +188,6 @@ export async function getAllUsers(): Promise<User[]> {
       .from("users")
       .select("*")
       .order("created_at", { ascending: false });
-
     if (error) {
       console.error("Error fetching users:", error);
       return [];

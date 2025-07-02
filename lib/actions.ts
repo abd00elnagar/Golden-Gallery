@@ -43,8 +43,8 @@ export async function uploadImage(
     const { data, error } = await serverClient.storage
       .from("images")
       .upload(filePath, file, {
-        cacheControl: "3600",
-        upsert: false,
+      cacheControl: "3600",
+      upsert: false,
       });
     if (error) return null;
     const { data: urlData } = serverClient.storage
@@ -604,13 +604,13 @@ export async function getOrder(id: string): Promise<Order | null> {
       .eq("id", id)
       .single();
     if (error) return null;
-
+    
     // Check if user is admin or owns the order
     if (currentUser.role !== "admin" && data.user_id !== currentUser.id) {
       console.error("Unauthorized attempt to view order");
       return null;
     }
-
+    
     return data;
   } catch {
     return null;
@@ -809,17 +809,17 @@ export async function toggleFavorite(prevState: any, formData: FormData) {
   const productId = formData.get("productId") as string;
   const isFavorite = formData.get("isFavorite") === "true";
   const user = await getUser();
-
+  
   if (!user || !productId) {
     return { error: "Missing user or product information" };
   }
 
   try {
     const serverClient = createServerClient();
-
+    
     // console.log("Current user favorites:", user.favorites)
     let favorites = user.favorites || [];
-
+    
     if (isFavorite) {
       // Remove from favorites
       favorites = favorites.filter((fav: any) => fav.productId !== productId);
@@ -840,7 +840,7 @@ export async function toggleFavorite(prevState: any, formData: FormData) {
       .from("users")
       .update({ favorites })
       .eq("id", user.id);
-
+    
     if (updateUserError) {
       console.error("Update user error:", updateUserError);
       return { error: "Failed to update favorites" };
@@ -885,15 +885,15 @@ export async function toggleFavorite(prevState: any, formData: FormData) {
       .from("products")
       .update({ likes: newLikes })
       .eq("id", productId);
-
+    
     if (updateProductError) {
       console.error("Update product error:", updateProductError);
       return { error: "Failed to update product likes" };
     }
 
     // console.log("Successfully updated favorites and likes")
-    return {
-      success: true,
+    return { 
+      success: true, 
       isFavorite: !isFavorite,
       likes: newLikes,
       message: isFavorite ? "Removed from favorites" : "Added to favorites",
@@ -916,13 +916,13 @@ export async function addToCartAction(prevState: any, formData: FormData) {
 
   try {
     const serverClient = createServerClient();
-
+    
     // console.log("Current user cart:", user.cart)
     let cart = user.cart || [];
     const existingItemIndex = cart.findIndex(
       (item: any) => item.productId === productId
     );
-
+    
     if (existingItemIndex > -1) {
       // Update existing item quantity
       cart[existingItemIndex].quantity += quantity;
@@ -937,15 +937,15 @@ export async function addToCartAction(prevState: any, formData: FormData) {
       .from("users")
       .update({ cart })
       .eq("id", user.id);
-
+    
     if (updateError) {
       console.error("Update cart error:", updateError);
       return { error: "Failed to update cart" };
     }
 
     // console.log("Successfully updated cart")
-    return {
-      success: true,
+    return { 
+      success: true, 
       message: existingItemIndex > -1 ? "Cart updated" : "Added to cart",
       cartItemCount: cart.length,
     };
@@ -996,7 +996,7 @@ export async function getUserCartItems(userId: string): Promise<any[]> {
       .eq("id", userId)
       .single();
     if (error || !user || !user.cart) return [];
-
+    
     // Get product details for each cart item
     const cartItems = [];
     for (const cartItem of user.cart) {
@@ -1005,7 +1005,7 @@ export async function getUserCartItems(userId: string): Promise<any[]> {
         .select("*")
         .eq("id", cartItem.productId)
         .single();
-
+      
       if (!productError && product) {
         cartItems.push({
           productId: cartItem.productId,
@@ -1044,9 +1044,9 @@ export async function updateCartQuantityAction(
 
   try {
     const serverClient = createServerClient();
-
+    
     let cart = user.cart || [];
-
+    
     if (quantity === 0) {
       // Remove item from cart
       cart = cart.filter((item: any) => item.productId !== productId);
@@ -1064,14 +1064,14 @@ export async function updateCartQuantityAction(
       .from("users")
       .update({ cart })
       .eq("id", user.id);
-
+    
     if (updateError) {
       console.error("Update cart error:", updateError);
       return { error: "Failed to update cart" };
     }
 
-    return {
-      success: true,
+    return { 
+      success: true, 
       message: quantity === 0 ? "Item removed from cart" : "Cart updated",
       cartItemCount: cart.length,
     };
@@ -1091,7 +1091,7 @@ export async function removeFromCartAction(prevState: any, formData: FormData) {
 
   try {
     const serverClient = createServerClient();
-
+    
     let cart = user.cart || [];
     cart = cart.filter((item: any) => item.productId !== productId);
 
@@ -1099,14 +1099,14 @@ export async function removeFromCartAction(prevState: any, formData: FormData) {
       .from("users")
       .update({ cart })
       .eq("id", user.id);
-
+    
     if (updateError) {
       console.error("Update cart error:", updateError);
       return { error: "Failed to update cart" };
     }
 
-    return {
-      success: true,
+    return { 
+      success: true, 
       message: "Item removed from cart",
       cartItemCount: cart.length,
     };
