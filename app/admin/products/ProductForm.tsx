@@ -261,17 +261,14 @@ export function ProductForm({
     });
   };
 
-  // Prefill test data for add mode
-  const testDefaults = !isEditing
-    ? {
-        name: "Test Product",
-        description: "This is a test product description.",
-        price: 99.99,
-        stock: 10,
-        category_id: categories[0]?.id || "",
-        featured: true,
-      }
-    : {};
+  const testDefaults = !isEditing ? {
+    name: "Test Product",
+    description: "This is a test home supplies product description.",
+    price: 99.99,
+    stock: 10,
+    category_id: categories[0]?.id || "",
+    featured: true,
+  } : {};
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
