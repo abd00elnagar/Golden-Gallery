@@ -34,7 +34,7 @@ export default function SignInPage() {
     <div className="container mx-auto px-4 py-8 flex items-center justify-center min-h-[60vh]">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl">Welcome to Golden Gallery</CardTitle>
+          <CardTitle className="text-2xl">Welcome to Aldahbi Store</CardTitle>
           <CardDescription>
             Sign in to your account to continue shopping
           </CardDescription>

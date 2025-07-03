@@ -39,12 +39,12 @@ export function Navbar({ user }: NavbarProps) {
           <Link href="/" className="flex items-center space-x-2">
             <Image
               src={`/logo-${mounted ? theme || "light" : "light"}.png`}
-              alt="Golden Gallery Logo"
+              alt="Aldahbi Store Logo"
               width={32}
               height={32}
               className="rounded-full"
             />
-            <span className="text-lg sm:text-xl font-bold">Golden Gallery</span>
+            <span className="text-lg sm:text-xl font-bold">Aldahbi Store</span>
           </Link>
         </div>
 

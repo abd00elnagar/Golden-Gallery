@@ -17,7 +17,7 @@ export default function TermsOfServicePage() {
             </CardHeader>
             <CardContent className="prose prose-sm max-w-none">
               <p>
-                By accessing and using Golden Gallery's website and services, you accept and agree to be bound by the
+                By accessing and using Aldahbi Store's website and services, you accept and agree to be bound by the
                 terms and provision of this agreement. If you do not agree to abide by the above, please do not use this
                 service.
               </p>
@@ -30,7 +30,7 @@ export default function TermsOfServicePage() {
             </CardHeader>
             <CardContent className="prose prose-sm max-w-none">
               <p>
-                Permission is granted to temporarily download one copy of the materials on Golden Gallery's website for
+                Permission is granted to temporarily download one copy of the materials on Aldahbi Store's website for
                 personal, non-commercial transitory viewing only. This is the grant of a license, not a transfer of
                 title, and under this license you may not:
               </p>
@@ -102,9 +102,9 @@ export default function TermsOfServicePage() {
             </CardHeader>
             <CardContent className="prose prose-sm max-w-none">
               <p>
-                In no event shall Golden Gallery or its suppliers be liable for any damages (including, without
+                In no event shall Aldahbi Store or its suppliers be liable for any damages (including, without
                 limitation, damages for loss of data or profit, or due to business interruption) arising out of the use
-                or inability to use the materials on Golden Gallery's website.
+                or inability to use the materials on Aldahbi Store's website.
               </p>
             </CardContent>
           </Card>
@@ -117,7 +117,7 @@ export default function TermsOfServicePage() {
               <p>If you have any questions about these Terms of Service, please contact us:</p>
               <div className="mt-4">
                 <p>
-                  <strong>Golden Gallery</strong>
+                  <strong>Aldahbi Store</strong>
                 </p>
                 <p>Email: legal@goldengallery.com</p>
                 <p>Phone: +1 (555) 123-4567</p>

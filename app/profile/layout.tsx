@@ -11,7 +11,7 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 
   return {
-    title: `${session.user.name}'s Profile - Golden Gallery`,
+    title: `${session.user.name}'s Profile - Aldahbi Store`,
     description: `View and manage ${session.user.name}'s profile, orders, and preferences`,
   };
 }

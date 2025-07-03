@@ -99,7 +99,7 @@ export async function sendOrderConfirmationEmail(data: OrderEmailData) {
     <html>
     <head>
       <meta charset="utf-8">
-      <title>Order Confirmation - Golden Gallery</title>
+      <title>Order Confirmation - Aldahbi Store</title>
       <style>
         body { background: #fff; margin: 0; padding: 0; font-family: Arial, sans-serif; color: #000 !important; }
         .container { max-width: 480px; margin: 32px auto; background: #fff; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border: 1px solid #e3e8f0; overflow: hidden; color: #000 !important; }
@@ -130,7 +130,7 @@ export async function sendOrderConfirmationEmail(data: OrderEmailData) {
       <div class="container">
         <div class="header">
           <div class="title">Order Confirmed</div>
-          <div class="subtitle">Thank you for shopping with Golden Gallery!</div>
+          <div class="subtitle">Thank you for shopping with Aldahbi Store!</div>
         </div>
         <div class="order-link">
           <a href="${orderLink}">View Order Details</a>
@@ -162,7 +162,7 @@ export async function sendOrderConfirmationEmail(data: OrderEmailData) {
         </div>
         <div class="footer">
           <div>Need help? <a href="https://wa.me/201234567890" style="color:#000;text-decoration:underline;">Contact us on WhatsApp</a></div>
-          <div style="margin-top: 8px;">© 2024 Golden Gallery. All rights reserved.</div>
+          <div style="margin-top: 8px;">© 2024 Aldahbi Store. All rights reserved.</div>
         </div>
       </div>
     </body>
@@ -218,7 +218,7 @@ export async function sendOrderStatusUpdateEmail(
     <html>
     <head>
       <meta charset="utf-8">
-      <title>Order Status Update - Golden Gallery</title>
+      <title>Order Status Update - Aldahbi Store</title>
       <style>
         body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
         .container { max-width: 600px; margin: 0 auto; padding: 20px; }
@@ -230,7 +230,7 @@ export async function sendOrderStatusUpdateEmail(
     <body>
       <div class="container">
         <div class="header">
-          <h1>🎨 Golden Gallery</h1>
+          <h1>🎨 Aldahbi Store</h1>
           <h2>Order Status Update</h2>
         </div>
 
@@ -243,7 +243,7 @@ export async function sendOrderStatusUpdateEmail(
 
         <div class="footer">
           <p>If you have any questions, please contact us at support@goldengallery.com</p>
-          <p>© 2024 Golden Gallery. All rights reserved.</p>
+          <p>© 2024 Aldahbi Store. All rights reserved.</p>
         </div>
       </div>
     </body>

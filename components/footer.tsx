@@ -20,7 +20,7 @@ export function Footer() {
             <div className="flex items-center space-x-2 mb-3 sm:mb-4">
               <Image
                 src={`/logo-${mounted ? (theme || "light") : "light"}.png`}
-                alt="Golden Gallery Logo"
+                alt="Aldahbi Store Logo"
                 className="h-6 w-6 sm:h-8 sm:w-8 rounded-full object-cover"
                 width={32}
                 height={32}
@@ -107,7 +107,7 @@ export function Footer() {
         </div>
 
         <div className="border-t mt-6 sm:mt-8 pt-6 sm:pt-8 text-center text-xs sm:text-sm text-muted-foreground w-full">
-          <p>&copy; 2025 Golden Gallery. All rights reserved.</p>
+          <p>&copy; 2025 Aldahbi Store. All rights reserved.</p>
         </div>
       </div>
     </footer>
