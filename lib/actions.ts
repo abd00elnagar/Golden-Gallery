@@ -1316,3 +1316,44 @@ export async function markNotificationAsRead(
     return { error: "An error occurred while updating notification" };
   }
 }
+
+export async function markAllNotificationsAsRead(
+  prevState: any,
+  formData: FormData
+) {
+  const user = await getUser();
+
+  if (!user) {
+    return { error: "User not authenticated" };
+  }
+
+  try {
+    const serverClient = createServerClient();
+    const notifications = user.notifications || [];
+
+    // Mark all unread notifications as read
+    const updatedNotifications = notifications.map((notification) =>
+      !notification.read ? { ...notification, read: true } : notification
+    );
+
+    // Update user notifications in a single operation
+    const { error: updateError } = await serverClient
+      .from("users")
+      .update({ notifications: updatedNotifications })
+      .eq("id", user.id);
+
+    if (updateError) {
+      console.error("Update all notifications error:", updateError);
+      return { error: "Failed to mark all notifications as read" };
+    }
+
+    return {
+      success: true,
+      message: "All notifications marked as read",
+      notifications: updatedNotifications,
+    };
+  } catch (error) {
+    console.error("Mark all notifications as read error:", error);
+    return { error: "An error occurred while updating notifications" };
+  }
+}

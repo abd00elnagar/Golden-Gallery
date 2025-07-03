@@ -215,21 +215,22 @@ export function ProductCard({ product, isFavorite, userId }: ProductCardProps) {
           </div>
         </div>
 
-        {/* Color Selection - Always reserve space */}
+        {/* Color Selection - Always show colors for preview */}
         <div className="mb-4 h-8 flex items-center">
-          {product.colors && product.colors.length > 1 ? (
+          {product.colors && product.colors.length > 0 ? (
             <div className="flex gap-2">
               {product.colors.map((color, ind) => (
                 <div
                   key={ind}
-                  className={`w-5 h-5 rounded-full border-2 shadow-lg transition-all`}
+                  className={`w-5 h-5 rounded-full border-2 border-gray-200 shadow-lg transition-all hover:scale-110`}
                   style={{ backgroundColor: color.hex }}
-                  aria-label={`Select ${color.name} color`}
+                  aria-label={`${color.name} color`}
+                  title={color.name}
                 />
               ))}
             </div>
           ) : (
-            // Empty placeholder to maintain consistent layout
+            // Show placeholder when no colors
             <div className="w-6 h-6" />
           )}
         </div>

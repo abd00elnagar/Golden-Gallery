@@ -260,6 +260,9 @@ export function OrdersTable({ initialOrders }: OrdersTableProps) {
                                     Customer ID: {order.user_id}
                                   </p>
                                   <p className="text-sm">
+                                    Email: {order.userEmail}
+                                  </p>
+                                  <p className="text-sm">
                                     Phone: {order.shipping_phone}
                                   </p>
                                   <p className="text-sm">

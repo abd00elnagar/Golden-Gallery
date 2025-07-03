@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Plus, Edit, Trash2, Search, Eye, ArrowLeft } from "lucide-react";
@@ -39,9 +39,15 @@ import { deleteProduct, searchProducts } from "./actions";
 import type { Product, Category } from "@/lib/types";
 import { ProductForm } from "./ProductForm";
 
-
-export function ProductList({ initialProducts, categories }: { initialProducts: Product[], categories: Category[]}) {
+export function ProductList({
+  initialProducts,
+  categories,
+}: {
+  initialProducts: Product[];
+  categories: Category[];
+}) {
   const [products, setProducts] = useState(initialProducts);
+  const [filteredProducts, setFilteredProducts] = useState(initialProducts);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const { toast } = useToast();
@@ -49,20 +55,29 @@ export function ProductList({ initialProducts, categories }: { initialProducts: 
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
-  const handleSearch = async () => {
-    startTransition(async () => {
-      const result = await searchProducts(searchQuery, selectedCategory);
-      if (result.error) {
-        toast({
-          title: "Error",
-          description: result.error,
-          variant: "destructive",
-        });
-      } else if (result.products) {
-        setProducts(result.products);
-      }
-    });
-  };
+  // Effect to handle filtering whenever search query or category changes
+  useEffect(() => {
+    let result = [...products];
+
+    // Apply category filter
+    if (selectedCategory !== "all") {
+      result = result.filter(
+        (product) => product.category_id === selectedCategory
+      );
+    }
+
+    // Apply search filter
+    if (searchQuery) {
+      const searchLower = searchQuery.toLowerCase();
+      result = result.filter(
+        (product) =>
+          product.name.toLowerCase().includes(searchLower) ||
+          (product.description?.toLowerCase().includes(searchLower) ?? false)
+      );
+    }
+
+    setFilteredProducts(result);
+  }, [products, searchQuery, selectedCategory]);
 
   const handleDeleteProduct = async (productId: string) => {
     startTransition(async () => {
@@ -74,7 +89,8 @@ export function ProductList({ initialProducts, categories }: { initialProducts: 
           variant: "destructive",
         });
       } else {
-        setProducts(products.filter((p) => p.id !== productId));
+        const updatedProducts = products.filter((p) => p.id !== productId);
+        setProducts(updatedProducts);
         toast({
           title: "Success",
           description: "Product deleted successfully",
@@ -129,19 +145,13 @@ export function ProductList({ initialProducts, categories }: { initialProducts: 
                   <Input
                     placeholder="Search products..."
                     value={searchQuery}
-                    onChange={(e) => {
-                      setSearchQuery(e.target.value);
-                      handleSearch();
-                    }}
+                    onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-10 bg-background/50 border-muted-foreground/20 focus:border-primary focus:bg-background transition-colors"
                   />
                 </div>
                 <Select
                   value={selectedCategory}
-                  onValueChange={(value) => {
-                    setSelectedCategory(value);
-                    handleSearch();
-                  }}
+                  onValueChange={setSelectedCategory}
                 >
                   <SelectTrigger className="w-full sm:w-48">
                     <SelectValue placeholder="All Categories" />
@@ -162,7 +172,7 @@ export function ProductList({ initialProducts, categories }: { initialProducts: 
           {/* Products Table */}
           <Card>
             <CardHeader>
-              <CardTitle>Products ({products.length})</CardTitle>
+              <CardTitle>Products ({filteredProducts.length})</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="overflow-x-auto">
@@ -179,7 +189,7 @@ export function ProductList({ initialProducts, categories }: { initialProducts: 
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {products.map((product) => {
+                    {filteredProducts.map((product) => {
                       const stockStatus = getStockStatus(product.stock);
                       return (
                         <TableRow key={product.id}>
@@ -211,9 +221,14 @@ export function ProductList({ initialProducts, categories }: { initialProducts: 
                           <TableCell className="font-medium">
                             ${product.price}
                           </TableCell>
-                          <TableCell className="text-center">{product.stock}</TableCell>
                           <TableCell className="text-center">
-                            <Badge variant={stockStatus.variant} className="w-full text-center inline-flex items-center justify-center whitespace-nowrap">
+                            {product.stock}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Badge
+                              variant={stockStatus.variant}
+                              className="w-full text-center inline-flex items-center justify-center whitespace-nowrap"
+                            >
                               {stockStatus.label}
                             </Badge>
                           </TableCell>
