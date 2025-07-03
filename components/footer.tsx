@@ -28,7 +28,7 @@ export function Footer() {
               <span className="text-lg sm:text-xl font-bold">Aldahbi store</span>
             </div>
             <p className="text-muted-foreground text-xs sm:text-sm text-center max-w-[250px] sm:max-w-none">
-              Discover and collect beautiful artwork from talented artists around the world.
+              Discover quality home supplies and essentials for every room in your house.
             </p>
           </div>
 
@@ -41,18 +41,23 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/?category=paintings" className="text-muted-foreground hover:text-primary">
-                  Paintings
+                <Link href="/?category=furniture" className="text-muted-foreground hover:text-primary">
+                  Furniture
                 </Link>
               </li>
               <li>
-                <Link href="/?category=sculptures" className="text-muted-foreground hover:text-primary">
-                  Sculptures
+                <Link href="/?category=kitchenware" className="text-muted-foreground hover:text-primary">
+                  Kitchenware
                 </Link>
               </li>
               <li>
-                <Link href="/?category=photography" className="text-muted-foreground hover:text-primary">
-                  Photography
+                <Link href="/?category=decor" className="text-muted-foreground hover:text-primary">
+                  Home Decor
+                </Link>
+              </li>
+              <li>
+                <Link href="/?category=appliances" className="text-muted-foreground hover:text-primary">
+                  Appliances
                 </Link>
               </li>
             </ul>

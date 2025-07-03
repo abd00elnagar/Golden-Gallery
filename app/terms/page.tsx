@@ -121,7 +121,7 @@ export default function TermsOfServicePage() {
                 </p>
                 <p>Email: legal@goldengallery.com</p>
                 <p>Phone: +1 (555) 123-4567</p>
-                <p>Address: 123 Art Street, New York, NY 10001</p>
+                <p>Address: 123 Home Supplies Ave, New York, NY 10001</p>
               </div>
             </CardContent>
           </Card>
