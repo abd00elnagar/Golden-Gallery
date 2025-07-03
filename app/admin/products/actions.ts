@@ -38,14 +38,24 @@ export async function deleteProduct(productId: string) {
 export async function searchProducts(searchQuery: string, categoryId: string) {
   try {
     const products = await getProducts();
-    const filteredProducts = products.filter((product) => {
-      const matchesSearch = searchQuery
-        ? product.name.toLowerCase().includes(searchQuery.toLowerCase())
-        : true;
-      const matchesCategory =
-        categoryId === "all" || product.category_id === categoryId;
-      return matchesSearch && matchesCategory;
-    });
+
+    // First filter by category if specified
+    let filteredProducts = products;
+    if (categoryId && categoryId !== "all") {
+      filteredProducts = products.filter(
+        (product) => product.category_id === categoryId
+      );
+    }
+
+    // Then apply search filter if there's a search query
+    if (searchQuery) {
+      const searchLower = searchQuery.toLowerCase();
+      filteredProducts = filteredProducts.filter(
+        (product) =>
+          product.name.toLowerCase().includes(searchLower) ||
+          product.description.toLowerCase().includes(searchLower)
+      );
+    }
 
     return { success: true, products: filteredProducts };
   } catch (error) {
@@ -136,7 +146,11 @@ export async function updateProduct(productId: string, formData: FormData) {
     }
 
     revalidatePath("/admin/products");
-    return { success: true, product: updatedProduct, redirect: "/admin/products" };
+    return {
+      success: true,
+      product: updatedProduct,
+      redirect: "/admin/products",
+    };
   } catch (error: any) {
     // Log the full error for debugging
     console.error("Server Error:", {
@@ -167,7 +181,10 @@ export async function updateProduct(productId: string, formData: FormData) {
  * - colorImages: each color image as colorImage_0, colorImage_1, ...
  * - If editing, pass productId as a hidden field
  */
-export async function createOrUpdateProductWithImages(prevState: any, formData: FormData) {
+export async function createOrUpdateProductWithImages(
+  prevState: any,
+  formData: FormData
+) {
   try {
     // 1. Parse basic fields
     const name = formData.get("name") as string;
@@ -182,12 +199,15 @@ export async function createOrUpdateProductWithImages(prevState: any, formData: 
     // 2. Parse colors
     let colors: { name: string; hex: string }[] = [];
     try {
-      colors = JSON.parse(formData.get("colors") as string || "[]");
+      colors = JSON.parse((formData.get("colors") as string) || "[]");
     } catch {
       return { success: false, error: "Invalid colors data." };
     }
     if (colors.some((c) => !c.name || !c.hex)) {
-      return { success: false, error: "Each color must have a name and hex value." };
+      return {
+        success: false,
+        error: "Each color must have a name and hex value.",
+      };
     }
 
     let uploadedImageUrls: string[] = [];
@@ -196,13 +216,17 @@ export async function createOrUpdateProductWithImages(prevState: any, formData: 
     if (preserveImages) {
       // Editing mode: preserve existing images
       try {
-        const existingProductImages = JSON.parse(formData.get("existingProductImages") as string || "[]");
-        const existingColorImages = JSON.parse(formData.get("existingColorImages") as string || "[]");
-        
+        const existingProductImages = JSON.parse(
+          (formData.get("existingProductImages") as string) || "[]"
+        );
+        const existingColorImages = JSON.parse(
+          (formData.get("existingColorImages") as string) || "[]"
+        );
+
         uploadedImageUrls = existingProductImages;
         colorObjs = colors.map((color, index) => ({
           ...color,
-          image: existingColorImages[index] || ""
+          image: existingColorImages[index] || "",
         }));
       } catch {
         return { success: false, error: "Failed to parse existing images." };
@@ -210,12 +234,20 @@ export async function createOrUpdateProductWithImages(prevState: any, formData: 
     } else {
       // New product mode: upload new images
       // 2. Parse product images (FileList)
-      const images = formData.getAll("images").filter((f) => f instanceof File) as File[];
+      const images = formData
+        .getAll("images")
+        .filter((f) => f instanceof File) as File[];
       if (images.length < 1) {
-        return { success: false, error: "At least one product image is required." };
+        return {
+          success: false,
+          error: "At least one product image is required.",
+        };
       }
       if (images.length > 4) {
-        return { success: false, error: "A maximum of 4 product images is allowed." };
+        return {
+          success: false,
+          error: "A maximum of 4 product images is allowed.",
+        };
       }
 
       // 3. Validate color images
@@ -223,7 +255,10 @@ export async function createOrUpdateProductWithImages(prevState: any, formData: 
       for (let i = 0; i < colors.length; i++) {
         const file = formData.get(`colorImage_${i}`);
         if (!(file instanceof File) || file.size === 0) {
-          return { success: false, error: `Image required for color #${i + 1}.` };
+          return {
+            success: false,
+            error: `Image required for color #${i + 1}.`,
+          };
         }
         colorImages.push(file);
       }
@@ -243,7 +278,10 @@ export async function createOrUpdateProductWithImages(prevState: any, formData: 
         const file = colorImages[i];
         const url = await uploadImage(file, "product-colors");
         if (!url) {
-          return { success: false, error: `Failed to upload image for color '${color.name}'.` };
+          return {
+            success: false,
+            error: `Failed to upload image for color '${color.name}'.`,
+          };
         }
         colorObjs.push({ ...color, image: url });
       }
