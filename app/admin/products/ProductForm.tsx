@@ -239,7 +239,7 @@ export function ProductForm({
             </div>
             <div className="space-y-2">
               <Label htmlFor="stock">Stock</Label>
-              <Input id="stock" name="stock" type="number" min="0" defaultValue={product?.stock || testDefaults.stock} required disabled={isPending} />
+              <Input id="stock" name="stock" type="number" min="0" defaultValue={product?.stock ?? testDefaults.stock} required disabled={isPending} />
             </div>
           </div>
 
