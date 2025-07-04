@@ -44,10 +44,14 @@ export default function SignInPage() {
             <Button
               key={provider.name}
               onClick={() => signIn(provider.id, { callbackUrl: "/profile" })}
-              className="w-full"
+              className={`w-full flex items-center justify-center gap-2 font-medium text-base border border-gray-300 bg-white shadow-sm hover:bg-gray-50 transition-colors ${provider.id === "google" ? "py-3" : ""}`}
               size="lg"
+              variant={provider.id === "google" ? "outline" : "default"}
             >
-              Sign in with {provider.name}
+              {provider.id === "google" && (
+                <img src="/google-icon.svg" alt="Google" width={22} height={22} className="mr-1" />
+              )}
+              <span>Sign in with {provider.name}</span>
             </Button>
           ))}
         </CardContent>

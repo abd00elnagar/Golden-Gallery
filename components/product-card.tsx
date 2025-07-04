@@ -22,7 +22,10 @@ interface ProductCardProps {
 
 function SignInPrompt({ open, setOpen }: { open: boolean; setOpen: (v: boolean) => void }) {
   const handleGoogleSignIn = () => {
-    window.location.href = "/api/auth/signin/google";
+    setOpen(false);
+    import("next-auth/react").then(({ signIn }) => {
+      signIn("google", { callbackUrl: "/profile" });
+    });
   };
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -32,11 +35,12 @@ function SignInPrompt({ open, setOpen }: { open: boolean; setOpen: (v: boolean) 
           <p className="text-muted-foreground mb-2">You need to sign in to perform this action.</p>
           <Button
             onClick={handleGoogleSignIn}
-            className="w-full flex items-center justify-center gap-2 bg-white border text-gray-800 hover:bg-gray-100 shadow"
+            className="w-full flex items-center justify-center gap-2 font-medium text-base border border-gray-300 bg-white shadow-sm hover:bg-gray-50 transition-colors py-3"
             size="lg"
+            variant="outline"
           >
-            <Image src="/google-icon.svg" alt="Google" width={24} height={24} />
-            Sign in with Google
+            <Image src="/google-icon.svg" alt="Google" width={22} height={22} className="mr-1" />
+            <span>Sign in with Google</span>
           </Button>
         </div>
       </DialogContent>
