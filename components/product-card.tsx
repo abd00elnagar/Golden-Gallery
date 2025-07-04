@@ -20,11 +20,11 @@ interface ProductCardProps {
   userId?: string
 }
 
-function SignInPrompt({ open, setOpen }: { open: boolean; setOpen: (v: boolean) => void }) {
+function SignInPrompt({ open, setOpen, callbackUrl }: { open: boolean; setOpen: (v: boolean) => void; callbackUrl: string }) {
   const handleGoogleSignIn = () => {
     setOpen(false);
     import("next-auth/react").then(({ signIn }) => {
-      signIn("google", { callbackUrl: "/profile" });
+      signIn("google", { callbackUrl });
     });
   };
   return (
@@ -107,7 +107,7 @@ function FavoriteButton({ productId, userId, isFavorite, productLikes, onLikesUp
           <Heart className="h-4 w-4" />
           <span className="sr-only">Login to add favorite</span>
         </Button>
-        <SignInPrompt open={showDialog} setOpen={setShowDialog} />
+        <SignInPrompt open={showDialog} setOpen={setShowDialog} callbackUrl={`/product/${productId}`} />
       </>
     )
   }
@@ -170,7 +170,7 @@ function AddToCartButton({ productId, userId, isOutOfStock }: { productId: strin
           <ShoppingCart className="h-4 w-4 mr-2" />
           {isOutOfStock ? "Out of Stock" : "Login to Add to Cart"}
         </Button>
-        <SignInPrompt open={showDialog} setOpen={setShowDialog} />
+        <SignInPrompt open={showDialog} setOpen={setShowDialog} callbackUrl={`/product/${productId}`} />
       </>
     )
   }

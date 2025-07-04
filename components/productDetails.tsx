@@ -17,12 +17,11 @@ import { useRouter } from "next/navigation"
 import { FaWhatsapp } from "react-icons/fa"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 
-function SignInPrompt({ open, setOpen }: { open: boolean; setOpen: (v: boolean) => void }) {
+function SignInPrompt({ open, setOpen, callbackUrl }: { open: boolean; setOpen: (v: boolean) => void; callbackUrl: string }) {
   const handleGoogleSignIn = () => {
     setOpen(false);
-    // Use next-auth signIn for consistency
     import("next-auth/react").then(({ signIn }) => {
-      signIn("google", { callbackUrl: "/profile" });
+      signIn("google", { callbackUrl });
     });
   };
   return (
@@ -103,7 +102,7 @@ function FavoriteButton({ productId, userId, isFavorite, productLikes, onLikesUp
           <Heart className="h-4 w-4" />
           <span className="sr-only">Login to add favorite</span>
         </Button>
-        <SignInPrompt open={showDialog} setOpen={setShowDialog} />
+        <SignInPrompt open={showDialog} setOpen={setShowDialog} callbackUrl={`/product/${productId}`} />
       </>
     )
   }
@@ -174,7 +173,7 @@ function AddToCartButton({ productId, userId, quantity, isOutOfStock }: {
           <ShoppingCart className="h-4 w-4 mr-2" />
           {isOutOfStock ? "Out of Stock" : "Login to use Cart"}
         </Button>
-        <SignInPrompt open={showDialog} setOpen={setShowDialog} />
+        <SignInPrompt open={showDialog} setOpen={setShowDialog} callbackUrl={`/product/${productId}`} />
       </>
     )
   }
@@ -590,7 +589,7 @@ function ProductDetails({ product, isFavorite, userId }: {
         </div>
       </div>
 
-      <SignInPrompt open={showSignInDialog} setOpen={setShowSignInDialog} />
+      <SignInPrompt open={showSignInDialog} setOpen={setShowSignInDialog} callbackUrl={`/product/${product.id}`} />
     </div>
   )
 }
