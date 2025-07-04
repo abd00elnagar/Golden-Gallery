@@ -726,7 +726,9 @@ export async function updateOrderStatus(
           order.user.email,
           order.user.name || "Valued Customer",
           order.order_number,
-          status
+          status,
+          null,
+          order.id
         );
       } catch (emailError) {
         console.error("Failed to send status update email:", emailError);
