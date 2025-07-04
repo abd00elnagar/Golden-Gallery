@@ -32,13 +32,13 @@ export function Navbar({ user }: NavbarProps) {
   }, [theme, setTheme]);
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full border-b bg-white dark:bg-black">
       <div className="w-full flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8 xl:px-12">
         {/* Logo on the left */}
         <div className="flex items-center">
           <Link href="/" className="flex items-center space-x-2">
             <Image
-              src={`/logo-${mounted ? theme || "light" : "light"}.png`}
+              src={`/logo-${(mounted ? theme || "light" : "light") || "light"}.png`}
               alt="Aldahbi Store Logo"
               width={32}
               height={32}
@@ -100,7 +100,7 @@ export function Navbar({ user }: NavbarProps) {
           {/* Notification Dropdown */}
           {user && <NotificationDropdown user={user} />}
 
-          {/* User Menu */}
+          {/* User Menu or Sign in Button */}
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -144,77 +144,79 @@ export function Navbar({ user }: NavbarProps) {
             </DropdownMenu>
           ) : (
             <Button
+              asChild
               variant="ghost"
               size="sm"
-              className="hidden sm:inline-flex"
-              asChild
+              className="inline-flex items-center font-medium text-base px-4 py-2 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
             >
               <Link href="/auth/signin">Sign in</Link>
             </Button>
           )}
 
           {/* Mobile Menu */}
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="md:hidden">
-                <Menu className="h-4 w-4" />
-                <span className="sr-only">Menu</span>
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="right">
-              <nav className="flex flex-col space-y-4">
-                <Link
-                  href="/profile"
-                  className="flex items-center gap-3 text-sm font-medium"
-                >
-                  <User className="h-4 w-4" />
-                  Profile
-                </Link>
-                <Link
-                  href="/orders"
-                  className="flex items-center gap-3 text-sm font-medium"
-                >
-                  <ShoppingCart className="h-4 w-4" />
-                  Orders
-                </Link>
-                <Link
-                  href="/favorites"
-                  className="flex items-center gap-3 text-sm font-medium"
-                >
-                  <Heart className="h-4 w-4" />
-                  Favorites
-                </Link>
-                <Link
-                  href="/cart"
-                  className="flex items-center gap-3 text-sm font-medium"
-                >
-                  <ShoppingCart className="h-4 w-4" />
-                  Cart
-                </Link>
-                {user?.role === "admin" && (
+          {user && (
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="md:hidden">
+                  <Menu className="h-4 w-4" />
+                  <span className="sr-only">Menu</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right">
+                <nav className="flex flex-col space-y-4">
                   <Link
-                    href="/admin"
+                    href="/profile"
                     className="flex items-center gap-3 text-sm font-medium"
                   >
-                    <svg
-                      className="h-4 w-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                      />
-                    </svg>
-                    Dashboard
+                    <User className="h-4 w-4" />
+                    Profile
                   </Link>
-                )}
-              </nav>
-            </SheetContent>
-          </Sheet>
+                  <Link
+                    href="/orders"
+                    className="flex items-center gap-3 text-sm font-medium"
+                  >
+                    <ShoppingCart className="h-4 w-4" />
+                    Orders
+                  </Link>
+                  <Link
+                    href="/favorites"
+                    className="flex items-center gap-3 text-sm font-medium"
+                  >
+                    <Heart className="h-4 w-4" />
+                    Favorites
+                  </Link>
+                  <Link
+                    href="/cart"
+                    className="flex items-center gap-3 text-sm font-medium"
+                  >
+                    <ShoppingCart className="h-4 w-4" />
+                    Cart
+                  </Link>
+                  {user?.role === "admin" && (
+                    <Link
+                      href="/admin"
+                      className="flex items-center gap-3 text-sm font-medium"
+                    >
+                      <svg
+                        className="h-4 w-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                        />
+                      </svg>
+                      Dashboard
+                    </Link>
+                  )}
+                </nav>
+              </SheetContent>
+            </Sheet>
+          )}
         </div>
       </div>
     </header>

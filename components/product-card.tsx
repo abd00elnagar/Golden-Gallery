@@ -11,11 +11,37 @@ import { useToast } from "@/hooks/use-toast"
 import { useActionState } from "react"
 import { toggleFavorite, addToCartAction, type Product } from "@/lib/actions"
 import { useFormStatus } from "react-dom"
+import { useRouter } from "next/navigation"
+import { Dialog, DialogTrigger, DialogContent } from "@/components/ui/dialog";
 
 interface ProductCardProps {
   product: Product
   isFavorite: boolean
   userId?: string
+}
+
+function SignInPrompt({ open, setOpen }: { open: boolean; setOpen: (v: boolean) => void }) {
+  const handleGoogleSignIn = () => {
+    window.location.href = "/api/auth/signin/google";
+  };
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogContent className="max-w-xs text-center rounded-lg">
+        <div className="flex flex-col items-center gap-4">
+          <h2 className="text-lg font-semibold">Sign in please</h2>
+          <p className="text-muted-foreground mb-2">You need to sign in to perform this action.</p>
+          <Button
+            onClick={handleGoogleSignIn}
+            className="w-full flex items-center justify-center gap-2 bg-white border text-gray-800 hover:bg-gray-100 shadow"
+            size="lg"
+          >
+            <Image src="/google-icon.svg" alt="Google" width={24} height={24} />
+            Sign in with Google
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
 }
 
 function FavoriteButton({ productId, userId, isFavorite, productLikes, onLikesUpdate }: {
@@ -31,6 +57,8 @@ function FavoriteButton({ productId, userId, isFavorite, productLikes, onLikesUp
   const [fav, setFav] = useState(isFavorite)
   const [favLook, setFavLook] = useState(isFavorite)
   const [likes, setLikes] = useState(productLikes)
+  const router = useRouter();
+  const [showDialog, setShowDialog] = useState(false);
 
   // Update state when props change
   useEffect(() => {
@@ -65,14 +93,18 @@ function FavoriteButton({ productId, userId, isFavorite, productLikes, onLikesUp
 
   if (!userId) {
     return (
-      <Button
-        variant="ghost"
-        size="icon"
-        className="absolute top-2 right-2 h-8 w-8 bg-background/80 hover:bg-background z-10"
-      >
-        <Heart className="h-4 w-4" />
-        <span className="sr-only">Login to add favorite</span>
-      </Button>
+      <>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="absolute top-2 right-2 h-8 w-8 bg-background/80 hover:bg-background z-10"
+          onClick={() => setShowDialog(true)}
+        >
+          <Heart className="h-4 w-4" />
+          <span className="sr-only">Login to add favorite</span>
+        </Button>
+        <SignInPrompt open={showDialog} setOpen={setShowDialog} />
+      </>
     )
   }
 
@@ -102,6 +134,8 @@ function AddToCartButton({ productId, userId, isOutOfStock }: { productId: strin
   const [state, formAction] = useActionState(addToCartAction, null)
   const { toast } = useToast()
   const [isAdding, setIsAdding] = useState(false)
+  const router = useRouter();
+  const [showDialog, setShowDialog] = useState(false);
 
   // Handle form state changes
   useEffect(() => {
@@ -127,10 +161,13 @@ function AddToCartButton({ productId, userId, isOutOfStock }: { productId: strin
 
   if (!userId) {
     return (
-      <Button className="w-full" disabled={isOutOfStock}>
-        <ShoppingCart className="h-4 w-4 mr-2" />
-        {isOutOfStock ? "Out of Stock" : "Login to Add to Cart"}
-      </Button>
+      <>
+        <Button className="w-full" disabled={isOutOfStock} onClick={() => setShowDialog(true)}>
+          <ShoppingCart className="h-4 w-4 mr-2" />
+          {isOutOfStock ? "Out of Stock" : "Login to Add to Cart"}
+        </Button>
+        <SignInPrompt open={showDialog} setOpen={setShowDialog} />
+      </>
     )
   }
 
@@ -150,6 +187,7 @@ export function ProductCard({ product, isFavorite, userId }: ProductCardProps) {
   const isOutOfStock = product.stock === 0
   const isLowStock = product.stock < 5 && product.stock > 0
   const [currentLikes, setCurrentLikes] = useState(product.likes)
+  const router = useRouter();
 
   // Update likes when product changes
   useEffect(() => {
@@ -238,8 +276,6 @@ export function ProductCard({ product, isFavorite, userId }: ProductCardProps) {
 
       <CardFooter className="p-4 pt-0 flex flex-col gap-2">
         <AddToCartButton productId={product.id} userId={userId} isOutOfStock={isOutOfStock} />
-
-
       </CardFooter>
     </Card>
   )

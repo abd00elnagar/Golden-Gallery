@@ -6,15 +6,15 @@ import { Category, User } from "@/lib/types"
 import { getServerSession } from "next-auth"
 
 export default async function HomePage() {
-  const products: Product[] = await Promise.all(
-    (await getProducts()).map(async (prod) => ({
-      ...prod,
-      category: prod.category_id ? (await getCategory(prod.category_id)) || undefined : undefined
-    }))
-  )
   const categories: Category[] = await getCategories()
   const user = await getUser()
   const favorites: string[] | undefined = user?.favorites?.map(fav => fav.productId || '').filter(Boolean)
+  const products: Product[] = (await getProducts()).map((prod) => ({
+    ...prod,
+    category: prod.category_id
+      ? categories.find((cat) => cat.id === prod.category_id)
+      : undefined,
+  }))
   
   const userId: string | undefined = user?.id || undefined
 

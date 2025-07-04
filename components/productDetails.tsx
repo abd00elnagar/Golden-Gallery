@@ -15,6 +15,32 @@ import { toggleFavorite, addToCartAction } from "@/lib/actions"
 import type { Product } from "@/lib/types"
 import { useRouter } from "next/navigation"
 import { FaWhatsapp } from "react-icons/fa"
+import { Dialog, DialogContent } from "@/components/ui/dialog"
+
+function SignInPrompt({ open, setOpen }: { open: boolean; setOpen: (v: boolean) => void }) {
+  const handleGoogleSignIn = () => {
+    window.location.href = "/api/auth/signin/google";
+  };
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogContent className="max-w-xs text-center rounded-lg">
+        <div className="flex flex-col items-center gap-4">
+          <h2 className="text-lg font-semibold">Sign in please</h2>
+          <p className="text-muted-foreground mb-2">You need to sign in to perform this action.</p>
+          <Button
+            onClick={handleGoogleSignIn}
+            variant="outline"
+            className="w-full flex items-center justify-center gap-2 font-medium text-base border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
+            size="lg"
+          >
+            <Image src="/google-icon.svg" alt="Google" width={20} height={20} className="mr-2" />
+            Sign in with Google
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 function FavoriteButton({ productId, userId, isFavorite, productLikes, onLikesUpdate }: {
   productId: string;
@@ -29,6 +55,7 @@ function FavoriteButton({ productId, userId, isFavorite, productLikes, onLikesUp
   const [fav, setFav] = useState(isFavorite)
   const [favLook, setFavLook] = useState(isFavorite)
   const [likes, setLikes] = useState(productLikes)
+  const [showDialog, setShowDialog] = useState(false);
 
   // Update state when props change
   useEffect(() => {
@@ -62,14 +89,18 @@ function FavoriteButton({ productId, userId, isFavorite, productLikes, onLikesUp
 
   if (!userId) {
     return (
-      <Button
-        variant="ghost"
-        size="icon"
-        className="h-8 w-8"
-      >
-        <Heart className="h-4 w-4" />
-        <span className="sr-only">Login to add favorite</span>
-      </Button>
+      <>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8"
+          onClick={() => setShowDialog(true)}
+        >
+          <Heart className="h-4 w-4" />
+          <span className="sr-only">Login to add favorite</span>
+        </Button>
+        <SignInPrompt open={showDialog} setOpen={setShowDialog} />
+      </>
     )
   }
 
@@ -102,6 +133,8 @@ function AddToCartButton({ productId, userId, quantity, isOutOfStock }: {
   const [state, formAction] = useActionState(addToCartAction, null)
   const { toast } = useToast()
   const [isAdding, setIsAdding] = useState(false)
+  const router = useRouter();
+  const [showDialog, setShowDialog] = useState(false);
 
   // Handle form state changes
   useEffect(() => {
@@ -121,16 +154,24 @@ function AddToCartButton({ productId, userId, quantity, isOutOfStock }: {
     }
   }, [state, toast])
 
-  const handleSubmit = () => {
+  const handleSubmit = (e?: React.FormEvent) => {
+    if (!userId) {
+      e?.preventDefault();
+      router.push("/auth/signin");
+      return;
+    }
     setIsAdding(true)
   }
 
   if (!userId) {
     return (
-      <Button size="lg" className="w-full" disabled={isOutOfStock}>
-        <ShoppingCart className="h-4 w-4 mr-2" />
-        {isOutOfStock ? "Out of Stock" : "Login to use Cart"}
-      </Button>
+      <>
+        <Button size="lg" className="w-full" disabled={isOutOfStock} onClick={() => setShowDialog(true)}>
+          <ShoppingCart className="h-4 w-4 mr-2" />
+          {isOutOfStock ? "Out of Stock" : "Login to use Cart"}
+        </Button>
+        <SignInPrompt open={showDialog} setOpen={setShowDialog} />
+      </>
     )
   }
 
@@ -157,6 +198,7 @@ function ProductDetails({ product, isFavorite, userId }: {
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [imageLoading, setImageLoading] = useState(true)
   const router = useRouter();
+  const [showSignInDialog, setShowSignInDialog] = useState(false);
 
   // Track manually selected color (not auto-selected)
   const [selectedColorIndex, setSelectedColorIndex] = useState(-1)
@@ -493,8 +535,14 @@ function ProductDetails({ product, isFavorite, userId }: {
             <div className="flex flex-col sm:flex-row gap-3 w-full mt-2">
               <Button
                 size="lg"
-                className="flex-1 bg-gradient-to-r from-yellow-500 to-yellow-600 text-white font-semibold shadow hover:from-yellow-600 hover:to-yellow-700 transition-colors duration-200"
-                onClick={handleBuyNow}
+                className="flex-1 bg-gradient-to-r from-yellow-500 to-yellow-600 text-white font-semibold shadow hover:from-yellow-600 hover:to-yellow-700 transition-colors duration-200 py-3 sm:py-2"
+                onClick={() => {
+                  if (!userId) {
+                    setShowSignInDialog(true);
+                  } else {
+                    router.push(`/checkout?productId=${product.id}&quantity=${quantity}`);
+                  }
+                }}
                 disabled={product.stock === 0}
                 type="button"
               >
@@ -537,6 +585,8 @@ function ProductDetails({ product, isFavorite, userId }: {
           </Card>
         </div>
       </div>
+
+      <SignInPrompt open={showSignInDialog} setOpen={setShowSignInDialog} />
     </div>
   )
 }
