@@ -7,6 +7,28 @@ import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 
+export const generateMetadata = async () => {
+  const domain = process.env.NEXT_PUBLIC_DOMAIN || "https://aldahbi.com";
+  return {
+    title: "Checkout",
+    description: "Complete your purchase at Aldahbi Store.",
+    alternates: { canonical: `${domain}/checkout` },
+    openGraph: {
+      title: "Checkout",
+      description: "Complete your purchase at Aldahbi Store.",
+      url: `${domain}/checkout`,
+      images: ["/logo-light.png"],
+      type: "website"
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Checkout",
+      description: "Complete your purchase at Aldahbi Store.",
+      images: ["/logo-light.png"]
+    }
+  }
+}
+
 export default async function CheckoutPage({ searchParams }: { searchParams: { productId?: string, quantity?: string } }) {
   const user = await getUser()
   if (!user) {

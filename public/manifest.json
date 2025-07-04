@@ -1,0 +1,16 @@
+{
+  "name": "Aldahbi Store",
+  "short_name": "Aldahbi",
+  "description": "Your one-stop shop for premium home supplies and essentials.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fff",
+  "theme_color": "#FFD700",
+  "icons": [
+    {
+      "src": "/icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

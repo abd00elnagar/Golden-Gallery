@@ -18,6 +18,8 @@ import { getAllUsers } from "@/lib/auth";
 import { Suspense } from "react";
 import Loading from "./loading";
 
+export const generateMetadata = () => ({ title: "Admin Dashboard" });
+
 async function DashboardContent() {
   const [products, categories, orders, users] = await Promise.all([
     getProducts(),

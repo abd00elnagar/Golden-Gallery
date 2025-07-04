@@ -3,6 +3,28 @@ import OrdersList from "./OrdersList";
 import { getUser } from "@/lib/auth";
 import SignInPage from "@/components/SigninPage";
 
+export const generateMetadata = async () => {
+  const domain = process.env.NEXT_PUBLIC_DOMAIN || "https://aldahbi.com";
+  return {
+    title: "My Orders",
+    description: "View your orders at Aldahbi Store.",
+    alternates: { canonical: `${domain}/orders` },
+    openGraph: {
+      title: "My Orders",
+      description: "View your orders at Aldahbi Store.",
+      url: `${domain}/orders`,
+      images: ["/logo-light.png"],
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "My Orders",
+      description: "View your orders at Aldahbi Store.",
+      images: ["/logo-light.png"],
+    },
+  };
+};
+
 export default async function Page() {
   const user = await getUser();
   if (!user) {

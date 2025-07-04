@@ -2,6 +2,52 @@ import ProductDetails from "@/components/productDetails"
 import { getCategory, getProduct } from "@/lib/actions"
 import { getUser } from "@/lib/auth"
 
+export async function generateMetadata({ params } : { params: Promise<{ id: string }> }) {
+  const id = (await params).id
+  const product = await getProduct(id)
+  const domain = process.env.NEXT_PUBLIC_DOMAIN || "https://aldahbi.com"
+  if (!product) return { title: "Product Not Found" }
+  const title = `${product.name}`
+  const description = product.description || "Luxury jewelry at Aldahbi Store."
+  const url = `${domain}/product/${id}`
+  const image = product.image || "/logo-light.png"
+  return {
+    title,
+    description,
+    alternates: { canonical: url },
+    openGraph: {
+      title,
+      description,
+      url,
+      images: [image],
+      type: "website"
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [image]
+    },
+    other: {
+      "script:ld+json": JSON.stringify({
+        "@context": "https://schema.org/",
+        "@type": "Product",
+        name: product.name,
+        image: [image],
+        description,
+        sku: product.id,
+        brand: { "@type": "Brand", name: "Aldahbi" },
+        offers: {
+          "@type": "Offer",
+          priceCurrency: "USD",
+          price: product.price,
+          availability: product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock"
+        }
+      })
+    }
+  }
+}
+
 export default async function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   

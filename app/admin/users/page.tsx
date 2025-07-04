@@ -5,6 +5,7 @@ import { exportUsersAction } from "./actions";
 import UsersList from "./UsersList";
 import { getOrder } from "@/lib/actions";
 import { Order } from "@/lib/types";
+export const generateMetadata = () => ({ title: "Admin Users" });
 export default async function AdminUsersPage() {
   const users = await getAllUsers();
   // For each user, fetch their orders (assuming user.orders is an array of order IDs)

@@ -8,6 +8,28 @@ import { Category, Product, User } from "@/lib/types"
 import { getCategories, getCategory, getProduct } from "@/lib/actions"
 import ProductsList from "@/components/ProductsList"
 
+export const generateMetadata = async () => {
+  const domain = process.env.NEXT_PUBLIC_DOMAIN || "https://aldahbi.com"
+  return {
+    title: "My Favorites",
+    description: "View your favorite jewelry items at Aldahbi Store.",
+    alternates: { canonical: `${domain}/favorites` },
+    openGraph: {
+      title: "My Favorites",
+      description: "View your favorite jewelry items at Aldahbi Store.",
+      url: `${domain}/favorites`,
+      images: ["/logo-light.png"],
+      type: "website"
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "My Favorites",
+      description: "View your favorite jewelry items at Aldahbi Store.",
+      images: ["/logo-light.png"]
+    }
+  }
+}
+
 export default async function FavoritesPage() {
   const user: User | null = (await getUser())
   const favorites = user?.favorites || []

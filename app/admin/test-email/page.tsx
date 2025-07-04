@@ -4,6 +4,8 @@ import { sendOrderConfirmationEmail } from "@/lib/email"
 import { getUser } from "@/lib/auth"
 import { redirect } from "next/navigation"
 
+export const generateMetadata = () => ({ title: "Admin Test Email" });
+
 export default async function TestEmailPage() {
   const user = await getUser()
   if (!user?.is_admin) {
@@ -86,4 +88,4 @@ export default async function TestEmailPage() {
       </div>
     </div>
   )
-} 
+}

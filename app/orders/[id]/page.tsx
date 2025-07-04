@@ -7,6 +7,28 @@ interface OrderPageProps {
   params: { id: string }
 }
 
+export const generateMetadata = async () => {
+  const domain = process.env.NEXT_PUBLIC_DOMAIN || "https://aldahbi.com";
+  return {
+    title: "Order Details",
+    description: "View your order details at Aldahbi Store.",
+    alternates: { canonical: `${domain}/orders/[id]` },
+    openGraph: {
+      title: "Order Details",
+      description: "View your order details at Aldahbi Store.",
+      url: `${domain}/orders/[id]`,
+      images: ["/logo-light.png"],
+      type: "website"
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Order Details",
+      description: "View your order details at Aldahbi Store.",
+      images: ["/logo-light.png"]
+    }
+  }
+}
+
 export default async function OrderPage({ params }: OrderPageProps) {
   const user = await getUser()
   if (!user) {
@@ -37,4 +59,4 @@ export default async function OrderPage({ params }: OrderPageProps) {
       </div>
     </div>
   )
-} 
+}

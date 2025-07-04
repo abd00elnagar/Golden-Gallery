@@ -5,6 +5,38 @@ import { getUser } from "@/lib/auth"
 import { Category, User } from "@/lib/types"
 import { getServerSession } from "next-auth"
 
+export const generateMetadata = async () => {
+  const domain = process.env.NEXT_PUBLIC_DOMAIN || "https://aldahbi.com"
+  return {
+    title: "Aldahbi Store",
+    description: "Discover luxury jewelry, rings, necklaces, and more at Aldahbi Store.",
+    alternates: { canonical: domain },
+    openGraph: {
+      title: "Aldahbi Store",
+      description: "Discover luxury jewelry, rings, necklaces, and more at Aldahbi Store.",
+      url: domain,
+      images: ["/logo-light.png"],
+      type: "website"
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Aldahbi Store",
+      description: "Discover luxury jewelry, rings, necklaces, and more at Aldahbi Store.",
+      images: ["/logo-light.png"]
+    },
+    other: {
+      "script:ld+json": JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        name: "Aldahbi Store",
+        url: domain,
+        logo: `${domain}/logo-light.png`,
+        sameAs: [domain]
+      })
+    }
+  }
+}
+
 export default async function HomePage() {
   const categories: Category[] = await getCategories()
   const user = await getUser()

@@ -4,6 +4,28 @@ import { getUser } from "@/lib/auth";
 import { redirect } from "next/dist/server/api-utils";
 import SignInPage from "@/components/SigninPage";
 
+export const generateMetadata = async () => {
+  const domain = process.env.NEXT_PUBLIC_DOMAIN || "https://aldahbi.com";
+  return {
+    title: "My Profile",
+    description: "Manage your account information at Aldahbi Store.",
+    alternates: { canonical: `${domain}/profile` },
+    openGraph: {
+      title: "My Profile",
+      description: "Manage your account information at Aldahbi Store.",
+      url: `${domain}/profile`,
+      images: ["/logo-light.png"],
+      type: "profile",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "My Profile",
+      description: "Manage your account information at Aldahbi Store.",
+      images: ["/logo-light.png"],
+    },
+  };
+};
+
 export default async function ProfilePage() {
   const user = await getUser();
   return user ? (

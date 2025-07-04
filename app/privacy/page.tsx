@@ -1,5 +1,27 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
+export const generateMetadata = async () => {
+  const domain = process.env.NEXT_PUBLIC_DOMAIN || "https://aldahbi.com";
+  return {
+    title: "Privacy Policy",
+    description: "Read the privacy policy for Aldahbi Store.",
+    alternates: { canonical: `${domain}/privacy` },
+    openGraph: {
+      title: "Privacy Policy",
+      description: "Read the privacy policy for Aldahbi Store.",
+      url: `${domain}/privacy`,
+      images: ["/logo-light.png"],
+      type: "website"
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Privacy Policy",
+      description: "Read the privacy policy for Aldahbi Store.",
+      images: ["/logo-light.png"]
+    }
+  }
+}
+
 export default function PrivacyPolicyPage() {
   return (
     <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8 flex justify-center">

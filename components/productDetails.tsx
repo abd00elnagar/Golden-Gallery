@@ -216,6 +216,15 @@ function ProductDetails({ product, isFavorite, userId }: {
     setImageLoading(true)
   }, [currentImageIndex])
 
+  // WhatsApp link: generate only on client to avoid hydration mismatch
+  const [waLink, setWaLink] = useState("");
+  useEffect(() => {
+    const waMessage = encodeURIComponent(
+      `Hello, I want to order:\n${product.name} - ${product.price} EGP\n${window.location.href}`
+    );
+    setWaLink(`https://wa.me/201234567890?text=${waMessage}`);
+  }, [product.name, product.price])
+
   if (!product) {
     return (
       <div className="container py-8">
@@ -337,8 +346,6 @@ function ProductDetails({ product, isFavorite, userId }: {
   const handleBuyNow = () => {
     router.push(`/checkout?productId=${product.id}&quantity=${quantity}`)
   }
-  const waMessage = encodeURIComponent(`Hello, I want to order:\n${product.name} - ${product.price} EGP\n${typeof window !== 'undefined' ? window.location.href : ''}`)
-  const waLink = `https://wa.me/201234567890?text=${waMessage}`
 
   return (
     <div className="container py-8 px-4 sm:px-6 lg:px-8">
