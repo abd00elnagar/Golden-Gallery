@@ -321,6 +321,7 @@ export function ProductForm({
                 name="category_id"
                 defaultValue={product?.category_id || testDefaults.category_id}
                 required
+                disabled={isPending}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select a category" />
@@ -402,9 +403,14 @@ export function ProductForm({
                   {!isEditing && (
                     <button
                       type="button"
-                      className="absolute top-0 right-0 bg-red-500 text-white rounded-bl p-1 hover:bg-red-700 z-10"
+                      className={`absolute top-0 right-0 ${
+                        isPending
+                          ? "bg-gray-400"
+                          : "bg-red-500 hover:bg-red-700"
+                      } text-white rounded-bl p-1 z-10 transition-colors`}
                       onClick={() => removeProductImage(idx)}
                       aria-label={`Remove image ${idx + 1}`}
+                      disabled={isPending}
                     >
                       <X className="w-4 h-4" />
                     </button>
@@ -417,6 +423,7 @@ export function ProductForm({
                   className="w-24 h-24 flex flex-col items-center justify-center border-2 border-dashed rounded hover:bg-accent/30 transition"
                   onClick={() => productImageInputRef.current?.click()}
                   aria-label="Add product image"
+                  disabled={isPending}
                 >
                   <ImageIcon className="w-8 h-8 text-muted-foreground" />
                   <span className="text-xs mt-1">Add Image</span>
@@ -521,9 +528,14 @@ export function ProductForm({
                           {!isEditing && (
                             <button
                               type="button"
-                              className="absolute top-0 right-0 bg-red-500 text-white rounded-bl p-1 hover:bg-red-700 z-10"
+                              className={`absolute top-0 right-0 ${
+                                isPending
+                                  ? "bg-gray-400"
+                                  : "bg-red-500 hover:bg-red-700"
+                              } text-white rounded-bl p-1 z-10 transition-colors`}
                               onClick={() => removeColorImage(index)}
                               aria-label={`Remove ${color.name} color image`}
+                              disabled={isPending}
                             >
                               <X className="w-4 h-4" />
                             </button>
@@ -538,6 +550,7 @@ export function ProductForm({
                               colorImageInputRefs.current[index]?.click()
                             }
                             aria-label={`Add image for ${color.name} color`}
+                            disabled={isPending}
                           >
                             <ImageIcon className="w-6 h-6 text-muted-foreground" />
                             <span className="text-xs mt-1">Add</span>
