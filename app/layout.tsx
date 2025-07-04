@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { NavbarWrapper } from "@/components/navbar-wrapper";
 import { Footer } from "@/components/footer";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { Analytics } from "@vercel/analytics/next";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
