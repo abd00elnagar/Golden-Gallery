@@ -350,25 +350,3 @@ export default function ContactPage() {
     </div>
   )
 }
-
-export const generateMetadata = async () => {
-  const domain = process.env.NEXT_PUBLIC_DOMAIN || "https://aldahbi.com";
-  return {
-    title: "Contact Us",
-    description: "Contact Aldahbi Store for support or inquiries.",
-    alternates: { canonical: `${domain}/contact` },
-    openGraph: {
-      title: "Contact Us",
-      description: "Contact Aldahbi Store for support or inquiries.",
-      url: `${domain}/contact`,
-      images: ["/logo-light.png"],
-      type: "website"
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: "Contact Us",
-      description: "Contact Aldahbi Store for support or inquiries.",
-      images: ["/logo-light.png"]
-    }
-  }
-}

@@ -1,28 +1,6 @@
 "use client"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
-export const generateMetadata = async () => {
-  const domain = process.env.NEXT_PUBLIC_DOMAIN || "https://aldahbi.com";
-  return {
-    title: "Terms & Conditions",
-    description: "Read the terms and conditions for using Aldahbi Store.",
-    alternates: { canonical: `${domain}/terms` },
-    openGraph: {
-      title: "Terms & Conditions",
-      description: "Read the terms and conditions for using Aldahbi Store.",
-      url: `${domain}/terms`,
-      images: ["/logo-light.png"],
-      type: "website"
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: "Terms & Conditions",
-      description: "Read the terms and conditions for using Aldahbi Store.",
-      images: ["/logo-light.png"]
-    }
-  }
-}
-
 export default function TermsOfServicePage() {
   return (
     <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8 flex justify-center">
