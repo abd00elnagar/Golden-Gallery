@@ -88,7 +88,7 @@ export function Navbar({ user }: NavbarProps) {
           >
             <Link href="/favorites">
               <Heart className="h-4 w-4" />
-              {user?.favorites?.length > 0 && (
+              {user && user?.favorites?.length > 0 && (
                 <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary text-[10px] font-medium text-primary-foreground flex items-center justify-center">
                   {user.favorites.length}
                 </span>
