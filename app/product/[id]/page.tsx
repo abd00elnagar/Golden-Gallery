@@ -7,10 +7,12 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
   
   if (!id) {
     return (
-      <div className="container py-8">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Product not found</h1>
-          <p className="text-muted-foreground">Invalid product ID.</p>
+      <div className="container mx-auto px-4 md:px-6 lg:px-8 py-8 max-w-7xl">
+        <div className="flex justify-center items-center min-h-[50vh]">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold mb-4">Product not found</h1>
+            <p className="text-muted-foreground">Invalid product ID.</p>
+          </div>
         </div>
       </div>
     )
@@ -20,10 +22,12 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
 
   if (!product) {
     return (
-      <div className="container py-8">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Product not found</h1>
-          <p className="text-muted-foreground">The product you're looking for doesn't exist.</p>
+      <div className="container mx-auto px-4 md:px-6 lg:px-8 py-8 max-w-7xl">
+        <div className="flex justify-center items-center min-h-[50vh]">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold mb-4">Product not found</h1>
+            <p className="text-muted-foreground">The product you're looking for doesn't exist.</p>
+          </div>
         </div>
       </div>
     )
@@ -35,5 +39,11 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
   const user = await getUser()
   const isFavorite = user ? user.favorites.map((fav) => fav.productId).includes(id) : false
   
-  return <ProductDetails product={product} isFavorite={isFavorite} userId={user?.id} />
+  return (
+    <div className="container mx-auto px-4 md:px-6 lg:px-8 py-8 max-w-7xl">
+      <div className="flex justify-center">
+        <ProductDetails product={product} isFavorite={isFavorite} userId={user?.id} />
+      </div>
+    </div>
+  )
 }

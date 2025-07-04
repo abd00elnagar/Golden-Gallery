@@ -35,23 +35,25 @@ export default async function CheckoutPage({ searchParams }: { searchParams: { p
 
   if (cartItems.length === 0) {
     return (
-      <div className="w-full py-8 px-4 sm:px-6 lg:px-8">
-        <div className="text-center w-full mx-auto">
-        <ShoppingBag className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-        <h1 className="text-2xl font-bold mb-2">Your cart is empty</h1>
-        <p className="text-muted-foreground mb-6">Looks like you haven't added any items to your cart yet.</p>
-        <Button asChild>
-          <Link href="/">Continue Shopping</Link>
-        </Button>
-      </div>
+      <div className="flex items-center justify-center min-h-[50vh] w-full py-8 px-4 sm:px-6 lg:px-8">
+        <div className="text-center max-w-md w-full">
+          <ShoppingBag className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+          <h1 className="text-2xl font-bold mb-2">Your cart is empty</h1>
+          <p className="text-muted-foreground mb-6">Looks like you haven't added any items to your cart yet.</p>
+          <Button asChild>
+            <Link href="/">Continue Shopping</Link>
+          </Button>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="container py-8 px-4 sm:px-6 lg:px-8">
-      <h1 className="text-3xl font-bold mb-8">Checkout</h1>
-      <CheckoutForm user={user} cartItems={cartItems} />
+    <div className="flex justify-center w-full">
+      <div className="container max-w-4xl py-8 px-4 sm:px-6 lg:px-8">
+        <h1 className="text-3xl font-bold mb-8 text-center">Checkout</h1>
+        <CheckoutForm user={user} cartItems={cartItems} />
+      </div>
     </div>
   )
 }
