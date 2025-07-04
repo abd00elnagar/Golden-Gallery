@@ -45,6 +45,10 @@ export default function ContactPage() {
     }
   }
 
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, email: e.target.value })
+  }
+
   const handleSubjectChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
     if (value.length <= 30) {
@@ -248,6 +252,7 @@ export default function ContactPage() {
                         name="email"
                         type="email"
                         value={formData.email}
+                        onChange={handleEmailChange}
                         required
                         aria-describedby="email-error"
                       />
