@@ -30,6 +30,8 @@ export default function RootLayout({
         >
           <NavbarWrapper />
           <main className="min-h-screen">{children}</main>
+          <SpeedInsights />
+          <Analytics />
           <Footer />
           <Toaster />
         </ThemeProvider>
