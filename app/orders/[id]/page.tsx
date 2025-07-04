@@ -8,7 +8,7 @@ interface OrderPageProps {
 }
 
 export const generateMetadata = async () => {
-  const domain = process.env.NEXT_PUBLIC_DOMAIN || "https://aldahbi.com";
+  const domain = process.env.NEXT_PUBLIC_APP_URL || "https://aldahbi.com";
   return {
     title: "Order Details",
     description: "View your order details at Aldahbi Store.",

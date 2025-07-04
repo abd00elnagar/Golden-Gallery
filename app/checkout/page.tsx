@@ -8,7 +8,7 @@ import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 
 export const generateMetadata = async () => {
-  const domain = process.env.NEXT_PUBLIC_DOMAIN || "https://aldahbi.com";
+  const domain = process.env.NEXT_PUBLIC_APP_URL || "https://aldahbi.com";
   return {
     title: "Checkout",
     description: "Complete your purchase at Aldahbi Store.",

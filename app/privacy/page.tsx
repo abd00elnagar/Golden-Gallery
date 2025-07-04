@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 export const generateMetadata = async () => {
-  const domain = process.env.NEXT_PUBLIC_DOMAIN || "https://aldahbi.com";
+  const domain = process.env.NEXT_PUBLIC_APP_URL || "https://aldahbi.com";
   return {
     title: "Privacy Policy",
     description: "Read the privacy policy for Aldahbi Store.",

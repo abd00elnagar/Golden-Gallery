@@ -4,7 +4,7 @@ import { User } from "@/lib/types"
 import { redirect } from "next/navigation"
 
 export const generateMetadata = async () => {
-  const domain = process.env.NEXT_PUBLIC_DOMAIN || "https://aldahbi.com"
+  const domain = process.env.NEXT_PUBLIC_APP_URL || "https://aldahbi.com"
   return {
     title: "Sign In | Aldahbi Store",
     description: "Sign in to your Aldahbi Store account.",

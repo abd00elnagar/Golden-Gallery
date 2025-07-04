@@ -6,7 +6,7 @@ import { Category, User } from "@/lib/types"
 import { getServerSession } from "next-auth"
 
 export const generateMetadata = async () => {
-  const domain = process.env.NEXT_PUBLIC_DOMAIN || "https://aldahbi.com"
+  const domain = process.env.NEXT_PUBLIC_APP_URL || "https://aldahbi.com"
   return {
     title: "Aldahbi Store",
     description: "Discover luxury jewelry, rings, necklaces, and more at Aldahbi Store.",

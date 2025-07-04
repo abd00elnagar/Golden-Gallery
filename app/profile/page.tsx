@@ -5,7 +5,7 @@ import { redirect } from "next/dist/server/api-utils";
 import SignInPage from "@/components/SigninPage";
 
 export const generateMetadata = async () => {
-  const domain = process.env.NEXT_PUBLIC_DOMAIN || "https://aldahbi.com";
+  const domain = process.env.NEXT_PUBLIC_APP_URL || "https://aldahbi.com";
   return {
     title: "My Profile",
     description: "Manage your account information at Aldahbi Store.",

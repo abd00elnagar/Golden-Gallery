@@ -4,7 +4,7 @@ import CartList from "@/components/CartList"
 import SignInPage from "@/components/SigninPage"
 
 export const generateMetadata = async () => {
-  const domain = process.env.NEXT_PUBLIC_DOMAIN || "https://aldahbi.com"
+  const domain = process.env.NEXT_PUBLIC_APP_URL || "https://aldahbi.com"
   return {
     title: "Shopping Cart",
     description: "View and manage your shopping cart at Aldahbi Store.",

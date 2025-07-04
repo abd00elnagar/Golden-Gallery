@@ -9,7 +9,7 @@ import { getCategories, getCategory, getProduct } from "@/lib/actions"
 import ProductsList from "@/components/ProductsList"
 
 export const generateMetadata = async () => {
-  const domain = process.env.NEXT_PUBLIC_DOMAIN || "https://aldahbi.com"
+  const domain = process.env.NEXT_PUBLIC_APP_URL || "https://aldahbi.com"
   return {
     title: "My Favorites",
     description: "View your favorite jewelry items at Aldahbi Store.",

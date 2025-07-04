@@ -31,7 +31,7 @@ export async function generateMetadata({ params } : { params: Promise<{ id: stri
 
   const id = (await params).id
   const category = await (await import("@/lib/actions")).getCategory(id)
-  const domain = process.env.NEXT_PUBLIC_DOMAIN || "https://aldahbi.com"
+  const domain = process.env.NEXT_PUBLIC_APP_URL || "https://aldahbi.com"
   if (!category) return { title: "Category Not Found | Aldahbi Store" }
   const title = `${category.name} | Aldahbi Store`
   const description = category.description || `Shop ${category.name} at Aldahbi Store.`

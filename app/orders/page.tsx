@@ -4,7 +4,7 @@ import { getUser } from "@/lib/auth";
 import SignInPage from "@/components/SigninPage";
 
 export const generateMetadata = async () => {
-  const domain = process.env.NEXT_PUBLIC_DOMAIN || "https://aldahbi.com";
+  const domain = process.env.NEXT_PUBLIC_APP_URL || "https://aldahbi.com";
   return {
     title: "My Orders",
     description: "View your orders at Aldahbi Store.",

@@ -5,7 +5,7 @@ import { getUser } from "@/lib/auth"
 export async function generateMetadata({ params } : { params: Promise<{ id: string }> }) {
   const id = (await params).id
   const product = await getProduct(id)
-  const domain = process.env.NEXT_PUBLIC_DOMAIN || "https://aldahbi.com"
+  const domain = process.env.NEXT_PUBLIC_APP_URL || "https://aldahbi.com"
   if (!product) return { title: "Product Not Found" }
   const title = `${product.name}`
   const description = product.description || "Luxury jewelry at Aldahbi Store."
