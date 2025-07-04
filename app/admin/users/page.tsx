@@ -22,9 +22,9 @@ export default async function AdminUsersPage() {
   );
   // console.log(usersWithOrders[3].orders)
   return (
-    <div className="container py-8 px-4 sm:px-6 lg:px-8">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-        <div>
+    <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl">
+      <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mb-8">
+        <div className="text-center sm:text-left">
           <h1 className="text-3xl font-bold">Users Management</h1>
           <p className="text-muted-foreground">
             Manage customer accounts and activity

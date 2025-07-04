@@ -101,124 +101,125 @@ export default function ContactPage() {
   }
 
   return (
-    <div className="container py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold mb-4">Contact Us</h1>
-          <p className="text-muted-foreground text-lg">
-            We'd love to hear from you. Send us a message and we'll respond as soon as possible.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Contact Information */}
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Get in Touch</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <Mail className="h-5 w-5 text-primary mt-0.5" />
-                  <div>
-                    <p className="font-medium">Email</p>
-                    <a
-                      href={`mailto:${SUPPORT_EMAIL}`}
-                      className="text-sm text-muted-foreground hover:text-primary underline transition-colors"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      {SUPPORT_EMAIL}
-                    </a>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <Phone className="h-5 w-5 text-primary mt-0.5" />
-                  <div>
-                    <p className="font-medium">Phone</p>
-                    <a
-                      href={`tel:${SUPPORT_PHONE.replace(/[^\d+]/g, "")}`}
-                      className="text-sm text-muted-foreground hover:text-primary underline transition-colors"
-                    >
-                      {SUPPORT_PHONE}
-                    </a>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <Mail className="h-5 w-5 text-primary mt-0.5 rotate-45" />
-                  <div>
-                    <p className="font-medium">WhatsApp</p>
-                    <a
-                      href={`https://wa.me/${WHATSAPP_NUMBER}`}
-                      className="text-sm text-muted-foreground hover:text-primary underline transition-colors"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Chat on WhatsApp
-                    </a>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <MapPin className="h-5 w-5 text-primary mt-0.5" />
-                  <div>
-                    <p className="font-medium">Address</p>
-                    <p className="text-sm text-muted-foreground">
-                      123 Art Street
-                      <br />
-                      New York, NY 10001
-                      <br />
-                      United States
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <Clock className="h-5 w-5 text-primary mt-0.5" />
-                  <div>
-                    <p className="font-medium">Business Hours</p>
-                    <p className="text-sm text-muted-foreground">
-                      Monday - Friday: 9:00 AM - 6:00 PM
-                      <br />
-                      Saturday: 10:00 AM - 4:00 PM
-                      <br />
-                      Sunday: Closed
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Frequently Asked Questions</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4 text-sm">
-                  <div>
-                    <p className="font-medium">How long does shipping take?</p>
-                    <p className="text-muted-foreground">Standard shipping takes 5-7 business days.</p>
-                  </div>
-                  <div>
-                    <p className="font-medium">What is your return policy?</p>
-                    <p className="text-muted-foreground">Items can be returned within 30 days of delivery.</p>
-                  </div>
-                  <div>
-                    <p className="font-medium">Do you ship internationally?</p>
-                    <p className="text-muted-foreground">Currently, we only ship within the United States.</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="container py-8 px-4 sm:px-6 lg:px-8 w-full">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12">
+            <h1 className="text-4xl font-bold mb-4">Contact Us</h1>
+            <p className="text-muted-foreground text-lg">
+              We'd love to hear from you. Send us a message and we'll respond as soon as possible.
+            </p>
           </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Contact Information */}
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-center lg:text-left">Get in Touch</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-start gap-3">
+                    <Mail className="h-5 w-5 text-primary mt-0.5" />
+                    <div>
+                      <p className="font-medium">Email</p>
+                      <a
+                        href={`mailto:${SUPPORT_EMAIL}`}
+                        className="text-sm text-muted-foreground hover:text-primary underline transition-colors"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {SUPPORT_EMAIL}
+                      </a>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <Phone className="h-5 w-5 text-primary mt-0.5" />
+                    <div>
+                      <p className="font-medium">Phone</p>
+                      <a
+                        href={`tel:${SUPPORT_PHONE.replace(/[^\d+]/g, "")}`}
+                        className="text-sm text-muted-foreground hover:text-primary underline transition-colors"
+                      >
+                        {SUPPORT_PHONE}
+                      </a>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <Mail className="h-5 w-5 text-primary mt-0.5 rotate-45" />
+                    <div>
+                      <p className="font-medium">WhatsApp</p>
+                      <a
+                        href={`https://wa.me/${WHATSAPP_NUMBER}`}
+                        className="text-sm text-muted-foreground hover:text-primary underline transition-colors"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Chat on WhatsApp
+                      </a>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <MapPin className="h-5 w-5 text-primary mt-0.5" />
+                    <div>
+                      <p className="font-medium">Address</p>
+                      <p className="text-sm text-muted-foreground">
+                        123 Art Street
+                        <br />
+                        New York, NY 10001
+                        <br />
+                        United States
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <Clock className="h-5 w-5 text-primary mt-0.5" />
+                    <div>
+                      <p className="font-medium">Business Hours</p>
+                      <p className="text-sm text-muted-foreground">
+                        Monday - Friday: 9:00 AM - 6:00 PM
+                        <br />
+                        Saturday: 10:00 AM - 4:00 PM
+                        <br />
+                        Sunday: Closed
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-center lg:text-left">Frequently Asked Questions</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4 text-sm">
+                    <div>
+                      <p className="font-medium">How long does shipping take?</p>
+                      <p className="text-muted-foreground">Standard shipping takes 5-7 business days.</p>
+                    </div>
+                    <div>
+                      <p className="font-medium">What is your return policy?</p>
+                      <p className="text-muted-foreground">Items can be returned within 30 days of delivery.</p>
+                    </div>
+                    <div>
+                      <p className="font-medium">Do you ship internationally?</p>
+                      <p className="text-muted-foreground">Currently, we only ship within the United States.</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
 
           {/* Contact Form */}
           <div className="lg:col-span-2">
             <Card>
               <CardHeader>
-                <CardTitle>Send us a Message</CardTitle>
+                <CardTitle className="text-center lg:text-left">Send us a Message</CardTitle>
               </CardHeader>
               <CardContent>
                 <form action={formAction} className="space-y-6">
@@ -265,83 +266,84 @@ export default function ContactPage() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="category">Category</Label>
-                      <Select
-                        name="category"
-                        value={formData.category}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a category" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="general">General Inquiry</SelectItem>
-                          <SelectItem value="order">Order Support</SelectItem>
-                          <SelectItem value="shipping">Shipping Question</SelectItem>
-                          <SelectItem value="return">Return/Exchange</SelectItem>
-                          <SelectItem value="technical">Technical Issue</SelectItem>
-                        </SelectContent>
-                      </Select>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="category">Category</Label>
+                        <Select
+                          name="category"
+                          value={formData.category}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a category" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="general">General Inquiry</SelectItem>
+                            <SelectItem value="order">Order Support</SelectItem>
+                            <SelectItem value="shipping">Shipping Question</SelectItem>
+                            <SelectItem value="return">Return/Exchange</SelectItem>
+                            <SelectItem value="technical">Technical Issue</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="subject">Subject *</Label>
+                        <Input
+                          id="subject"
+                          name="subject"
+                          value={formData.subject}
+                          onChange={handleSubjectChange}
+                          required
+                          aria-describedby="subject-error"
+                        />
+                        <div className="flex justify-between items-center">
+                          <div id="subject-error" aria-live="polite" aria-atomic="true">
+                            {state.errors?.subject &&
+                              state.errors.subject.map((error: string) => (
+                                <p className="text-sm text-red-500" key={error}>{error}</p>
+                              ))}
+                          </div>
+                          <span className={`text-xs ${charCounts.subject > 24 ? 'text-red-500' : 'text-muted-foreground'}`}>
+                            {charCounts.subject}/30
+                          </span>
+                        </div>
+                      </div>
                     </div>
+
                     <div className="space-y-2">
-                      <Label htmlFor="subject">Subject *</Label>
-                      <Input
-                        id="subject"
-                        name="subject"
-                        value={formData.subject}
-                        onChange={handleSubjectChange}
+                      <Label htmlFor="message">Message *</Label>
+                      <Textarea
+                        id="message"
+                        name="message"
+                        rows={6}
+                        value={formData.message}
+                        onChange={handleMessageChange}
                         required
-                        aria-describedby="subject-error"
+                        aria-describedby="message-error"
                       />
                       <div className="flex justify-between items-center">
-                        <div id="subject-error" aria-live="polite" aria-atomic="true">
-                          {state.errors?.subject &&
-                            state.errors.subject.map((error: string) => (
+                        <div id="message-error" aria-live="polite" aria-atomic="true">
+                          {state.errors?.message &&
+                            state.errors.message.map((error: string) => (
                               <p className="text-sm text-red-500" key={error}>{error}</p>
                             ))}
                         </div>
-                        <span className={`text-xs ${charCounts.subject > 24 ? 'text-red-500' : 'text-muted-foreground'}`}>
-                          {charCounts.subject}/30
+                        <span className={`text-xs ${charCounts.message > 400 ? 'text-red-500' : 'text-muted-foreground'}`}>
+                          {charCounts.message}/500
                         </span>
                       </div>
                     </div>
-                  </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="message">Message *</Label>
-                    <Textarea
-                      id="message"
-                      name="message"
-                      rows={6}
-                      value={formData.message}
-                      onChange={handleMessageChange}
-                      required
-                      aria-describedby="message-error"
-                    />
-                    <div className="flex justify-between items-center">
-                      <div id="message-error" aria-live="polite" aria-atomic="true">
-                        {state.errors?.message &&
-                          state.errors.message.map((error: string) => (
-                            <p className="text-sm text-red-500" key={error}>{error}</p>
-                          ))}
-                      </div>
-                      <span className={`text-xs ${charCounts.message > 400 ? 'text-red-500' : 'text-muted-foreground'}`}>
-                        {charCounts.message}/500
-                      </span>
-                    </div>
-                  </div>
+                    {state.message && (
+                      <div className={`text-center text-sm ${state.success ? "text-green-600" : "text-red-600"}`}>{state.message}</div>
+                    )}
 
-                  {state.message && (
-                    <div className={`text-center text-sm ${state.success ? "text-green-600" : "text-red-600"}`}>{state.message}</div>
-                  )}
-
-                  <Button type="submit" className="w-full" disabled={isSubmitting}>
-                    {isSubmitting ? <span>Sending...</span> : <span>Send Message</span>}
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
+                    <Button type="submit" className="w-full" disabled={isSubmitting}>
+                      {isSubmitting ? <span>Sending...</span> : <span>Send Message</span>}
+                    </Button>
+                  </form>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </div>
       </div>
