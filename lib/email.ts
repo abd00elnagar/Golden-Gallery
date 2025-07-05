@@ -28,6 +28,15 @@ function getWebsiteUrl(): string {
   return "https://goldengallery.com";
 }
 
+// Function to get contact information from environment variables
+function getContactInfo() {
+  return {
+    email: process.env.EMAIL_USER,
+    phone: "+20 155 900 5729",
+    whatsapp: "201559005729",
+  };
+}
+
 // Email configuration with better error handling
 function createEmailTransport() {
   const emailUser = process.env.EMAIL_USER;
@@ -97,8 +106,9 @@ export async function sendOrderConfirmationEmail(data: OrderEmailData) {
 
   // Use the dynamic URL function
   const websiteUrl = baseUrl || getWebsiteUrl();
-  const orderLink = `http://localhost:3000/orders/${orderId}`;
+  const orderLink = `${websiteUrl}/orders/${orderId}`;
 
+  const contactInfo = getContactInfo();
   const emailHtml = `
     <!DOCTYPE html>
     <html>
@@ -178,7 +188,7 @@ export async function sendOrderConfirmationEmail(data: OrderEmailData) {
           </ul>
         </div>
         <div class="footer">
-          <div>Need help? <a href="https://wa.me/201559005729" style="color:#000;text-decoration:underline;">Contact us on WhatsApp</a></div>
+          <div>Need help? <a href="https://wa.me/${contactInfo.whatsapp}" style="color:#000;text-decoration:underline;">Contact us on WhatsApp</a></div>
           <div style="margin-top: 8px;">© 2024 Aldahbi Store. All rights reserved.</div>
         </div>
       </div>
@@ -234,6 +244,7 @@ export async function sendOrderStatusUpdateEmail(
   }
 
   const websiteUrl = getWebsiteUrl();
+  const contactInfo = getContactInfo();
   console.log(orderId);
   const orderLink = orderId
     ? `${websiteUrl}/orders/${orderId}`
@@ -304,7 +315,7 @@ export async function sendOrderStatusUpdateEmail(
         </div>
 
         <div class="footer">
-          <div>Need help? <a href="https://wa.me/201559005729" style="color:#000;text-decoration:underline;">Contact us on WhatsApp</a></div>
+          <div>Need help? <a href="https://wa.me/${contactInfo.whatsapp}" style="color:#000;text-decoration:underline;">Contact us on WhatsApp</a></div>
           <div style="margin-top: 8px;">© 2024 Aldahbi Store. All rights reserved.</div>
         </div>
       </div>

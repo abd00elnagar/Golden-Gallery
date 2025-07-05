@@ -383,7 +383,8 @@ function ProductDetails({
       typeof window !== "undefined" ? window.location.href : ""
     }`
   );
-  const waLink = `https://wa.me/201559005729?text=${waMessage}`;
+  const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "201559005729";
+  const waLink = `https://wa.me/${whatsappNumber}?text=${waMessage}`;
 
   return (
     <div className="container py-8 px-4 sm:px-6 lg:px-8">

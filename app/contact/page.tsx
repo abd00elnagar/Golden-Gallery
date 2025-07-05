@@ -20,9 +20,9 @@ import { useToast } from "@/hooks/use-toast";
 import { useActionState } from "react";
 import { contactAction, State } from "./actions";
 
-const SUPPORT_EMAIL = "alxa0684@gmail.com";
-const SUPPORT_PHONE = "+20 155 900 5729";
-const WHATSAPP_NUMBER = "201559005729"; // WhatsApp contact number
+const SUPPORT_EMAIL = process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "alxa0684@gmail.com";
+const SUPPORT_PHONE = process.env.NEXT_PUBLIC_SUPPORT_PHONE || "+20 155 900 5729";
+const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "201559005729"; // WhatsApp contact number
 
 const initialState: State = { message: null, errors: {}, success: false };
 export default function ContactPage() {
