@@ -23,50 +23,6 @@ import { toggleFavorite, addToCartAction } from "@/lib/actions";
 import type { Product } from "@/lib/types";
 import { useRouter } from "next/navigation";
 import { FaWhatsapp } from "react-icons/fa";
-import { useState, useEffect, useMemo } from "react"
-import Image from "next/image"
-import Link from "next/link"
-import { Heart, ShoppingCart, ArrowLeft, ChevronLeft, ChevronRight, ShoppingBag, MessageCircle } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
-import { useToast } from "@/hooks/use-toast"
-import { useActionState } from "react"
-import { useFormStatus } from "react-dom"
-import { toggleFavorite, addToCartAction } from "@/lib/actions"
-import type { Product } from "@/lib/types"
-import { useRouter } from "next/navigation"
-import { FaWhatsapp } from "react-icons/fa"
-import { Dialog, DialogContent } from "@/components/ui/dialog"
-
-function SignInPrompt({ open, setOpen, callbackUrl }: { open: boolean; setOpen: (v: boolean) => void; callbackUrl: string }) {
-  const handleGoogleSignIn = () => {
-    setOpen(false);
-    import("next-auth/react").then(({ signIn }) => {
-      signIn("google", { callbackUrl });
-    });
-  };
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="max-w-xs text-center rounded-lg">
-        <div className="flex flex-col items-center gap-4">
-          <h2 className="text-lg font-semibold">Sign in please</h2>
-          <p className="text-muted-foreground mb-2">You need to sign in to perform this action.</p>
-          <Button
-            onClick={handleGoogleSignIn}
-            className="w-full flex items-center justify-center gap-2 font-medium text-base border border-gray-300 bg-white shadow-sm hover:bg-gray-50 transition-colors py-3"
-            size="lg"
-            variant="outline"
-          >
-            <Image src="/google-icon.svg" alt="Google" width={22} height={22} className="mr-1" />
-            <span className="text-black">Sign in with Google</span>
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-}
 
 function FavoriteButton({
   productId,
@@ -87,13 +43,6 @@ function FavoriteButton({
   const [fav, setFav] = useState(isFavorite);
   const [favLook, setFavLook] = useState(isFavorite);
   const [likes, setLikes] = useState(productLikes);
-  const { pending } = useFormStatus()
-  const [state, formAction] = useActionState(toggleFavorite, null)
-  const { toast } = useToast()
-  const [fav, setFav] = useState(isFavorite)
-  const [favLook, setFavLook] = useState(isFavorite)
-  const [likes, setLikes] = useState(productLikes)
-  const [showDialog, setShowDialog] = useState(false);
 
   // Update state when props change
   useEffect(() => {
@@ -132,19 +81,6 @@ function FavoriteButton({
         <span className="sr-only">Login to add favorite</span>
       </Button>
     );
-      <>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8"
-          onClick={() => setShowDialog(true)}
-        >
-          <Heart className="h-4 w-4" />
-          <span className="sr-only">Login to add favorite</span>
-        </Button>
-        <SignInPrompt open={showDialog} setOpen={setShowDialog} callbackUrl={`/product/${productId}`} />
-      </>
-    )
   }
 
   return (
@@ -185,12 +121,6 @@ function AddToCartButton({
   const [state, formAction] = useActionState(addToCartAction, null);
   const { toast } = useToast();
   const [isAdding, setIsAdding] = useState(false);
-  const { pending } = useFormStatus()
-  const [state, formAction] = useActionState(addToCartAction, null)
-  const { toast } = useToast()
-  const [isAdding, setIsAdding] = useState(false)
-  const router = useRouter();
-  const [showDialog, setShowDialog] = useState(false);
 
   // Handle form state changes
   useEffect(() => {
@@ -213,14 +143,6 @@ function AddToCartButton({
   const handleSubmit = () => {
     setIsAdding(true);
   };
-  const handleSubmit = (e?: React.FormEvent) => {
-    if (!userId) {
-      e?.preventDefault();
-      router.push("/auth/signin");
-      return;
-    }
-    setIsAdding(true)
-  }
 
   if (!userId) {
     return (
@@ -229,14 +151,6 @@ function AddToCartButton({
         {isOutOfStock ? "Out of Stock" : "Login to use Cart"}
       </Button>
     );
-      <>
-        <Button size="lg" className="w-full" disabled={isOutOfStock} onClick={() => setShowDialog(true)}>
-          <ShoppingCart className="h-4 w-4 mr-2" />
-          {isOutOfStock ? "Out of Stock" : "Login to use Cart"}
-        </Button>
-        <SignInPrompt open={showDialog} setOpen={setShowDialog} callbackUrl={`/product/${productId}`} />
-      </>
-    )
   }
 
   return (
@@ -282,7 +196,6 @@ function ProductDetails({
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [imageLoading, setImageLoading] = useState(true);
   const router = useRouter();
-  const [showSignInDialog, setShowSignInDialog] = useState(false);
 
   // Track manually selected color (not auto-selected)
   const [selectedColorIndex, setSelectedColorIndex] = useState(-1);
@@ -296,17 +209,6 @@ function ProductDetails({
   useEffect(() => {
     setImageLoading(true);
   }, [currentImageIndex]);
-    setImageLoading(true)
-  }, [currentImageIndex])
-
-  // WhatsApp link: generate only on client to avoid hydration mismatch
-  const [waLink, setWaLink] = useState("");
-  useEffect(() => {
-    const waMessage = encodeURIComponent(
-      `Hello, I want to order:\n${product.name} - ${product.price} EGP\n${window.location.href}`
-    );
-    setWaLink(`https://wa.me/201234567890?text=${waMessage}`);
-  }, [product.name, product.price])
 
   if (!product) {
     return (
@@ -435,8 +337,6 @@ function ProductDetails({
     }`
   );
   const waLink = `https://wa.me/201559005729?text=${waMessage}`;
-    router.push(`/checkout?productId=${product.id}&quantity=${quantity}`)
-  }
 
   return (
     <div className="container py-8 px-4 sm:px-6 lg:px-8">
@@ -653,14 +553,8 @@ function ProductDetails({
             <div className="flex flex-col sm:flex-row gap-3 w-full mt-2">
               <Button
                 size="lg"
-                className="flex-1 bg-gradient-to-r from-yellow-500 to-yellow-600 text-white font-semibold shadow hover:from-yellow-600 hover:to-yellow-700 transition-colors duration-200 py-3 sm:py-2"
-                onClick={() => {
-                  if (!userId) {
-                    setShowSignInDialog(true);
-                  } else {
-                    router.push(`/checkout?productId=${product.id}&quantity=${quantity}`);
-                  }
-                }}
+                className="flex-1 bg-gradient-to-r from-yellow-500 to-yellow-600 text-white font-semibold shadow hover:from-yellow-600 hover:to-yellow-700 transition-colors duration-200"
+                onClick={handleBuyNow}
                 disabled={product.stock === 0}
                 type="button"
               >
@@ -710,8 +604,6 @@ function ProductDetails({
           </Card>
         </div>
       </div>
-
-      <SignInPrompt open={showSignInDialog} setOpen={setShowSignInDialog} callbackUrl={`/product/${product.id}`} />
     </div>
   );
 }
