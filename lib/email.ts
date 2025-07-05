@@ -1,74 +1,79 @@
-import nodemailer from 'nodemailer'
+import nodemailer from "nodemailer";
 
 // Function to get the website URL
 function getWebsiteUrl(): string {
   // Try to get from environment variables first
-  const envUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_URL || process.env.APP_URL
-  
+  const envUrl =
+    process.env.NEXT_PUBLIC_APP_URL ||
+    process.env.VERCEL_URL ||
+    process.env.APP_URL;
+
   if (envUrl) {
     // Ensure it has the correct protocol
-    if (envUrl.startsWith('http')) {
-      return envUrl
+    if (envUrl.startsWith("http")) {
+      return envUrl;
     } else {
-      return `https://${envUrl}`
+      return `https://${envUrl}`;
     }
   }
-  
+
   // Fallback URLs for different environments
-  if (process.env.NODE_ENV === 'production') {
-    return 'https://goldengallery.com' // Replace with your actual domain
-  } else if (process.env.NODE_ENV === 'development') {
-    return 'http://localhost:3000'
+  if (process.env.NODE_ENV === "production") {
+    return "https://goldengallery.com"; // Replace with your actual domain
+  } else if (process.env.NODE_ENV === "development") {
+    return "http://localhost:3000";
   }
-  
+
   // Final fallback
-  return 'https://goldengallery.com'
+  return "https://goldengallery.com";
 }
 
 // Email configuration with better error handling
 function createEmailTransport() {
-  const emailUser = process.env.EMAIL_USER
-  const emailPass = process.env.EMAIL_PASS
+  const emailUser = process.env.EMAIL_USER;
+  const emailPass = process.env.EMAIL_PASS;
 
   if (!emailUser || !emailPass) {
-    console.error('Email configuration missing: EMAIL_USER or EMAIL_PASS not set')
-    return null
+    console.error(
+      "Email configuration missing: EMAIL_USER or EMAIL_PASS not set"
+    );
+    return null;
   }
 
   try {
     return nodemailer.createTransport({
-      service: 'gmail',
+      service: "gmail",
       auth: {
         user: emailUser,
         pass: emailPass, // Use app password for Gmail
       },
-    })
+    });
   } catch (error) {
-    console.error('Failed to create email transport:', error)
-    return null
+    console.error("Failed to create email transport:", error);
+    return null;
   }
 }
 
 interface OrderEmailData {
-  orderId: string
-  orderNumber: string
-  customerName: string
-  customerEmail: string
+  orderId: string;
+  orderNumber: string;
+  customerName: string;
+  customerEmail: string;
   items: Array<{
-    productName: string
-    quantity: number
-    price: number
-  }>
-  subtotal: number
-  shipping: number
-  tax: number
-  total: number
-  shippingAddress: string
-  shippingPhone: string
-  estimatedDelivery: string
-  orderDate: string
-  status: string
-  baseUrl?: string // for generating the order link
+    productName: string;
+    quantity: number;
+    price: number;
+  }>;
+  subtotal: number;
+  shipping: number;
+  tax: number;
+  total: number;
+  shippingAddress: string;
+  shippingPhone: string;
+  estimatedDelivery: string;
+  orderDate: string;
+  status: string;
+  baseUrl?: string; // for generating the order link
 }
 
 export async function sendOrderConfirmationEmail(data: OrderEmailData) {
@@ -87,12 +92,12 @@ export async function sendOrderConfirmationEmail(data: OrderEmailData) {
     estimatedDelivery,
     orderDate,
     status,
-    baseUrl
-  } = data
+    baseUrl,
+  } = data;
 
   // Use the dynamic URL function
-  const websiteUrl = baseUrl || getWebsiteUrl()
-  const orderLink = `http://localhost:3000/orders/${orderId}`
+  const websiteUrl = baseUrl || getWebsiteUrl();
+  const orderLink = `http://localhost:3000/orders/${orderId}`;
 
   const emailHtml = `
     <!DOCTYPE html>
@@ -138,17 +143,29 @@ export async function sendOrderConfirmationEmail(data: OrderEmailData) {
         <div class="section">
           <div class="section-title">Order Summary</div>
           <table class="info-table">
-            <tr><td><strong>Status:</strong></td><td>${status || 'N/A'}</td></tr>
-            <tr><td><strong>Order Date:</strong></td><td>${orderDate || 'N/A'}</td></tr>
-            <tr><td><strong>Order Number:</strong></td><td>${orderNumber || 'N/A'}</td></tr>
+            <tr><td><strong>Status:</strong></td><td>${
+              status || "N/A"
+            }</td></tr>
+            <tr><td><strong>Order Date:</strong></td><td>${
+              orderDate || "N/A"
+            }</td></tr>
+            <tr><td><strong>Order Number:</strong></td><td>${
+              orderNumber || "N/A"
+            }</td></tr>
           </table>
         </div>
         <div class="section">
           <div class="section-title">Shipping Info</div>
           <table class="info-table">
-            <tr><td><strong>Address:</strong></td><td>${shippingAddress || 'N/A'}</td></tr>
-            <tr><td><strong>Phone:</strong></td><td>${shippingPhone || 'N/A'}</td></tr>
-            <tr><td><strong>Total Cost:</strong></td><td>EGP ${total?.toFixed(2) ?? 'N/A'}</td></tr>  
+            <tr><td><strong>Address:</strong></td><td>${
+              shippingAddress || "N/A"
+            }</td></tr>
+            <tr><td><strong>Phone:</strong></td><td>${
+              shippingPhone || "N/A"
+            }</td></tr>
+            <tr><td><strong>Total Cost:</strong></td><td>EGP ${
+              total?.toFixed(2) ?? "N/A"
+            }</td></tr>  
           </table>
         </div>
         <div class="section">
@@ -161,18 +178,18 @@ export async function sendOrderConfirmationEmail(data: OrderEmailData) {
           </ul>
         </div>
         <div class="footer">
-          <div>Need help? <a href="https://wa.me/201234567890" style="color:#000;text-decoration:underline;">Contact us on WhatsApp</a></div>
+          <div>Need help? <a href="https://wa.me/201559005729" style="color:#000;text-decoration:underline;">Contact us on WhatsApp</a></div>
           <div style="margin-top: 8px;">© 2024 Aldahbi Store. All rights reserved.</div>
         </div>
       </div>
     </body>
     </html>
-  `
+  `;
 
-  const transport = createEmailTransport()
+  const transport = createEmailTransport();
   if (!transport) {
-    console.error('Email transport not available')
-    return { success: false, error: 'Email service not configured' }
+    console.error("Email transport not available");
+    return { success: false, error: "Email service not configured" };
   }
 
   const mailOptions = {
@@ -180,15 +197,17 @@ export async function sendOrderConfirmationEmail(data: OrderEmailData) {
     to: customerEmail,
     subject: `Order Confirmation - ${orderNumber}`,
     html: emailHtml,
-  }
+  };
 
   try {
-    await transport.sendMail(mailOptions)
-    console.log(`Order confirmation email sent successfully to ${customerEmail}`)
-    return { success: true }
+    await transport.sendMail(mailOptions);
+    console.log(
+      `Order confirmation email sent successfully to ${customerEmail}`
+    );
+    return { success: true };
   } catch (error) {
-    console.error('Email sending failed:', error)
-    return { success: false, error: (error as any).message }
+    console.error("Email sending failed:", error);
+    return { success: false, error: (error as any).message };
   }
 }
 
@@ -201,22 +220,24 @@ export async function sendOrderStatusUpdateEmail(
   orderId?: string
 ) {
   const statusMessages = {
-    pending: 'Your order is pending and will be reviewed soon.',
-    processing: 'Your order is being processed and prepared for shipment.',
-    shipped: 'Your order has been shipped and is on its way to you.',
-    delivered: 'Your order has been successfully delivered.',
-    cancelled: 'Your order has been cancelled.',
-  }
+    pending: "Your order is pending and will be reviewed soon.",
+    processing: "Your order is being processed and prepared for shipment.",
+    shipped: "Your order has been shipped and is on its way to you.",
+    delivered: "Your order has been successfully delivered.",
+    cancelled: "Your order has been cancelled.",
+  };
 
-  const transport = createEmailTransport()
+  const transport = createEmailTransport();
   if (!transport) {
-    console.error('Email transport not available')
-    return { success: false, error: 'Email service not configured' }
+    console.error("Email transport not available");
+    return { success: false, error: "Email service not configured" };
   }
 
-  const websiteUrl = getWebsiteUrl()
-  console.log(orderId)
-  const orderLink = orderId ? `${websiteUrl}/orders/${orderId}` : `${websiteUrl}/orders`
+  const websiteUrl = getWebsiteUrl();
+  console.log(orderId);
+  const orderLink = orderId
+    ? `${websiteUrl}/orders/${orderId}`
+    : `${websiteUrl}/orders`;
 
   const emailHtml = `
     <!DOCTYPE html>
@@ -263,7 +284,11 @@ export async function sendOrderStatusUpdateEmail(
           <table class="info-table">
             <tr><td><strong>Order Number:</strong></td><td>${orderNumber}</td></tr>
             <tr><td><strong>Status:</strong></td><td>${status.toUpperCase()}</td></tr>
-            ${trackingNumber ? `<tr><td><strong>Tracking Number:</strong></td><td>${trackingNumber}</td></tr>` : ''}
+            ${
+              trackingNumber
+                ? `<tr><td><strong>Tracking Number:</strong></td><td>${trackingNumber}</td></tr>`
+                : ""
+            }
             <tr><td><strong>Date:</strong></td><td>${new Date().toLocaleDateString()}</td></tr>
           </table>
         </div>
@@ -271,48 +296,63 @@ export async function sendOrderStatusUpdateEmail(
         <div class="section">
           <div class="section-title">Status Details</div>
           <p style="margin: 0; font-size: 15px; color: #444;">
-            ${statusMessages[status as keyof typeof statusMessages] || 'Your order status has been updated.'}
+            ${
+              statusMessages[status as keyof typeof statusMessages] ||
+              "Your order status has been updated."
+            }
           </p>
         </div>
         
         <div class="footer">
-          <div>Need help? <a href="https://wa.me/201234567890" style="color:#000;text-decoration:underline;">Contact us on WhatsApp</a></div>
+          <div>Need help? <a href="https://wa.me/201559005729" style="color:#000;text-decoration:underline;">Contact us on WhatsApp</a></div>
           <div style="margin-top: 8px;">© 2024 Aldahbi Store. All rights reserved.</div>
         </div>
       </div>
     </body>
     </html>
-  `
+  `;
 
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: customerEmail,
     subject: `Order Status Update - ${orderNumber}`,
     html: emailHtml,
-  }
+  };
 
   try {
-    await transport.sendMail(mailOptions)
-    return { success: true }
+    await transport.sendMail(mailOptions);
+    return { success: true };
   } catch (error) {
-    console.error('Email sending failed:', error)
-    return { success: false, error: (error as any).message }
+    console.error("Email sending failed:", error);
+    return { success: false, error: (error as any).message };
   }
 }
 
 /**
  * Send a contact form email to support
  */
-export async function sendContactEmail({ name, email, subject, category, message }: { name: string; email: string; subject: string; category?: string; message: string }) {
+export async function sendContactEmail({
+  name,
+  email,
+  subject,
+  category,
+  message,
+}: {
+  name: string;
+  email: string;
+  subject: string;
+  category?: string;
+  message: string;
+}) {
   const transport = createEmailTransport();
   if (!transport) {
-    console.error('Email transport not available');
-    return { success: false, error: 'Email service not configured' };
+    console.error("Email transport not available");
+    return { success: false, error: "Email service not configured" };
   }
 
-  const supportEmail = process.env.EMAIL_USER || 'support@goldengallery.com';
+  const supportEmail = process.env.EMAIL_USER || "support@goldengallery.com";
   const websiteUrl = getWebsiteUrl();
-  
+
   const emailHtml = `
     <!DOCTYPE html>
     <html>
@@ -351,7 +391,11 @@ export async function sendContactEmail({ name, email, subject, category, message
           <table class="info-table">
             <tr><td><strong>Name:</strong></td><td>${name}</td></tr>
             <tr><td><strong>Email:</strong></td><td>${email}</td></tr>
-            ${category ? `<tr><td><strong>Category:</strong></td><td>${category}</td></tr>` : ''}
+            ${
+              category
+                ? `<tr><td><strong>Category:</strong></td><td>${category}</td></tr>`
+                : ""
+            }
             <tr><td><strong>Subject:</strong></td><td>${subject}</td></tr>
             <tr><td><strong>Date:</strong></td><td>${new Date().toLocaleDateString()}</td></tr>
           </table>
@@ -360,7 +404,7 @@ export async function sendContactEmail({ name, email, subject, category, message
         <div class="section">
           <div class="section-title">Message</div>
           <div class="message-box">
-            ${message.replace(/\n/g, '<br/>')}
+            ${message.replace(/\n/g, "<br/>")}
           </div>
         </div>
         
@@ -385,7 +429,7 @@ export async function sendContactEmail({ name, email, subject, category, message
     await transport.sendMail(mailOptions);
     return { success: true };
   } catch (error) {
-    console.error('Contact email sending failed:', error);
+    console.error("Contact email sending failed:", error);
     return { success: false, error: (error as any).message };
   }
-} 
+}

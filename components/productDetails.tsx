@@ -1,40 +1,54 @@
-"use client"
+"use client";
 
-import { useState, useEffect, useMemo } from "react"
-import Image from "next/image"
-import Link from "next/link"
-import { Heart, ShoppingCart, ArrowLeft, ChevronLeft, ChevronRight, ShoppingBag, MessageCircle } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
-import { useToast } from "@/hooks/use-toast"
-import { useActionState } from "react"
-import { useFormStatus } from "react-dom"
-import { toggleFavorite, addToCartAction } from "@/lib/actions"
-import type { Product } from "@/lib/types"
-import { useRouter } from "next/navigation"
-import { FaWhatsapp } from "react-icons/fa"
+import { useState, useEffect, useMemo } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import {
+  Heart,
+  ShoppingCart,
+  ArrowLeft,
+  ChevronLeft,
+  ChevronRight,
+  ShoppingBag,
+  MessageCircle,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { useToast } from "@/hooks/use-toast";
+import { useActionState } from "react";
+import { useFormStatus } from "react-dom";
+import { toggleFavorite, addToCartAction } from "@/lib/actions";
+import type { Product } from "@/lib/types";
+import { useRouter } from "next/navigation";
+import { FaWhatsapp } from "react-icons/fa";
 
-function FavoriteButton({ productId, userId, isFavorite, productLikes, onLikesUpdate }: {
+function FavoriteButton({
+  productId,
+  userId,
+  isFavorite,
+  productLikes,
+  onLikesUpdate,
+}: {
   productId: string;
   userId?: string;
   isFavorite: boolean;
   productLikes: number;
   onLikesUpdate?: (likes: number) => void;
 }) {
-  const { pending } = useFormStatus()
-  const [state, formAction] = useActionState(toggleFavorite, null)
-  const { toast } = useToast()
-  const [fav, setFav] = useState(isFavorite)
-  const [favLook, setFavLook] = useState(isFavorite)
-  const [likes, setLikes] = useState(productLikes)
+  const { pending } = useFormStatus();
+  const [state, formAction] = useActionState(toggleFavorite, null);
+  const { toast } = useToast();
+  const [fav, setFav] = useState(isFavorite);
+  const [favLook, setFavLook] = useState(isFavorite);
+  const [likes, setLikes] = useState(productLikes);
 
   // Update state when props change
   useEffect(() => {
-    setFav(isFavorite)
-    setLikes(productLikes)
-  }, [isFavorite, productLikes])
+    setFav(isFavorite);
+    setLikes(productLikes);
+  }, [isFavorite, productLikes]);
 
   // Handle form state changes
   useEffect(() => {
@@ -43,34 +57,30 @@ function FavoriteButton({ productId, userId, isFavorite, productLikes, onLikesUp
         title: "Error",
         description: state.error,
         variant: "destructive",
-      })
+      });
       // Revert the UI state on error
-      setFav(isFavorite)
-      setFavLook(isFavorite)
-      setLikes(productLikes)
-      onLikesUpdate?.(productLikes)
+      setFav(isFavorite);
+      setFavLook(isFavorite);
+      setLikes(productLikes);
+      onLikesUpdate?.(productLikes);
     } else if (state?.success) {
-      setFav(state.isFavorite)
-      setLikes(state.likes)
-      onLikesUpdate?.(state.likes)
+      setFav(state.isFavorite);
+      setLikes(state.likes);
+      onLikesUpdate?.(state.likes);
       toast({
         title: "Success",
         description: state.message,
-      })
+      });
     }
-  }, [state, toast, isFavorite, productLikes, onLikesUpdate])
+  }, [state, toast, isFavorite, productLikes, onLikesUpdate]);
 
   if (!userId) {
     return (
-      <Button
-        variant="ghost"
-        size="icon"
-        className="h-8 w-8"
-      >
+      <Button variant="ghost" size="icon" className="h-8 w-8">
         <Heart className="h-4 w-4" />
         <span className="sr-only">Login to add favorite</span>
       </Button>
-    )
+    );
   }
 
   return (
@@ -85,45 +95,54 @@ function FavoriteButton({ productId, userId, isFavorite, productLikes, onLikesUp
         disabled={pending}
         onClick={() => setFavLook(!favLook)}
       >
-        <Heart className={`h-4 w-4 relative right-0 ${favLook ? "fill-red-500 text-red-500" : ""} ${pending ? "animate-pulse" : ""}`} />
+        <Heart
+          className={`h-4 w-4 relative right-0 ${
+            favLook ? "fill-red-500 text-red-500" : ""
+          } ${pending ? "animate-pulse" : ""}`}
+        />
         <span className="sr-only">Toggle favorite</span>
       </Button>
     </form>
-  )
+  );
 }
 
-function AddToCartButton({ productId, userId, quantity, isOutOfStock }: {
+function AddToCartButton({
+  productId,
+  userId,
+  quantity,
+  isOutOfStock,
+}: {
   productId: string;
   userId?: string;
   quantity: number;
   isOutOfStock: boolean;
 }) {
-  const { pending } = useFormStatus()
-  const [state, formAction] = useActionState(addToCartAction, null)
-  const { toast } = useToast()
-  const [isAdding, setIsAdding] = useState(false)
+  const { pending } = useFormStatus();
+  const [state, formAction] = useActionState(addToCartAction, null);
+  const { toast } = useToast();
+  const [isAdding, setIsAdding] = useState(false);
 
   // Handle form state changes
   useEffect(() => {
     if (state?.error) {
-      setIsAdding(false)
+      setIsAdding(false);
       toast({
         title: "Error",
         description: state.error,
         variant: "destructive",
-      })
+      });
     } else if (state?.success) {
-      setIsAdding(false)
+      setIsAdding(false);
       toast({
         title: "Success",
         description: state.message,
-      })
+      });
     }
-  }, [state, toast])
+  }, [state, toast]);
 
   const handleSubmit = () => {
-    setIsAdding(true)
-  }
+    setIsAdding(true);
+  };
 
   if (!userId) {
     return (
@@ -131,45 +150,65 @@ function AddToCartButton({ productId, userId, quantity, isOutOfStock }: {
         <ShoppingCart className="h-4 w-4 mr-2" />
         {isOutOfStock ? "Out of Stock" : "Login to use Cart"}
       </Button>
-    )
+    );
   }
 
   return (
     <form action={formAction} onSubmit={handleSubmit}>
       <input type="hidden" name="productId" value={productId} />
       <input type="hidden" name="quantity" value={quantity.toString()} />
-      <Button type="submit" size="lg" className="w-full" disabled={isOutOfStock || pending || isAdding}>
+      <Button
+        type="submit"
+        size="lg"
+        className="w-full"
+        disabled={isOutOfStock || pending || isAdding}
+      >
         <ShoppingCart className="h-4 w-4 mr-2" />
-        {isOutOfStock ? "Out of Stock" : (pending || isAdding) ? "Adding..." : "Add to Cart"}
+        {isOutOfStock
+          ? "Out of Stock"
+          : pending || isAdding
+          ? "Adding..."
+          : "Add to Cart"}
       </Button>
     </form>
-  )
+  );
 }
 
-function ProductDetails({ product, isFavorite, userId }: {
-  product: Product & { category?: { id: string; name: string; description: string | null; created_at: string } },
+function ProductDetails({
+  product,
+  isFavorite,
+  userId,
+}: {
+  product: Product & {
+    category?: {
+      id: string;
+      name: string;
+      description: string | null;
+      created_at: string;
+    };
+  };
   isFavorite: boolean;
   userId?: string;
 }) {
-  const category = product?.category
-  const [currentLikes, setCurrentLikes] = useState(product?.likes || 0)
-  const [quantity, setQuantity] = useState(1)
-  const [currentImageIndex, setCurrentImageIndex] = useState(0)
-  const [imageLoading, setImageLoading] = useState(true)
+  const category = product?.category;
+  const [currentLikes, setCurrentLikes] = useState(product?.likes || 0);
+  const [quantity, setQuantity] = useState(1);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [imageLoading, setImageLoading] = useState(true);
   const router = useRouter();
 
   // Track manually selected color (not auto-selected)
-  const [selectedColorIndex, setSelectedColorIndex] = useState(-1)
+  const [selectedColorIndex, setSelectedColorIndex] = useState(-1);
 
   // Update likes when product changes
   useEffect(() => {
-    setCurrentLikes(product?.likes || 0)
-  }, [product?.likes])
+    setCurrentLikes(product?.likes || 0);
+  }, [product?.likes]);
 
   // Reset loading state when image changes
   useEffect(() => {
-    setImageLoading(true)
-  }, [currentImageIndex])
+    setImageLoading(true);
+  }, [currentImageIndex]);
 
   if (!product) {
     return (
@@ -181,119 +220,123 @@ function ProductDetails({ product, isFavorite, userId }: {
           </Button>
         </div>
       </div>
-    )
+    );
   }
 
   // Create a combined array of all images: product images first, then color images
   const allImages = [
     ...(product.images || []),
-    ...(product.colors || []).map(color => color.image).filter(Boolean)
-  ]
+    ...(product.colors || []).map((color) => color.image).filter(Boolean),
+  ];
 
-  const currentImage = allImages[currentImageIndex] || "/placeholder.svg"
+  const currentImage = allImages[currentImageIndex] || "/placeholder.svg";
 
   // Add error handling for image loading
   const handleImageError = () => {
-    console.error('Failed to load image:', currentImage)
-    setImageLoading(false)
-  }
+    console.error("Failed to load image:", currentImage);
+    setImageLoading(false);
+  };
 
   // Handle carousel navigation
   const handlePreviousImage = () => {
-    if (allImages.length <= 1) return
-    
-    let newIndex: number
+    if (allImages.length <= 1) return;
+
+    let newIndex: number;
     if (currentImageIndex > 0) {
-      newIndex = currentImageIndex - 1
+      newIndex = currentImageIndex - 1;
     } else {
-      newIndex = allImages.length - 1
+      newIndex = allImages.length - 1;
     }
-    
+
     if (newIndex === currentImageIndex) {
-      return
+      return;
     }
-    
-    setImageLoading(true)
-    setCurrentImageIndex(newIndex)
-    
+
+    setImageLoading(true);
+    setCurrentImageIndex(newIndex);
+
     // Update color selection if navigating to a color image
-    const productImageCount = product.images?.length || 0
+    const productImageCount = product.images?.length || 0;
     if (newIndex >= productImageCount) {
-      const colorIndex = newIndex - productImageCount
-      setSelectedColorIndex(colorIndex)
+      const colorIndex = newIndex - productImageCount;
+      setSelectedColorIndex(colorIndex);
     } else {
-      setSelectedColorIndex(-1)
+      setSelectedColorIndex(-1);
     }
-  }
+  };
 
   const handleNextImage = () => {
-    if (allImages.length <= 1) return
-    
-    let newIndex: number
+    if (allImages.length <= 1) return;
+
+    let newIndex: number;
     if (currentImageIndex < allImages.length - 1) {
-      newIndex = currentImageIndex + 1
+      newIndex = currentImageIndex + 1;
     } else {
-      newIndex = 0
+      newIndex = 0;
     }
-    
+
     if (newIndex === currentImageIndex) {
-      return
+      return;
     }
-    
-    setImageLoading(true)
-    setCurrentImageIndex(newIndex)
-    
+
+    setImageLoading(true);
+    setCurrentImageIndex(newIndex);
+
     // Update color selection if navigating to a color image
-    const productImageCount = product.images?.length || 0
+    const productImageCount = product.images?.length || 0;
     if (newIndex >= productImageCount) {
-      const colorIndex = newIndex - productImageCount
-      setSelectedColorIndex(colorIndex)
+      const colorIndex = newIndex - productImageCount;
+      setSelectedColorIndex(colorIndex);
     } else {
-      setSelectedColorIndex(-1)
+      setSelectedColorIndex(-1);
     }
-  }
+  };
 
   // Handle color button click - jump to that color's image and select it
   const handleColorSelect = (colorIndex: number) => {
-    const productImageCount = product.images?.length || 0
-    const colorImageIndex = productImageCount + colorIndex
+    const productImageCount = product.images?.length || 0;
+    const colorImageIndex = productImageCount + colorIndex;
     if (colorImageIndex == currentImageIndex) {
-      return
+      return;
     }
     // Always update the image and selection, even if clicking the same color
-    setImageLoading(true)
-    setCurrentImageIndex(colorImageIndex)
-    setSelectedColorIndex(colorIndex)
-  }
+    setImageLoading(true);
+    setCurrentImageIndex(colorImageIndex);
+    setSelectedColorIndex(colorIndex);
+  };
 
   // Handle image thumbnail selection
   const handleImageSelect = (index: number) => {
     if (index >= 0 && index < allImages.length) {
       if (index == currentImageIndex) {
-        return
+        return;
       }
-      
-      const productImageCount = product.images?.length || 0
-      
+
+      const productImageCount = product.images?.length || 0;
+
       if (index >= productImageCount) {
         // This is a color image
-        const colorIndex = index - productImageCount
-        handleColorSelect(colorIndex)
-        return
+        const colorIndex = index - productImageCount;
+        handleColorSelect(colorIndex);
+        return;
       } else {
         // This is a product image
-        setSelectedColorIndex(-1)
-        setCurrentImageIndex(index)
-        setImageLoading(true)
+        setSelectedColorIndex(-1);
+        setCurrentImageIndex(index);
+        setImageLoading(true);
       }
     }
-  }
+  };
 
   const handleBuyNow = () => {
-    router.push(`/checkout?productId=${product.id}&quantity=${quantity}`)
-  }
-  const waMessage = encodeURIComponent(`Hello, I want to order:\n${product.name} - ${product.price} EGP\n${typeof window !== 'undefined' ? window.location.href : ''}`)
-  const waLink = `https://wa.me/201234567890?text=${waMessage}`
+    router.push(`/checkout?productId=${product.id}&quantity=${quantity}`);
+  };
+  const waMessage = encodeURIComponent(
+    `Hello, I want to order:\n${product.name} - ${product.price} EGP\n${
+      typeof window !== "undefined" ? window.location.href : ""
+    }`
+  );
+  const waLink = `https://wa.me/201559005729?text=${waMessage}`;
 
   return (
     <div className="container py-8 px-4 sm:px-6 lg:px-8">
@@ -305,14 +348,17 @@ function ProductDetails({ product, isFavorite, userId }: {
             Back to Products
           </Link>
         </Button>
-        {category &&
-          (<>
+        {category && (
+          <>
             <span className="text-muted-foreground">/</span>
-            <Link href={`/category/${category.id}`} className="text-sm text-muted-foreground hover:text-primary">
+            <Link
+              href={`/category/${category.id}`}
+              className="text-sm text-muted-foreground hover:text-primary"
+            >
               {category?.name}
             </Link>
-          </>)
-        }
+          </>
+        )}
         <span className="text-muted-foreground">/</span>
         <span className="text-sm">{product.name}</span>
       </div>
@@ -330,7 +376,9 @@ function ProductDetails({ product, isFavorite, userId }: {
               src={currentImage}
               alt={product.name}
               fill
-              className={`object-cover transition-opacity duration-300 ${imageLoading ? 'opacity-0' : 'opacity-100'}`}
+              className={`object-cover transition-opacity duration-300 ${
+                imageLoading ? "opacity-0" : "opacity-100"
+              }`}
               priority
               onLoad={() => setImageLoading(false)}
               onError={handleImageError}
@@ -366,11 +414,12 @@ function ProductDetails({ product, isFavorite, userId }: {
             )}
 
             {/* Color Badge */}
-            {selectedColorIndex >= 0 && product.colors[selectedColorIndex]?.name && (
-              <div className="absolute top-2 left-2 bg-background/80 backdrop-blur-sm px-2 py-1 rounded text-xs font-medium">
-                {product.colors[selectedColorIndex].name}
-              </div>
-            )}
+            {selectedColorIndex >= 0 &&
+              product.colors[selectedColorIndex]?.name && (
+                <div className="absolute top-2 left-2 bg-background/80 backdrop-blur-sm px-2 py-1 rounded text-xs font-medium">
+                  {product.colors[selectedColorIndex].name}
+                </div>
+              )}
           </div>
 
           {/* Product Image Thumbnails */}
@@ -379,7 +428,11 @@ function ProductDetails({ product, isFavorite, userId }: {
               {allImages.map((image, index) => (
                 <button
                   key={index}
-                  className={`aspect-square relative overflow-hidden rounded border-2 ${currentImageIndex === index ? "border-primary" : "border-muted"}`}
+                  className={`aspect-square relative overflow-hidden rounded border-2 ${
+                    currentImageIndex === index
+                      ? "border-primary"
+                      : "border-muted"
+                  }`}
                   onClick={() => handleImageSelect(index)}
                   aria-label={`Select image ${index + 1}`}
                 >
@@ -393,7 +446,6 @@ function ProductDetails({ product, isFavorite, userId }: {
               ))}
             </div>
           )}
-
         </div>
 
         {/* Product Details */}
@@ -401,8 +453,12 @@ function ProductDetails({ product, isFavorite, userId }: {
           <div>
             <div className="flex items-center gap-2 mb-2">
               <Badge variant="secondary">{category?.name}</Badge>
-              {product.stock < 5 && product.stock > 0 && <Badge variant="destructive">Only {product.stock} left</Badge>}
-              {product.stock === 0 && <Badge variant="secondary">Out of stock</Badge>}
+              {product.stock < 5 && product.stock > 0 && (
+                <Badge variant="destructive">Only {product.stock} left</Badge>
+              )}
+              {product.stock === 0 && (
+                <Badge variant="secondary">Out of stock</Badge>
+              )}
             </div>
 
             <div className="flex items-center gap-3 mb-4">
@@ -427,7 +483,9 @@ function ProductDetails({ product, isFavorite, userId }: {
               </div>
             </div>
 
-            <p className="text-muted-foreground leading-relaxed">{product.description}</p>
+            <p className="text-muted-foreground leading-relaxed">
+              {product.description}
+            </p>
           </div>
 
           <Separator />
@@ -474,7 +532,9 @@ function ProductDetails({ product, isFavorite, userId }: {
               <Button
                 variant="outline"
                 size="icon"
-                onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
+                onClick={() =>
+                  setQuantity(Math.min(product.stock, quantity + 1))
+                }
                 disabled={quantity >= product.stock}
               >
                 +
@@ -501,7 +561,12 @@ function ProductDetails({ product, isFavorite, userId }: {
                 <ShoppingBag className="h-5 w-5 mr-2" />
                 Buy Now
               </Button>
-              <a href={waLink} target="_blank" rel="noopener noreferrer" className="flex-1">
+              <a
+                href={waLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1"
+              >
                 <Button
                   size="lg"
                   className="w-full bg-[#25D366] hover:bg-[#128C7E] text-white font-semibold shadow transition-colors duration-200 flex items-center justify-center"
@@ -530,7 +595,9 @@ function ProductDetails({ product, isFavorite, userId }: {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Added:</span>
-                  <span>{new Date(product.created_at).toLocaleDateString()}</span>
+                  <span>
+                    {new Date(product.created_at).toLocaleDateString()}
+                  </span>
                 </div>
               </div>
             </CardContent>
@@ -538,7 +605,7 @@ function ProductDetails({ product, isFavorite, userId }: {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
-export default ProductDetails
+export default ProductDetails;

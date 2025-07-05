@@ -14,29 +14,37 @@ export default function OrderDetailsClient({ order }: { order: any }) {
   const [resendState, resendAction] = useActionState(async (prev, formData) => {
     const result = await resendOrderEmailAction(formData);
     if (result.success) {
-      toast({ 
-        title: "Email Sent", 
-        description: "Order confirmation email has been resent successfully." 
+      toast({
+        title: "Email Sent",
+        description: "Order confirmation email has been resent successfully.",
       });
     } else {
-      toast({ 
-        title: "Email Failed", 
-        description: result.error || "Failed to resend email. Please check your email configuration.", 
-        variant: "destructive" 
+      toast({
+        title: "Email Failed",
+        description:
+          result.error ||
+          "Failed to resend email. Please check your email configuration.",
+        variant: "destructive",
       });
     }
     return result;
   }, null);
 
   // Calculate totals
-  const subtotal = order.items.reduce((sum: number, item: any) => sum + item.price * item.quantity, 0);
+  const subtotal = order.items.reduce(
+    (sum: number, item: any) => sum + item.price * item.quantity,
+    0
+  );
   const shipping = subtotal > 100 ? 0 : 15;
   const tax = subtotal * 0.08;
   const total = order.total_amount;
-  const estimatedDelivery = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString();
+  const estimatedDelivery = new Date(
+    Date.now() + 3 * 24 * 60 * 60 * 1000
+  ).toLocaleDateString();
   const orderDate = new Date(order.created_at);
   const now = new Date();
-  const isRecent = (now.getTime() - orderDate.getTime()) < 7 * 24 * 60 * 60 * 1000;
+  const isRecent =
+    now.getTime() - orderDate.getTime() < 7 * 24 * 60 * 60 * 1000;
 
   return (
     <div className="min-h-screen flex flex-col items-center">
@@ -49,7 +57,10 @@ export default function OrderDetailsClient({ order }: { order: any }) {
                 <CheckCircle className="h-8 w-8 text-green-600" />
               </div>
               <h1 className="text-3xl font-bold mb-2">Order Confirmed!</h1>
-              <p className="text-muted-foreground">Thank you for your purchase. Your order has been successfully placed.</p>
+              <p className="text-muted-foreground">
+                Thank you for your purchase. Your order has been successfully
+                placed.
+              </p>
             </>
           ) : (
             <>
@@ -57,7 +68,9 @@ export default function OrderDetailsClient({ order }: { order: any }) {
                 <Package className="h-8 w-8 text-gray-600" />
               </div>
               <h1 className="text-3xl font-bold mb-2">Order Details</h1>
-              <p className="text-muted-foreground">This order was placed on {orderDate.toLocaleDateString()}.</p>
+              <p className="text-muted-foreground">
+                This order was placed on {orderDate.toLocaleDateString()}.
+              </p>
             </>
           )}
         </div>
@@ -75,15 +88,21 @@ export default function OrderDetailsClient({ order }: { order: any }) {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Order Date</p>
-                <p className="font-medium">{new Date(order.created_at).toLocaleDateString()}</p>
+                <p className="font-medium">
+                  {new Date(order.created_at).toLocaleDateString()}
+                </p>
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Estimated Delivery</p>
+                <p className="text-sm text-muted-foreground">
+                  Estimated Delivery
+                </p>
                 <p className="font-medium">{estimatedDelivery}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Status</p>
-                <Badge variant="secondary" className="capitalize">{order.status}</Badge>
+                <Badge variant="secondary" className="capitalize">
+                  {order.status}
+                </Badge>
               </div>
             </div>
           </CardContent>
@@ -100,8 +119,8 @@ export default function OrderDetailsClient({ order }: { order: any }) {
                 <div key={index} className="flex gap-4 p-4 border rounded-lg">
                   <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center">
                     {item.image ? (
-                      <img 
-                        src={item.image} 
+                      <img
+                        src={item.image}
                         alt={item.product_name}
                         className="w-full h-full object-cover rounded-lg"
                       />
@@ -112,13 +131,19 @@ export default function OrderDetailsClient({ order }: { order: any }) {
                   <div className="flex-1">
                     <h4 className="font-medium">{item.product_name}</h4>
                     {item.color_name && (
-                      <p className="text-sm text-muted-foreground">Color: {item.color_name}</p>
+                      <p className="text-sm text-muted-foreground">
+                        Color: {item.color_name}
+                      </p>
                     )}
                     <p className="text-sm">Quantity: {item.quantity}</p>
                   </div>
                   <div className="text-right">
-                    <p className="font-medium">${(item.price * item.quantity).toFixed(2)}</p>
-                    <p className="text-sm text-muted-foreground">${item.price} each</p>
+                    <p className="font-medium">
+                      ${(item.price * item.quantity).toFixed(2)}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      ${item.price} each
+                    </p>
                   </div>
                 </div>
               ))}
@@ -139,7 +164,9 @@ export default function OrderDetailsClient({ order }: { order: any }) {
               </div>
               <div className="flex justify-between">
                 <span>Shipping</span>
-                <span>{shipping === 0 ? "Free" : `$${shipping.toFixed(2)}`}</span>
+                <span>
+                  {shipping === 0 ? "Free" : `$${shipping.toFixed(2)}`}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span>Tax</span>
@@ -162,7 +189,9 @@ export default function OrderDetailsClient({ order }: { order: any }) {
             </CardHeader>
             <CardContent>
               <p className="text-sm">{order.shipping_address}</p>
-              <p className="text-sm text-muted-foreground mt-1">Phone: {order.shipping_phone}</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                Phone: {order.shipping_phone}
+              </p>
             </CardContent>
           </Card>
 
@@ -172,8 +201,10 @@ export default function OrderDetailsClient({ order }: { order: any }) {
             </CardHeader>
             <CardContent>
               <p className="text-sm capitalize">{order.payment_method}</p>
-              {order.payment_method === 'cod' && (
-                <p className="text-sm text-muted-foreground mt-1">Pay cash on delivery</p>
+              {order.payment_method === "cod" && (
+                <p className="text-sm text-muted-foreground mt-1">
+                  Pay cash on delivery
+                </p>
               )}
             </CardContent>
           </Card>
@@ -206,7 +237,9 @@ export default function OrderDetailsClient({ order }: { order: any }) {
                 </div>
                 <div>
                   <p className="font-medium">Order Processing</p>
-                  <p className="text-muted-foreground">We're preparing your items for shipment.</p>
+                  <p className="text-muted-foreground">
+                    We're preparing your items for shipment.
+                  </p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
@@ -215,7 +248,9 @@ export default function OrderDetailsClient({ order }: { order: any }) {
                 </div>
                 <div>
                   <p className="font-medium">Shipping</p>
-                  <p className="text-muted-foreground">You'll receive a tracking number once your order ships.</p>
+                  <p className="text-muted-foreground">
+                    You'll receive a tracking number once your order ships.
+                  </p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
@@ -224,7 +259,9 @@ export default function OrderDetailsClient({ order }: { order: any }) {
                 </div>
                 <div>
                   <p className="font-medium">Delivery</p>
-                  <p className="text-muted-foreground">Your order will arrive by {estimatedDelivery}.</p>
+                  <p className="text-muted-foreground">
+                    Your order will arrive by {estimatedDelivery}.
+                  </p>
                 </div>
               </div>
             </div>
@@ -233,4 +270,4 @@ export default function OrderDetailsClient({ order }: { order: any }) {
       </div>
     </div>
   );
-} 
+}

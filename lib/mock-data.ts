@@ -6,7 +6,11 @@ export const mockCategories: Category[] = [
     name: "Furniture",
     description: "Quality furniture for every room",
   },
-  { id: "2", name: "Kitchenware", description: "Essential kitchen tools and cookware" },
+  {
+    id: "2",
+    name: "Kitchenware",
+    description: "Essential kitchen tools and cookware",
+  },
   {
     id: "3",
     name: "Home Decor",
@@ -19,8 +23,7 @@ export const mockProducts: Product[] = [
   {
     id: "1",
     name: "Modern Sofa",
-    description:
-      "A comfortable modern sofa perfect for your living room.",
+    description: "A comfortable modern sofa perfect for your living room.",
     price: 899.99,
     stock: 5,
     images: [
@@ -134,7 +137,7 @@ export const mockOrders: Order[] = [
     status: "delivered",
     payment_method: "Credit Card",
     shipping_address: "123 Art Street, Creative City, CC 12345",
-    shipping_phone: "+1 (555) 123-4567",
+    shipping_phone: "+20 155 900 5729",
     total_amount: 449.98,
     items: [
       {
