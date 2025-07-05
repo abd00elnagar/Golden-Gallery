@@ -7,8 +7,8 @@ export async function generateMetadata({ params } : { params: Promise<{ id: stri
   const product = await getProduct(id)
   const domain = process.env.NEXT_PUBLIC_APP_URL || "https://aldahbi.com"
   if (!product) return { title: "Product Not Found" }
-  const title = `${product.name}`
-  const description = product.description || "Luxury jewelry at Aldahbi Store."
+  const title = `${product.name} - Aldahbi Store`
+  const description = product.description || "Quality home supplies and essentials at Aldahbi Store."
   const url = `${domain}/product/${id}`
   const image = product.image || "/logo-light.png"
   return {
@@ -20,7 +20,8 @@ export async function generateMetadata({ params } : { params: Promise<{ id: stri
       description,
       url,
       images: [image],
-      type: "website"
+      type: "website",
+      siteName: "Aldahbi Store"
     },
     twitter: {
       card: "summary_large_image",
@@ -36,7 +37,7 @@ export async function generateMetadata({ params } : { params: Promise<{ id: stri
         image: [image],
         description,
         sku: product.id,
-        brand: { "@type": "Brand", name: "Aldahbi" },
+        brand: { "@type": "Brand", name: "Aldahbi Store" },
         offers: {
           "@type": "Offer",
           priceCurrency: "USD",

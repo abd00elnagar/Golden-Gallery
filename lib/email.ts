@@ -7,7 +7,7 @@ function getWebsiteUrl(): string {
     process.env.NEXT_PUBLIC_APP_URL ||
     process.env.VERCEL_URL ||
     process.env.APP_URL;
-
+  
   if (envUrl) {
     // Ensure it has the correct protocol
     if (envUrl.startsWith("http")) {
@@ -16,14 +16,14 @@ function getWebsiteUrl(): string {
       return `https://${envUrl}`;
     }
   }
-
+  
   // Fallback URLs for different environments
   if (process.env.NODE_ENV === "production") {
     return "https://goldengallery.com"; // Replace with your actual domain
   } else if (process.env.NODE_ENV === "development") {
     return "http://localhost:3000";
   }
-
+  
   // Final fallback
   return "https://goldengallery.com";
 }
@@ -274,7 +274,7 @@ export async function sendOrderStatusUpdateEmail(
           <div class="title">Order Status Update</div>
           <div class="subtitle">Your order status has been updated</div>
         </div>
-        
+
         <div class="order-link">
           <a href="${orderLink}">View Order Details</a>
         </div>
@@ -292,7 +292,7 @@ export async function sendOrderStatusUpdateEmail(
             <tr><td><strong>Date:</strong></td><td>${new Date().toLocaleDateString()}</td></tr>
           </table>
         </div>
-        
+
         <div class="section">
           <div class="section-title">Status Details</div>
           <p style="margin: 0; font-size: 15px; color: #444;">
@@ -302,7 +302,7 @@ export async function sendOrderStatusUpdateEmail(
             }
           </p>
         </div>
-        
+
         <div class="footer">
           <div>Need help? <a href="https://wa.me/201559005729" style="color:#000;text-decoration:underline;">Contact us on WhatsApp</a></div>
           <div style="margin-top: 8px;">© 2024 Aldahbi Store. All rights reserved.</div>
@@ -432,4 +432,4 @@ export async function sendContactEmail({
     console.error("Contact email sending failed:", error);
     return { success: false, error: (error as any).message };
   }
-}
+} 

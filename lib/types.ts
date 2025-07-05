@@ -74,6 +74,7 @@ export interface Order {
   shipping_phone: string;
   total_amount: number;
   items: OrderItem[];
+  resend_email_count?: number;
   created_at: string;
   updated_at: string;
 }

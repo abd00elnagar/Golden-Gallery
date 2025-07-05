@@ -1,31 +1,15 @@
 "use client"
 import Link from "next/link"
-import { useTheme } from "next-themes"
-import { useEffect, useState } from "react"
-import Image from "next/image"
 
 export function Footer() {
-  const { theme } = useTheme()
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
 
   return (
     <footer className="border-t bg-muted/30 ">
       <div className="container py-6 sm:py-8 px-3 sm:px-6 lg:px-8 flex flex-col items-center max-w-7xl mx-auto">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 sm:gap-8 w-full place-items-center">
           <div className="flex flex-col items-center col-span-2 sm:col-span-4 md:col-span-1 mb-4 sm:mb-0">
-            <div className="flex items-center space-x-2 mb-3 sm:mb-4">
-              <Image
-                src={`/logo-${mounted ? (theme || "light") : "light"}.png`}
-                alt="Aldahbi Store Logo"
-                className="h-6 w-6 sm:h-8 sm:w-8 rounded-full object-cover"
-                width={32}
-                height={32}
-              />
-              <span className="text-lg sm:text-xl font-bold">Aldahbi store</span>
+            <div className="flex items-center mb-3 sm:mb-4">
+              <span className="text-lg sm:text-xl font-bold text-foreground">Aldahbi Store</span>
             </div>
             <p className="text-muted-foreground text-xs sm:text-sm text-center max-w-[250px] sm:max-w-none">
               Discover quality home supplies and essentials for every room in your house.

@@ -23,6 +23,35 @@ import { toggleFavorite, addToCartAction } from "@/lib/actions";
 import type { Product } from "@/lib/types";
 import { useRouter } from "next/navigation";
 import { FaWhatsapp } from "react-icons/fa";
+import { Dialog, DialogTrigger, DialogContent } from "@/components/ui/dialog";
+
+function SignInPrompt({ open, setOpen, callbackUrl }: { open: boolean; setOpen: (v: boolean) => void; callbackUrl: string }) {
+  const handleGoogleSignIn = () => {
+    setOpen(false);
+    import("next-auth/react").then(({ signIn }) => {
+      signIn("google", { callbackUrl });
+    });
+  };
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogContent className="max-w-xs text-center rounded-lg">
+        <div className="flex flex-col items-center gap-4">
+          <h2 className="text-lg font-semibold">Sign in please</h2>
+          <p className="text-muted-foreground mb-2">You need to sign in to perform this action.</p>
+          <Button
+            onClick={handleGoogleSignIn}
+            className="w-full flex items-center justify-center gap-2 font-medium text-base border border-gray-300 bg-white shadow-sm hover:bg-gray-50 transition-colors py-3"
+            size="lg"
+            variant="outline"
+          >
+            <Image src="/google-icon.svg" alt="Google" width={22} height={22} className="mr-1" />
+            <span className="text-black">Sign in with Google</span>
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 function FavoriteButton({
   productId,
@@ -43,6 +72,7 @@ function FavoriteButton({
   const [fav, setFav] = useState(isFavorite);
   const [favLook, setFavLook] = useState(isFavorite);
   const [likes, setLikes] = useState(productLikes);
+  const [showDialog, setShowDialog] = useState(false);
 
   // Update state when props change
   useEffect(() => {
@@ -76,10 +106,18 @@ function FavoriteButton({
 
   if (!userId) {
     return (
-      <Button variant="ghost" size="icon" className="h-8 w-8">
-        <Heart className="h-4 w-4" />
-        <span className="sr-only">Login to add favorite</span>
-      </Button>
+      <>
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="h-8 w-8"
+          onClick={() => setShowDialog(true)}
+        >
+          <Heart className="h-4 w-4" />
+          <span className="sr-only">Login to add favorite</span>
+        </Button>
+        <SignInPrompt open={showDialog} setOpen={setShowDialog} callbackUrl={`/product/${productId}`} />
+      </>
     );
   }
 
@@ -121,6 +159,7 @@ function AddToCartButton({
   const [state, formAction] = useActionState(addToCartAction, null);
   const { toast } = useToast();
   const [isAdding, setIsAdding] = useState(false);
+  const [showDialog, setShowDialog] = useState(false);
 
   // Handle form state changes
   useEffect(() => {
@@ -146,10 +185,18 @@ function AddToCartButton({
 
   if (!userId) {
     return (
-      <Button size="lg" className="w-full" disabled={isOutOfStock}>
-        <ShoppingCart className="h-4 w-4 mr-2" />
-        {isOutOfStock ? "Out of Stock" : "Login to use Cart"}
-      </Button>
+      <>
+        <Button 
+          size="lg" 
+          className="w-full" 
+          disabled={isOutOfStock}
+          onClick={() => setShowDialog(true)}
+        >
+          <ShoppingCart className="h-4 w-4 mr-2" />
+          {isOutOfStock ? "Out of Stock" : "Login to use Cart"}
+        </Button>
+        <SignInPrompt open={showDialog} setOpen={setShowDialog} callbackUrl={`/product/${productId}`} />
+      </>
     );
   }
 

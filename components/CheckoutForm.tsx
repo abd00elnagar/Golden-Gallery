@@ -163,6 +163,13 @@ export default function CheckoutForm({ user, cartItems }: CheckoutFormProps) {
                     automatically cancelled.
                   </AlertDescription>
                 </Alert>
+                
+                <Alert>
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription>
+                    <strong>Email Notice:</strong> Your order confirmation email may be sent to your spam/junk folder. Please check there if you don't receive it in your inbox.
+                  </AlertDescription>
+                </Alert>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">

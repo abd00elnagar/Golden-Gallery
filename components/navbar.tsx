@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { signOut } from "next-auth/react";
+import { signIn, signOut } from "next-auth/react";
 import { NotificationDropdown } from "@/components/ui/notification-dropdown";
 import Image from "next/image";
 import type { User as UserType } from "@/lib/types";
@@ -36,15 +36,8 @@ export function Navbar({ user }: NavbarProps) {
       <div className="w-full flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8 xl:px-12">
         {/* Logo on the left */}
         <div className="flex items-center">
-          <Link href="/" className="flex items-center space-x-2">
-            <Image
-              src={`/logo-${(mounted ? theme || "light" : "light") || "light"}.png`}
-              alt="Aldahbi Store Logo"
-              width={32}
-              height={32}
-              className="rounded-full"
-            />
-            <span className="text-lg sm:text-xl font-bold">Aldahbi Store</span>
+          <Link href="/" className="flex items-center">
+            <span className="text-lg sm:text-xl font-bold text-foreground">Aldahbi Store</span>
           </Link>
         </div>
 
@@ -144,12 +137,12 @@ export function Navbar({ user }: NavbarProps) {
             </DropdownMenu>
           ) : (
             <Button
-              asChild
               variant="ghost"
               size="sm"
               className="inline-flex items-center font-medium text-base px-4 py-2 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
+              onClick={() => signIn("google", { callbackUrl: "/" })}
             >
-              <Link href="/auth/signin">Sign in</Link>
+              Sign in
             </Button>
           )}
 

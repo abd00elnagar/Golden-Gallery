@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { CheckCircle, Download, Mail, Package } from "lucide-react";
+import { CheckCircle, Download, Mail, Package, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -136,6 +136,17 @@ export default function OrderDetailsClient({ order }: { order: any }) {
                       </p>
                     )}
                     <p className="text-sm">Quantity: {item.quantity}</p>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      asChild
+                      className="h-6 w-6 p-0 hover:bg-muted mt-1"
+                    >
+                      <Link href={`/product/${item.product_id}`}>
+                        <Eye className="h-3 w-3" />
+                        <span className="sr-only">View product details</span>
+                      </Link>
+                    </Button>
                   </div>
                   <div className="text-right">
                     <p className="font-medium">

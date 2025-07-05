@@ -44,7 +44,7 @@ export default function SignInPage() {
             <Button
               key={provider.name}
               onClick={() => signIn(provider.id, { callbackUrl: "/profile" })}
-              className={`w-full flex items-center justify-center gap-2 font-medium text-base border border-gray-300 bg-white shadow-sm hover:bg-gray-50 transition-colors ${provider.id === "google" ? "py-3" : ""}`}
+              className={`w-full flex items-center justify-center gap-2 font-medium text-black border border-gray-300 bg-white shadow-sm hover:bg-gray-50 hover:text-black transition-colors ${provider.id === "google" ? "py-3" : ""}`}
               size="lg"
               variant={provider.id === "google" ? "outline" : "default"}
             >

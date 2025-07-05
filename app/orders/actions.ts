@@ -26,9 +26,9 @@ export async function resendOrderEmailAction(formData: FormData) {
       return { success: false, error: 'You have reached the maximum number of resends for this order.' };
     }
 
-    // Try to get email from order, else fetch user
-    let customerEmail = order.email;
-    if (!customerEmail && order.user_id) {
+    // Get email from user
+    let customerEmail: string | undefined;
+    if (order.user_id) {
       const user = await getUserById(order.user_id);
       customerEmail = user?.email;
     }
