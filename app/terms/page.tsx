@@ -100,7 +100,8 @@ export default function TermsOfServicePage() {
               <p>
                 We offer shipping to locations within the United States.
                 Shipping costs and delivery times vary based on location and
-                shipping method selected.
+                shipping method selected. Standard delivery takes 3 business
+                days.
               </p>
               <div className="mt-4">
                 <h4 className="font-semibold">Return Policy:</h4>
@@ -137,7 +138,7 @@ export default function TermsOfServicePage() {
                   <strong>Aldahbi Store</strong>
                 </p>
                 <p>Email: legal@goldengallery.com</p>
-                <p>Phone: +1 (555) 123-4567</p>
+                <p>Phone: +20 155 900 5729</p>
                 <p>Address: 123 Home Supplies Ave, New York, NY 10001</p>
               </div>
             </div>

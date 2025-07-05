@@ -1,57 +1,68 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { ArrowLeft, Truck, Shield, AlertTriangle } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Separator } from "@/components/ui/separator"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { useToast } from "@/hooks/use-toast"
-import { createOrderAction } from "@/lib/actions"
-import type { User } from "@/lib/types"
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { ArrowLeft, Truck, Shield, AlertTriangle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useToast } from "@/hooks/use-toast";
+import { createOrderAction } from "@/lib/actions";
+import type { User } from "@/lib/types";
 
 interface CartItem {
-  productId: string
-  productName: string
-  price: number
-  image: string | null
-  quantity: number
-  stock: number
+  productId: string;
+  productName: string;
+  price: number;
+  image: string | null;
+  quantity: number;
+  stock: number;
 }
 
 interface CheckoutFormProps {
-  user: User
-  cartItems: CartItem[]
+  user: User;
+  cartItems: CartItem[];
 }
 
 export default function CheckoutForm({ user, cartItems }: CheckoutFormProps) {
-  const router = useRouter()
-  const { toast } = useToast()
-  const [isProcessing, setIsProcessing] = useState(false)
+  const router = useRouter();
+  const { toast } = useToast();
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const [shippingData, setShippingData] = useState({
-    firstName: user.name?.split(' ')[0] || "",
-    lastName: user.name?.split(' ').slice(1).join(' ') || "",
+    firstName: user.name?.split(" ")[0] || "",
+    lastName: user.name?.split(" ").slice(1).join(" ") || "",
     email: user.email || "",
     phone: user.phone || "",
     address: user.address || "",
-  })
+  });
 
-  const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
-  const shipping = subtotal > 100 ? 0 : 15
-  const tax = subtotal * 0.08
-  const total = subtotal + shipping + tax
+  const subtotal = cartItems.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0
+  );
+  const shipping = subtotal > 100 ? 0 : 15;
+  const tax = subtotal * 0.08;
+  const total = subtotal + shipping + tax;
 
-  const isBuyNow = cartItems.length === 1 && !user.cart.some(item => item.productId === cartItems[0].productId)
+  const isBuyNow =
+    cartItems.length === 1 &&
+    !user.cart.some((item) => item.productId === cartItems[0].productId);
 
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsProcessing(true)
+    e.preventDefault();
+    setIsProcessing(true);
 
     // Validate phone number
     if (!shippingData.phone || shippingData.phone.length < 10) {
@@ -59,53 +70,58 @@ export default function CheckoutForm({ user, cartItems }: CheckoutFormProps) {
         title: "Invalid phone number",
         description: "Please provide a valid phone number for delivery.",
         variant: "destructive",
-      })
-      setIsProcessing(false)
-      return
+      });
+      setIsProcessing(false);
+      return;
     }
 
     try {
       // Create FormData for the server action
-      const formData = new FormData()
-      formData.append('firstName', shippingData.firstName)
-      formData.append('lastName', shippingData.lastName)
-      formData.append('email', shippingData.email)
-      formData.append('phone', shippingData.phone)
-      formData.append('address', shippingData.address)
-      formData.append('governorate', '') // Empty for now
-      formData.append('district', '') // Empty for now
-      formData.append('village', '') // Empty for now
+      const formData = new FormData();
+      formData.append("firstName", shippingData.firstName);
+      formData.append("lastName", shippingData.lastName);
+      formData.append("email", shippingData.email);
+      formData.append("phone", shippingData.phone);
+      formData.append("address", shippingData.address);
+      formData.append("governorate", ""); // Empty for now
+      formData.append("district", ""); // Empty for now
+      formData.append("village", ""); // Empty for now
       if (isBuyNow) {
-        formData.append('buyNow', '1')
-        formData.append('cartItems', JSON.stringify(cartItems))
+        formData.append("buyNow", "1");
+        formData.append("cartItems", JSON.stringify(cartItems));
       }
 
       // Submit the form
-      const result = await createOrderAction({ success: false, error: null }, formData)
-      
+      const result = await createOrderAction(
+        { success: false, error: null },
+        formData
+      );
+
       if (result.success) {
         toast({
           title: "Order placed successfully!",
-          description: "You will receive a confirmation email shortly. Pay cash on delivery.",
-        })
-        router.push(`/orders/${result.orderId}`)
+          description:
+            "You will receive a confirmation email shortly. Pay cash on delivery.",
+        });
+        router.push(`/orders/${result.orderId}`);
       } else {
         toast({
           title: "Order failed",
-          description: result.error || "An error occurred while placing your order.",
+          description:
+            result.error || "An error occurred while placing your order.",
           variant: "destructive",
-        })
+        });
       }
     } catch (error) {
       toast({
         title: "Order failed",
         description: "An error occurred while placing your order.",
         variant: "destructive",
-      })
+      });
     } finally {
-      setIsProcessing(false)
+      setIsProcessing(false);
     }
-  }
+  };
 
   return (
     <div>
@@ -125,8 +141,8 @@ export default function CheckoutForm({ user, cartItems }: CheckoutFormProps) {
             <Alert>
               <Shield className="h-4 w-4" />
               <AlertDescription>
-                <strong>Cash on Delivery (COD)</strong> - Pay with cash when your order arrives. 
-                No payment information required.
+                <strong>Cash on Delivery (COD)</strong> - Pay with cash when
+                your order arrives. No payment information required.
               </AlertDescription>
             </Alert>
 
@@ -142,8 +158,9 @@ export default function CheckoutForm({ user, cartItems }: CheckoutFormProps) {
                 <Alert variant="destructive">
                   <AlertTriangle className="h-4 w-4" />
                   <AlertDescription>
-                    <strong>Important:</strong> Please ensure your phone number is correct. 
-                    Orders with incorrect phone numbers will be automatically cancelled.
+                    <strong>Important:</strong> Please ensure your phone number
+                    is correct. Orders with incorrect phone numbers will be
+                    automatically cancelled.
                   </AlertDescription>
                 </Alert>
 
@@ -153,7 +170,12 @@ export default function CheckoutForm({ user, cartItems }: CheckoutFormProps) {
                     <Input
                       id="firstName"
                       value={shippingData.firstName}
-                      onChange={(e) => setShippingData({ ...shippingData, firstName: e.target.value })}
+                      onChange={(e) =>
+                        setShippingData({
+                          ...shippingData,
+                          firstName: e.target.value,
+                        })
+                      }
                       required
                     />
                   </div>
@@ -162,7 +184,12 @@ export default function CheckoutForm({ user, cartItems }: CheckoutFormProps) {
                     <Input
                       id="lastName"
                       value={shippingData.lastName}
-                      onChange={(e) => setShippingData({ ...shippingData, lastName: e.target.value })}
+                      onChange={(e) =>
+                        setShippingData({
+                          ...shippingData,
+                          lastName: e.target.value,
+                        })
+                      }
                       required
                     />
                   </div>
@@ -175,7 +202,12 @@ export default function CheckoutForm({ user, cartItems }: CheckoutFormProps) {
                       id="email"
                       type="email"
                       value={shippingData.email}
-                      onChange={(e) => setShippingData({ ...shippingData, email: e.target.value })}
+                      onChange={(e) =>
+                        setShippingData({
+                          ...shippingData,
+                          email: e.target.value,
+                        })
+                      }
                       required
                     />
                   </div>
@@ -184,8 +216,13 @@ export default function CheckoutForm({ user, cartItems }: CheckoutFormProps) {
                     <Input
                       id="phone"
                       value={shippingData.phone}
-                      onChange={(e) => setShippingData({ ...shippingData, phone: e.target.value })}
-                      placeholder="+20 123 456 7890"
+                      onChange={(e) =>
+                        setShippingData({
+                          ...shippingData,
+                          phone: e.target.value,
+                        })
+                      }
+                      placeholder="+20 155 900 5729"
                       required
                     />
                   </div>
@@ -196,7 +233,12 @@ export default function CheckoutForm({ user, cartItems }: CheckoutFormProps) {
                   <Input
                     id="address"
                     value={shippingData.address}
-                    onChange={(e) => setShippingData({ ...shippingData, address: e.target.value })}
+                    onChange={(e) =>
+                      setShippingData({
+                        ...shippingData,
+                        address: e.target.value,
+                      })
+                    }
                     placeholder="123 Main Street, Apartment 4B"
                     required
                   />
@@ -215,7 +257,10 @@ export default function CheckoutForm({ user, cartItems }: CheckoutFormProps) {
                 {/* Order Items */}
                 <div className="space-y-3">
                   {cartItems.map((item) => (
-                    <div key={item.productId} className="flex gap-3 items-center">
+                    <div
+                      key={item.productId}
+                      className="flex gap-3 items-center"
+                    >
                       <div className="relative w-16 h-16 flex-shrink-0">
                         {item.image ? (
                           <img
@@ -233,8 +278,12 @@ export default function CheckoutForm({ user, cartItems }: CheckoutFormProps) {
                         </span>
                       </div>
                       <div className="flex-1">
-                        <h4 className="font-medium text-sm">{item.productName}</h4>
-                        <p className="text-sm font-medium">${(item.price * item.quantity).toFixed(2)}</p>
+                        <h4 className="font-medium text-sm">
+                          {item.productName}
+                        </h4>
+                        <p className="text-sm font-medium">
+                          ${(item.price * item.quantity).toFixed(2)}
+                        </p>
                       </div>
                     </div>
                   ))}
@@ -250,7 +299,9 @@ export default function CheckoutForm({ user, cartItems }: CheckoutFormProps) {
                   </div>
                   <div className="flex justify-between text-sm">
                     <span>Shipping</span>
-                    <span>{shipping === 0 ? "Free" : `$${shipping.toFixed(2)}`}</span>
+                    <span>
+                      {shipping === 0 ? "Free" : `$${shipping.toFixed(2)}`}
+                    </span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span>Tax</span>
@@ -263,7 +314,12 @@ export default function CheckoutForm({ user, cartItems }: CheckoutFormProps) {
                   </div>
                 </div>
 
-                <Button type="submit" className="w-full" size="lg" disabled={isProcessing}>
+                <Button
+                  type="submit"
+                  className="w-full"
+                  size="lg"
+                  disabled={isProcessing}
+                >
                   {isProcessing ? (
                     <>
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
@@ -286,5 +342,5 @@ export default function CheckoutForm({ user, cartItems }: CheckoutFormProps) {
         </div>
       </form>
     </div>
-  )
-} 
+  );
+}

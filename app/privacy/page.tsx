@@ -132,7 +132,7 @@ export default function PrivacyPolicyPage() {
                   <strong>Aldahbi Store</strong>
                 </p>
                 <p>Email: privacy@goldengallery.com</p>
-                <p>Phone: +1 (555) 123-4567</p>
+                <p>Phone: +20 155 900 5729</p>
                 <p>Address: 123 Art Street, New York, NY 10001</p>
               </div>
             </div>
