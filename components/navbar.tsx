@@ -23,13 +23,43 @@ interface NavbarProps {
 }
 
 export function Navbar({ user }: NavbarProps) {
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme, systemTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
+  // Handle initial mount
   useEffect(() => {
     setMounted(true);
-    if (!theme) setTheme("light");
-  }, [theme, setTheme]);
+  }, []);
+
+  // Get the current theme
+  const currentTheme = mounted
+    ? theme === "system"
+      ? systemTheme
+      : theme
+    : "light";
+
+  // Determine logo source
+  const logoSrc = `/logo-${currentTheme || "light"}.png`;
+
+  if (!mounted) {
+    return (
+      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="w-full flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8 xl:px-12">
+          <div className="flex items-center">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 rounded-full bg-gray-200" />
+              <span className="text-lg sm:text-xl font-bold">
+                Aldahbi Store
+              </span>
+            </div>
+          </div>
+          <div className="flex items-center space-x-1 sm:space-x-2 justify-end">
+            <div className="w-8 h-8" />
+          </div>
+        </div>
+      </header>
+    );
+  }
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -38,11 +68,12 @@ export function Navbar({ user }: NavbarProps) {
         <div className="flex items-center">
           <Link href="/" className="flex items-center space-x-2">
             <Image
-              src={`/logo-${mounted ? theme || "light" : "light"}.png`}
+              src={logoSrc}
               alt="Aldahbi Store Logo"
               width={32}
               height={32}
               className="rounded-full"
+              priority
             />
             <span className="text-lg sm:text-xl font-bold">Aldahbi Store</span>
           </Link>
@@ -54,7 +85,7 @@ export function Navbar({ user }: NavbarProps) {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            onClick={() => setTheme(currentTheme === "dark" ? "light" : "dark")}
           >
             <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
             <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
