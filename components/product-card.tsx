@@ -40,7 +40,7 @@ function SignInPrompt({ open, setOpen, callbackUrl }: { open: boolean; setOpen: 
             variant="outline"
           >
             <Image src="/google-icon.svg" alt="Google" width={22} height={22} className="mr-1" />
-            <span className="text-dark">Sign in with Google</span>
+            <span className="text-black">Sign in with Google</span>
           </Button>
         </div>
       </DialogContent>
