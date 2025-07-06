@@ -407,8 +407,7 @@ function ProductDetails({
       typeof window !== "undefined" ? window.location.href : ""
     }`
   );
-  const whatsappNumber =
-    process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "201559005729";
+  const whatsappNumber = "201559005729";
   const waLink = `https://wa.me/${whatsappNumber}?text=${waMessage}`;
 
   return (
@@ -618,7 +617,7 @@ function ProductDetails({
                 Buy Now
               </Button>
               <Link
-                href={`https://wa.me/+966555555555?text=Hi, I'm interested in ${encodeURIComponent(
+                href={`https://wa.me/201559005729?text=Hi, I'm interested in ${encodeURIComponent(
                   product.name
                 )}`}
                 target="_blank"
