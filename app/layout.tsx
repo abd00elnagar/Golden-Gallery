@@ -5,8 +5,14 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
 import { NavbarWrapper } from "@/components/navbar-wrapper";
 import { Footer } from "@/components/footer";
+import { MobileNav } from "@/components/mobile-nav";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/next";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { cn } from "@/lib/utils";
+import { fontSans } from "@/lib/fonts";
+
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
@@ -56,11 +62,13 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const session = await getServerSession(authOptions);
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -72,19 +80,26 @@ export default function RootLayout({
           href={process.env.NEXT_PUBLIC_APP_URL || "https://aldahbi.com"}
         />
       </head>
-      <body className={inter.className}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <NavbarWrapper />
-          <main className="min-h-screen">{children}</main>
+      <body
+        className={cn(
+          "min-h-screen bg-background font-sans antialiased overflow-x-hidden max-w-[100vw]",
+          fontSans.variable
+        )}
+      >
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <div className="relative flex min-h-screen flex-col max-w-[100vw]">
+            <NavbarWrapper />
+            <div className="flex-1">
+              <main className="pb-16 md:pb-0 w-full overflow-x-hidden">
+                {children}
+              </main>
+            </div>
+            <Footer className="hidden md:block" />
+            <MobileNav />
+          </div>
+          <Toaster />
           <SpeedInsights />
           <Analytics />
-          <Footer />
-          <Toaster />
         </ThemeProvider>
       </body>
     </html>

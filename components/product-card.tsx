@@ -1,26 +1,34 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import Link from "next/link"
-import Image from "next/image"
-import { Heart, ShoppingCart, Link2, ExternalLink } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardFooter } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { useToast } from "@/hooks/use-toast"
-import { useActionState } from "react"
-import { toggleFavorite, addToCartAction, type Product } from "@/lib/actions"
-import { useFormStatus } from "react-dom"
-import { useRouter } from "next/navigation"
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { Heart, ShoppingCart, Link2, ExternalLink } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
+import { useActionState } from "react";
+import { toggleFavorite, addToCartAction, type Product } from "@/lib/actions";
+import { useFormStatus } from "react-dom";
+import { useRouter } from "next/navigation";
 import { Dialog, DialogTrigger, DialogContent } from "@/components/ui/dialog";
 
 interface ProductCardProps {
-  product: Product
-  isFavorite: boolean
-  userId?: string
+  product: Product;
+  isFavorite: boolean;
+  userId?: string;
 }
 
-function SignInPrompt({ open, setOpen, callbackUrl }: { open: boolean; setOpen: (v: boolean) => void; callbackUrl: string }) {
+function SignInPrompt({
+  open,
+  setOpen,
+  callbackUrl,
+}: {
+  open: boolean;
+  setOpen: (v: boolean) => void;
+  callbackUrl: string;
+}) {
   const handleGoogleSignIn = () => {
     setOpen(false);
     import("next-auth/react").then(({ signIn }) => {
@@ -32,14 +40,22 @@ function SignInPrompt({ open, setOpen, callbackUrl }: { open: boolean; setOpen: 
       <DialogContent className="max-w-xs text-center rounded-lg">
         <div className="flex flex-col items-center gap-4">
           <h2 className="text-lg font-semibold">Sign in please</h2>
-          <p className="text-muted-foreground mb-2">You need to sign in to perform this action.</p>
+          <p className="text-muted-foreground mb-2">
+            You need to sign in to perform this action.
+          </p>
           <Button
             onClick={handleGoogleSignIn}
             className="w-full flex items-center justify-center gap-2 font-medium text-base border border-gray-300 bg-white shadow-sm hover:bg-gray-50 transition-colors py-3"
             size="lg"
             variant="outline"
           >
-            <Image src="/google-icon.svg" alt="Google" width={22} height={22} className="mr-1" />
+            <Image
+              src="/google-icon.svg"
+              alt="Google"
+              width={22}
+              height={22}
+              className="mr-1"
+            />
             <span className="text-black">Sign in with Google</span>
           </Button>
         </div>
@@ -48,27 +64,33 @@ function SignInPrompt({ open, setOpen, callbackUrl }: { open: boolean; setOpen: 
   );
 }
 
-function FavoriteButton({ productId, userId, isFavorite, productLikes, onLikesUpdate }: {
+function FavoriteButton({
+  productId,
+  userId,
+  isFavorite,
+  productLikes,
+  onLikesUpdate,
+}: {
   productId: string;
   userId?: string;
   isFavorite: boolean;
   productLikes: number;
   onLikesUpdate?: (likes: number) => void;
 }) {
-  const { pending } = useFormStatus()
-  const [state, formAction] = useActionState(toggleFavorite, null)
-  const { toast } = useToast()
-  const [fav, setFav] = useState(isFavorite)
-  const [favLook, setFavLook] = useState(isFavorite)
-  const [likes, setLikes] = useState(productLikes)
+  const { pending } = useFormStatus();
+  const [state, formAction] = useActionState(toggleFavorite, null);
+  const { toast } = useToast();
+  const [fav, setFav] = useState(isFavorite);
+  const [favLook, setFavLook] = useState(isFavorite);
+  const [likes, setLikes] = useState(productLikes);
   const router = useRouter();
   const [showDialog, setShowDialog] = useState(false);
 
   // Update state when props change
   useEffect(() => {
-    setFav(isFavorite)
-    setLikes(productLikes)
-  }, [isFavorite, productLikes])
+    setFav(isFavorite);
+    setLikes(productLikes);
+  }, [isFavorite, productLikes]);
 
   // Handle form state changes
   useEffect(() => {
@@ -77,23 +99,22 @@ function FavoriteButton({ productId, userId, isFavorite, productLikes, onLikesUp
         title: "Error",
         description: state.error,
         variant: "destructive",
-      })
+      });
       // Revert the UI state on error
-      setFav(isFavorite)
-      setFavLook(isFavorite)
-      setLikes(productLikes)
-      onLikesUpdate?.(productLikes)
+      setFav(isFavorite);
+      setFavLook(isFavorite);
+      setLikes(productLikes);
+      onLikesUpdate?.(productLikes);
     } else if (state?.success) {
-      setFav(state.isFavorite)
-      setLikes(state.likes)
-      onLikesUpdate?.(state.likes)
+      setFav(state.isFavorite);
+      setLikes(state.likes);
+      onLikesUpdate?.(state.likes);
       toast({
         title: "Success",
         description: state.message,
-      })
+      });
     }
-  }, [state, toast, isFavorite, productLikes, onLikesUpdate])
-
+  }, [state, toast, isFavorite, productLikes, onLikesUpdate]);
 
   if (!userId) {
     return (
@@ -107,9 +128,13 @@ function FavoriteButton({ productId, userId, isFavorite, productLikes, onLikesUp
           <Heart className="h-4 w-4" />
           <span className="sr-only">Login to add favorite</span>
         </Button>
-        <SignInPrompt open={showDialog} setOpen={setShowDialog} callbackUrl={`/product/${productId}`} />
+        <SignInPrompt
+          open={showDialog}
+          setOpen={setShowDialog}
+          callbackUrl={`/product/${productId}`}
+        />
       </>
-    )
+    );
   }
 
   return (
@@ -122,81 +147,109 @@ function FavoriteButton({ productId, userId, isFavorite, productLikes, onLikesUp
           variant="ghost"
           size="icon"
           disabled={pending}
-          onClick={()=> setFavLook(!favLook)}
+          onClick={() => setFavLook(!favLook)}
           className="h-8 w-8 bg-background/80 hover:bg-background"
         >
-          <Heart className={`h-4 w-4 ${favLook ? "fill-red-500 text-red-500" : ""} ${pending ? "animate-pulse" : ""}`} />
+          <Heart
+            className={`h-4 w-4 ${favLook ? "fill-red-500 text-red-500" : ""} ${
+              pending ? "animate-pulse" : ""
+            }`}
+          />
           <span className="sr-only">Toggle favorite</span>
         </Button>
       </form>
     </div>
-  )
+  );
 }
 
-function AddToCartButton({ productId, userId, isOutOfStock }: { productId: string; userId?: string; isOutOfStock: boolean }) {
-  const { pending } = useFormStatus()
-  const [state, formAction] = useActionState(addToCartAction, null)
-  const { toast } = useToast()
-  const [isAdding, setIsAdding] = useState(false)
+function AddToCartButton({
+  productId,
+  userId,
+  isOutOfStock,
+}: {
+  productId: string;
+  userId?: string;
+  isOutOfStock: boolean;
+}) {
+  const { pending } = useFormStatus();
+  const [state, formAction] = useActionState(addToCartAction, null);
+  const { toast } = useToast();
+  const [isAdding, setIsAdding] = useState(false);
   const router = useRouter();
   const [showDialog, setShowDialog] = useState(false);
 
   // Handle form state changes
   useEffect(() => {
     if (state?.error) {
-      setIsAdding(false)
+      setIsAdding(false);
       toast({
         title: "Error",
         description: state.error,
         variant: "destructive",
-      })
+      });
     } else if (state?.success) {
-      setIsAdding(false)
+      setIsAdding(false);
       toast({
         title: "Success",
         description: state.message,
-      })
+      });
     }
-  }, [state, toast])
+  }, [state, toast]);
 
   const handleSubmit = () => {
-    setIsAdding(true)
-  }
+    setIsAdding(true);
+  };
 
   if (!userId) {
     return (
       <>
-        <Button className="w-full" disabled={isOutOfStock} onClick={() => setShowDialog(true)}>
-          <ShoppingCart className="h-4 w-4 mr-2" />
-          {isOutOfStock ? "Out of Stock" : "Login to Add to Cart"}
+        <Button
+          className="w-full h-8 text-xs"
+          disabled={isOutOfStock}
+          onClick={() => setShowDialog(true)}
+        >
+          <ShoppingCart className="h-3 w-3 mr-1" />
+          {isOutOfStock ? "Out of Stock" : "Login to Add"}
         </Button>
-        <SignInPrompt open={showDialog} setOpen={setShowDialog} callbackUrl={`/product/${productId}`} />
+        <SignInPrompt
+          open={showDialog}
+          setOpen={setShowDialog}
+          callbackUrl={`/product/${productId}`}
+        />
       </>
-    )
+    );
   }
 
   return (
     <form action={formAction} className="w-full" onSubmit={handleSubmit}>
       <input type="hidden" name="productId" value={productId} />
       <input type="hidden" name="quantity" value="1" />
-      <Button type="submit" className="w-full" disabled={isOutOfStock || pending || isAdding}>
-        <ShoppingCart className="h-4 w-4 mr-2" />
-        {isOutOfStock ? "Out of Stock" : (pending || isAdding) ? "Adding..." : "Add to Cart"}
+      <Button
+        type="submit"
+        className="w-full h-8 text-xs"
+        disabled={isOutOfStock || pending || isAdding}
+      >
+        <ShoppingCart className="h-3 w-3 mr-1" />
+        {isOutOfStock
+          ? "Out of Stock"
+          : pending || isAdding
+          ? "Adding..."
+          : "Add to Cart"}
       </Button>
     </form>
-  )
+  );
 }
 
 export function ProductCard({ product, isFavorite, userId }: ProductCardProps) {
-  const isOutOfStock = product.stock === 0
-  const isLowStock = product.stock < 5 && product.stock > 0
-  const [currentLikes, setCurrentLikes] = useState(product.likes)
+  const isOutOfStock = product.stock === 0;
+  const isLowStock = product.stock < 5 && product.stock > 0;
+  const [currentLikes, setCurrentLikes] = useState(product.likes);
   const router = useRouter();
 
   // Update likes when product changes
   useEffect(() => {
-    setCurrentLikes(product.likes)
-  }, [product.likes])
+    setCurrentLikes(product.likes);
+  }, [product.likes]);
 
   return (
     <Card className="group relative overflow-hidden transition-all hover:shadow-lg">
@@ -218,69 +271,51 @@ export function ProductCard({ product, isFavorite, userId }: ProductCardProps) {
           />
         </Link>
         {product.featured && (
-          <Badge className="absolute top-2 left-2 bg-primary text-primary-foreground">
+          <Badge className="absolute top-2 left-2 bg-primary text-primary-foreground text-[10px] px-2 py-0">
             Featured
           </Badge>
         )}
         {isOutOfStock && (
           <div className="absolute inset-0 bg-background/80 flex items-center justify-center">
-            <Badge variant="secondary" className="text-lg">
+            <Badge variant="secondary" className="text-sm">
               Out of Stock
             </Badge>
           </div>
         )}
       </div>
 
-      <CardContent className="p-4">
-        <div className="flex items-center justify-between mb-2">
-          <h3 className="font-semibold text-lg line-clamp-1 hover:text-primary transition-colors">
+      <CardContent className="p-2 md:p-3">
+        <div className="flex items-start justify-between gap-1 mb-0.5">
+          <h3 className="font-medium text-sm md:text-base line-clamp-1">
             {product.name}
           </h3>
-          <Link href={`/product/${product.id}`}>
-            <Badge className="w-8 h-8 p-0 bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center justify-center rounded-md">
-              <ExternalLink className="h-4 w-4" />
-            </Badge>
-          </Link>
-        </div>
-        {product.category && (
-          <Badge variant="outline" className="mb-2 text-xs">
-            {product.category.name}
-          </Badge>
-        )}
-        <p className="text-muted-foreground text-sm mb-3 line-clamp-2">{product.description}</p>
-
-        <div className="flex items-center justify-between mb-3">
-          <span className="text-2xl font-bold">${product.price}</span>
-          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+          <div className="flex items-center gap-0.5 text-xs text-muted-foreground whitespace-nowrap">
             <Heart className="h-3 w-3" />
-            {currentLikes}
+            <span>{currentLikes}</span>
           </div>
         </div>
 
-        {/* Color Selection - Always show colors for preview */}
-        <div className="mb-4 h-8 flex items-center">
-          {product.colors && product.colors.length > 0 ? (
-            <div className="flex gap-2">
-              {product.colors.map((color, ind) => (
-                <div
-                  key={ind}
-                  className={`w-5 h-5 rounded-full border-2 border-gray-200 shadow-lg transition-all hover:scale-110`}
-                  style={{ backgroundColor: color.hex }}
-                  aria-label={`${color.name} color`}
-                  title={color.name}
-                />
-              ))}
-            </div>
-          ) : (
-            // Show placeholder when no colors
-            <div className="w-6 h-6" />
+        <div className="flex items-center justify-between mb-1.5">
+          <span className="font-semibold text-base md:text-lg">
+            ${product.price}
+          </span>
+          {product.category && (
+            <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+              {product.category.name}
+            </Badge>
           )}
         </div>
-      </CardContent>
 
-      <CardFooter className="p-4 pt-0 flex flex-col gap-2">
-        <AddToCartButton productId={product.id} userId={userId} isOutOfStock={isOutOfStock} />
-      </CardFooter>
+        <p className="text-muted-foreground text-xs mb-2 line-clamp-2">
+          {product.description}
+        </p>
+
+        <AddToCartButton
+          productId={product.id}
+          userId={userId}
+          isOutOfStock={isOutOfStock}
+        />
+      </CardContent>
     </Card>
-  )
+  );
 }
