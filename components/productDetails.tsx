@@ -25,7 +25,15 @@ import { useRouter } from "next/navigation";
 import { FaWhatsapp } from "react-icons/fa";
 import { Dialog, DialogTrigger, DialogContent } from "@/components/ui/dialog";
 
-function SignInPrompt({ open, setOpen, callbackUrl }: { open: boolean; setOpen: (v: boolean) => void; callbackUrl: string }) {
+function SignInPrompt({
+  open,
+  setOpen,
+  callbackUrl,
+}: {
+  open: boolean;
+  setOpen: (v: boolean) => void;
+  callbackUrl: string;
+}) {
   const handleGoogleSignIn = () => {
     setOpen(false);
     import("next-auth/react").then(({ signIn }) => {
@@ -37,14 +45,22 @@ function SignInPrompt({ open, setOpen, callbackUrl }: { open: boolean; setOpen: 
       <DialogContent className="max-w-xs text-center rounded-lg">
         <div className="flex flex-col items-center gap-4">
           <h2 className="text-lg font-semibold">Sign in please</h2>
-          <p className="text-muted-foreground mb-2">You need to sign in to perform this action.</p>
+          <p className="text-muted-foreground mb-2">
+            You need to sign in to perform this action.
+          </p>
           <Button
             onClick={handleGoogleSignIn}
             className="w-full flex items-center justify-center gap-2 font-medium text-base border border-gray-300 bg-white shadow-sm hover:bg-gray-50 transition-colors py-3"
             size="lg"
             variant="outline"
           >
-            <Image src="/google-icon.svg" alt="Google" width={22} height={22} className="mr-1" />
+            <Image
+              src="/google-icon.svg"
+              alt="Google"
+              width={22}
+              height={22}
+              className="mr-1"
+            />
             <span className="text-black">Sign in with Google</span>
           </Button>
         </div>
@@ -107,16 +123,20 @@ function FavoriteButton({
   if (!userId) {
     return (
       <>
-        <Button 
-          variant="ghost" 
-          size="icon" 
+        <Button
+          variant="ghost"
+          size="icon"
           className="h-8 w-8"
           onClick={() => setShowDialog(true)}
         >
           <Heart className="h-4 w-4" />
           <span className="sr-only">Login to add favorite</span>
         </Button>
-        <SignInPrompt open={showDialog} setOpen={setShowDialog} callbackUrl={`/product/${productId}`} />
+        <SignInPrompt
+          open={showDialog}
+          setOpen={setShowDialog}
+          callbackUrl={`/product/${productId}`}
+        />
       </>
     );
   }
@@ -186,16 +206,20 @@ function AddToCartButton({
   if (!userId) {
     return (
       <>
-        <Button 
-          size="lg" 
-          className="w-full" 
+        <Button
+          size="lg"
+          className="w-full"
           disabled={isOutOfStock}
           onClick={() => setShowDialog(true)}
         >
           <ShoppingCart className="h-4 w-4 mr-2" />
           {isOutOfStock ? "Out of Stock" : "Login to use Cart"}
         </Button>
-        <SignInPrompt open={showDialog} setOpen={setShowDialog} callbackUrl={`/product/${productId}`} />
+        <SignInPrompt
+          open={showDialog}
+          setOpen={setShowDialog}
+          callbackUrl={`/product/${productId}`}
+        />
       </>
     );
   }
@@ -383,273 +407,234 @@ function ProductDetails({
       typeof window !== "undefined" ? window.location.href : ""
     }`
   );
-  const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "201559005729";
+  const whatsappNumber =
+    process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "201559005729";
   const waLink = `https://wa.me/${whatsappNumber}?text=${waMessage}`;
 
   return (
-    <div className="container py-8 px-4 sm:px-6 lg:px-8">
-      {/* Breadcrumb */}
-      <div className="flex items-center gap-2 mb-6">
-        <Button variant="ghost" size="sm" asChild>
-          <Link href="/">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Products
-          </Link>
-        </Button>
-        {category && (
-          <>
-            <span className="text-muted-foreground">/</span>
-            <Link
-              href={`/category/${category.id}`}
-              className="text-sm text-muted-foreground hover:text-primary"
-            >
-              {category?.name}
-            </Link>
-          </>
-        )}
-        <span className="text-muted-foreground">/</span>
-        <span className="text-sm">{product.name}</span>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <div className="w-full max-w-6xl">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
         {/* Image Gallery */}
-        <div className="space-y-4">
-          <div className="aspect-square relative overflow-hidden rounded-lg border">
-            {imageLoading && (
-              <div className="absolute inset-0 bg-muted animate-pulse flex items-center justify-center">
-                <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-              </div>
-            )}
+        <div className="relative">
+          {/* Back Button */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="absolute top-2 left-2 z-10 h-8 w-8 md:h-10 md:w-10 bg-background/80 hover:bg-background"
+            onClick={() => router.back()}
+          >
+            <ArrowLeft className="h-4 w-4 md:h-5 md:w-5" />
+          </Button>
+
+          {/* Main Image */}
+          <div className="relative aspect-square overflow-hidden rounded-lg mb-2 md:mb-4">
             <Image
-              src={currentImage}
+              src={product.images[currentImageIndex] || "/placeholder.jpg"}
               alt={product.name}
               fill
               className={`object-cover transition-opacity duration-300 ${
                 imageLoading ? "opacity-0" : "opacity-100"
               }`}
-              priority
               onLoad={() => setImageLoading(false)}
               onError={handleImageError}
+              priority
             />
 
-            {/* Navigation Arrows */}
-            {allImages.length > 1 && (
-              <>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-background/80 hover:bg-background/90 backdrop-blur-sm"
-                  onClick={handlePreviousImage}
-                >
-                  <ChevronLeft className="h-6 w-6" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-background/80 hover:bg-background/90 backdrop-blur-sm"
-                  onClick={handleNextImage}
-                >
-                  <ChevronRight className="h-6 w-6" />
-                </Button>
-              </>
-            )}
-
-            {/* Image Counter */}
-            {allImages.length > 1 && (
-              <div className="absolute bottom-2 right-2 bg-background/80 backdrop-blur-sm px-2 py-1 rounded text-xs">
-                {currentImageIndex + 1} / {allImages.length}
-              </div>
-            )}
-
-            {/* Color Badge */}
-            {selectedColorIndex >= 0 &&
-              product.colors[selectedColorIndex]?.name && (
-                <div className="absolute top-2 left-2 bg-background/80 backdrop-blur-sm px-2 py-1 rounded text-xs font-medium">
-                  {product.colors[selectedColorIndex].name}
-                </div>
-              )}
+            {/* Image Navigation */}
+            <div className="absolute inset-0 flex items-center justify-between p-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 bg-background/80 hover:bg-background"
+                onClick={handlePreviousImage}
+                disabled={currentImageIndex === 0}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 bg-background/80 hover:bg-background"
+                onClick={handleNextImage}
+                disabled={currentImageIndex === product.images.length - 1}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
 
-          {/* Product Image Thumbnails */}
-          {allImages.length > 1 && (
-            <div className="grid grid-cols-4 gap-2">
-              {allImages.map((image, index) => (
-                <button
-                  key={index}
-                  className={`aspect-square relative overflow-hidden rounded border-2 ${
-                    currentImageIndex === index
-                      ? "border-primary"
-                      : "border-muted"
-                  }`}
-                  onClick={() => handleImageSelect(index)}
-                  aria-label={`Select image ${index + 1}`}
-                >
-                  <Image
-                    src={image}
-                    alt={`${product.name} - Image ${index + 1}`}
-                    fill
-                    className="object-cover"
-                  />
-                </button>
-              ))}
-            </div>
-          )}
+          {/* Thumbnail Gallery */}
+          <div className="grid grid-cols-6 gap-2">
+            {product.images.map((image, index) => (
+              <button
+                key={index}
+                className={`relative aspect-square overflow-hidden rounded-md ${
+                  currentImageIndex === index
+                    ? "ring-2 ring-primary"
+                    : "ring-1 ring-border hover:ring-2 hover:ring-primary/50"
+                }`}
+                onClick={() => handleImageSelect(index)}
+              >
+                <Image
+                  src={image}
+                  alt={`${product.name} - Image ${index + 1}`}
+                  fill
+                  className="object-cover"
+                />
+              </button>
+            ))}
+          </div>
         </div>
 
-        {/* Product Details */}
-        <div className="space-y-6">
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <Badge variant="secondary">{category?.name}</Badge>
-              {product.stock < 5 && product.stock > 0 && (
-                <Badge variant="destructive">Only {product.stock} left</Badge>
-              )}
-              {product.stock === 0 && (
-                <Badge variant="secondary">Out of stock</Badge>
-              )}
-            </div>
-
-            <div className="flex items-center gap-3 mb-4">
-              <h1 className="text-3xl font-bold">{product.name}</h1>
-              <FavoriteButton
-                productId={product.id}
-                userId={userId}
-                isFavorite={isFavorite}
-                productLikes={currentLikes}
-                onLikesUpdate={setCurrentLikes}
-              />
-            </div>
-
-            <div className="flex items-center gap-4 mb-4">
-              <span className="text-3xl font-bold">${product.price}</span>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Heart className="h-4 w-4" />
-                {currentLikes} likes
-                <span>•</span>
-                <ShoppingCart className="h-4 w-4" />
-                {product.ordered} sold
-              </div>
-            </div>
-
-            <p className="text-muted-foreground leading-relaxed">
-              {product.description}
-            </p>
-          </div>
-
-          <Separator />
-
-          {/* Color Selection */}
-          {product.colors.length > 0 && (
+        {/* Product Info */}
+        <div className="flex flex-col">
+          <div className="flex-1 space-y-4">
+            {/* Title and Category */}
             <div>
-              <h3 className="font-semibold mb-3">Colors</h3>
-              <div className="flex gap-2">
-                {product.colors.map((color, index) => (
-                  <button
-                    key={index}
-                    className={`relative w-8 h-8 border-2 transition-all duration-300 ease-in-out transform hover:scale-110 active:scale-95 ${
-                      selectedColorIndex === index
-                        ? "border-primary rounded-lg shadow-lg shadow-primary/30 ring-2 ring-primary/20"
-                        : "border-muted rounded-full hover:border-primary/50 hover:shadow-md"
-                    }`}
-                    style={{ backgroundColor: color.hex }}
-                    onClick={() => handleColorSelect(index)}
-                    aria-label={`Select ${color.name} color`}
-                    title={color.name}
-                  />
-                ))}
-              </div>
-              <p className="text-sm text-muted-foreground mt-2">
-                Click on a color to see it in the carousel
-              </p>
-            </div>
-          )}
-
-          {/* Quantity and Add to Cart */}
-          <div>
-            <h3 className="font-semibold mb-3">Quantity</h3>
-            <div className="flex items-center gap-3 mb-4">
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                disabled={quantity <= 1}
-              >
-                -
-              </Button>
-              <span className="w-12 text-center">{quantity}</span>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() =>
-                  setQuantity(Math.min(product.stock, quantity + 1))
-                }
-                disabled={quantity >= product.stock}
-              >
-                +
-              </Button>
-              <div className="flex-1">
-                <AddToCartButton
+              <div className="flex items-start justify-between mb-1">
+                <h1 className="text-2xl md:text-3xl font-bold">
+                  {product.name}
+                </h1>
+                <FavoriteButton
                   productId={product.id}
                   userId={userId}
-                  quantity={quantity}
-                  isOutOfStock={product.stock === 0}
+                  isFavorite={isFavorite}
+                  productLikes={product.likes}
+                  onLikesUpdate={setCurrentLikes}
                 />
+              </div>
+              {category && (
+                <Link
+                  href={`/category/${category.id}`}
+                  className="inline-block"
+                >
+                  <Badge variant="outline" className="text-xs">
+                    {category.name}
+                  </Badge>
+                </Link>
+              )}
+            </div>
+
+            {/* Price and Stock */}
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <span className="text-2xl font-bold">${product.price}</span>
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary" className="text-xs">
+                    {product.stock > 0
+                      ? `${product.stock} in stock`
+                      : "Out of stock"}
+                  </Badge>
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <Heart className="h-3 w-3" />
+                    <span>{currentLikes} likes</span>
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* Action Buttons: Buy Now & WhatsApp */}
-            <div className="flex flex-col sm:flex-row gap-3 w-full mt-2">
-              <Button
-                size="lg"
-                className="flex-1 bg-gradient-to-r from-yellow-500 to-yellow-600 text-white font-semibold shadow hover:from-yellow-600 hover:to-yellow-700 transition-colors duration-200"
-                onClick={handleBuyNow}
-                disabled={product.stock === 0}
-                type="button"
-              >
-                <ShoppingBag className="h-5 w-5 mr-2" />
-                Buy Now
-              </Button>
-              <a
-                href={waLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex-1"
-              >
+            {/* Description */}
+            <div>
+              <h2 className="font-semibold mb-2 text-sm md:text-base">
+                Description
+              </h2>
+              <p className="text-sm md:text-base text-muted-foreground">
+                {product.description}
+              </p>
+            </div>
+
+            {/* Colors */}
+            {product.colors && product.colors.length > 0 && (
+              <div>
+                <h2 className="font-semibold mb-2 text-sm md:text-base">
+                  Available Colors
+                </h2>
+                <div className="flex flex-wrap gap-2">
+                  {product.colors.map((color, index) => (
+                    <button
+                      key={index}
+                      className={`w-8 h-8 rounded-full border-2 transition-all hover:scale-110 ${
+                        selectedColorIndex === index
+                          ? "ring-2 ring-primary ring-offset-2"
+                          : "ring-1 ring-border"
+                      }`}
+                      style={{ backgroundColor: color.hex }}
+                      onClick={() => handleColorSelect(index)}
+                      title={color.name}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Quantity */}
+            <div>
+              <h2 className="font-semibold mb-2 text-sm md:text-base">
+                Quantity
+              </h2>
+              <div className="flex items-center gap-2">
                 <Button
-                  size="lg"
-                  className="w-full bg-[#25D366] hover:bg-[#128C7E] text-white font-semibold shadow transition-colors duration-200 flex items-center justify-center"
-                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  disabled={quantity <= 1}
                 >
-                  <FaWhatsapp className="h-5 w-5 mr-2" />
-                  WhatsApp
+                  -
                 </Button>
-              </a>
+                <span className="w-12 text-center">{quantity}</span>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() =>
+                    setQuantity(Math.min(product.stock, quantity + 1))
+                  }
+                  disabled={quantity >= product.stock}
+                >
+                  +
+                </Button>
+              </div>
             </div>
           </div>
 
-          <Separator />
-
-          {/* Product Info */}
-          <Card>
-            <CardContent className="p-4">
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Stock:</span>
-                  <span>{product.stock} available</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Category:</span>
-                  <span>{category?.name}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Added:</span>
-                  <span>
-                    {new Date(product.created_at).toLocaleDateString()}
-                  </span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          {/* Action Buttons */}
+          <div className="flex flex-col gap-3 mt-6">
+            <AddToCartButton
+              productId={product.id}
+              userId={userId}
+              quantity={quantity}
+              isOutOfStock={product.stock === 0}
+            />
+            <div className="grid grid-cols-2 gap-3">
+              <Button
+                variant="outline"
+                size="lg"
+                className="w-full"
+                onClick={handleBuyNow}
+                disabled={product.stock === 0}
+              >
+                <ShoppingBag className="h-4 w-4 mr-2" />
+                Buy Now
+              </Button>
+              <Link
+                href={`https://wa.me/+966555555555?text=Hi, I'm interested in ${encodeURIComponent(
+                  product.name
+                )}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="w-full bg-[#25D366] text-white hover:bg-[#22c55e]"
+                >
+                  <FaWhatsapp className="h-4 w-4 mr-2" />
+                  Contact
+                </Button>
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
     </div>
