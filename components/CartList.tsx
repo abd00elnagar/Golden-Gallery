@@ -284,9 +284,7 @@ export default function CartList({ cartItems: initialCartItems }: { cartItems: C
   // Only valid items for summary/checkout
   const validCartItems = cartItems.filter(item => !item.notFound)
   const subtotal = validCartItems.reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 0), 0)
-  const shipping = subtotal > 100 ? 0 : 15
-  const tax = subtotal * 0.08
-  const total = subtotal + shipping + tax
+  const total = subtotal
 
   if (cartItems.length === 0) {
     return (
@@ -347,20 +345,11 @@ export default function CartList({ cartItems: initialCartItems }: { cartItems: C
               <span>Subtotal ({validCartItems.length} items)</span>
               <span>${subtotal.toFixed(2)}</span>
             </div>
-            <div className="flex justify-between">
-              <span>Shipping</span>
-              <span>{shipping === 0 ? "Free" : `$${shipping.toFixed(2)}`}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Tax</span>
-              <span>${tax.toFixed(2)}</span>
-            </div>
             <Separator />
             <div className="flex justify-between font-bold text-lg">
               <span>Total</span>
               <span>${total.toFixed(2)}</span>
             </div>
-            {shipping > 0 && <p className="text-sm text-muted-foreground">Free shipping on orders over $100</p>}
             <Button className="w-full" size="lg" asChild disabled={validCartItems.length === 0}>
               <Link href="/checkout">Proceed to Checkout</Link>
             </Button>

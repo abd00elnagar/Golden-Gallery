@@ -1153,9 +1153,7 @@ export async function createOrderAction(prevState: any, formData: FormData) {
       (sum, item) => sum + item.price * item.quantity,
       0
     );
-    const shipping = subtotal > 100 ? 0 : 15;
-    const tax = subtotal * 0.08;
-    const total = subtotal + shipping + tax;
+    const total = subtotal;
 
     // Create order object
     const orderData = {
@@ -1228,8 +1226,8 @@ export async function createOrderAction(prevState: any, formData: FormData) {
           price: item.price,
         })),
         subtotal,
-        shipping,
-        tax,
+        shipping: 0,
+        tax: 0,
         total,
         shippingAddress: orderData.shipping_address,
         shippingPhone: orderData.shipping_phone,

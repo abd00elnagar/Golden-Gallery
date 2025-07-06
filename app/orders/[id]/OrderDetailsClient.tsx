@@ -35,8 +35,6 @@ export default function OrderDetailsClient({ order }: { order: any }) {
     (sum: number, item: any) => sum + item.price * item.quantity,
     0
   );
-  const shipping = subtotal > 100 ? 0 : 15;
-  const tax = subtotal * 0.08;
   const total = order.total_amount;
   const estimatedDelivery = new Date(
     Date.now() + 3 * 24 * 60 * 60 * 1000
@@ -172,16 +170,6 @@ export default function OrderDetailsClient({ order }: { order: any }) {
               <div className="flex justify-between">
                 <span>Subtotal</span>
                 <span>${subtotal.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Shipping</span>
-                <span>
-                  {shipping === 0 ? "Free" : `$${shipping.toFixed(2)}`}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span>Tax</span>
-                <span>${tax.toFixed(2)}</span>
               </div>
               <Separator />
               <div className="flex justify-between font-bold text-lg">

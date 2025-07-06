@@ -76,14 +76,14 @@ export default async function HomePage() {
         <h2 className="text-3xl font-bold text-center mb-8">
           Most Popular Products
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 max-w-7xl mx-auto h-[400px] md:h-[500px]">
           {/* Large featured product */}
           <div className="md:col-span-8 relative group h-full">
             <Link
               href={`/product/${topLikedProducts[0]?.id}`}
               className="block h-full"
             >
-              <div className="relative h-full aspect-[16/10] md:aspect-auto overflow-hidden rounded-xl">
+              <div className="relative h-full overflow-hidden rounded-xl">
                 <Image
                   src={topLikedProducts[0]?.images[0] || "/placeholder.jpg"}
                   alt={topLikedProducts[0]?.name || "Featured product"}
@@ -113,14 +113,14 @@ export default async function HomePage() {
             </Link>
           </div>
           {/* Two smaller products */}
-          <div className="md:col-span-4 grid grid-rows-2 gap-4">
+          <div className="md:col-span-4 grid grid-rows-2 gap-4 h-full">
             {topLikedProducts.slice(1, 3).map((product, index) => (
               <Link
                 key={product.id}
                 href={`/product/${product.id}`}
-                className="block group"
+                className="block group h-full"
               >
-                <div className="relative aspect-[4/3] overflow-hidden rounded-xl">
+                <div className="relative h-full overflow-hidden rounded-xl">
                   <Image
                     src={product.images[0] || "/placeholder.jpg"}
                     alt={product.name}
