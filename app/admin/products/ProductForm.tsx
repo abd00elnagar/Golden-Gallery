@@ -271,346 +271,349 @@ export function ProductForm({
   } : {};
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
-      {/* Error display */}
-      {(formError || serverError || state.error) && (
-        <Alert variant="destructive">
-          <AlertDescription>
-            <pre className="whitespace-pre-wrap font-mono text-xs">
-              {formError || serverError || state.error}
-            </pre>
-          </AlertDescription>
-        </Alert>
-      )}
+    <div className="w-full">
+      <form onSubmit={handleSubmit} className="space-y-8 w-full max-w-4xl">
+        {/* Error display */}
+        {(formError || serverError || state.error) && (
+          <Alert variant="destructive">
+            <AlertDescription>
+              <pre className="whitespace-pre-wrap font-mono text-xs text-left">
+                {formError || serverError || state.error}
+              </pre>
+            </AlertDescription>
+          </Alert>
+        )}
 
-      {/* Info message for editing mode */}
-      {isEditing && (
-        <Alert>
-          <AlertDescription>
-            <strong>Edit Mode:</strong> You can only modify product information,
-            color names, and hex values. Images cannot be changed in edit mode.
-          </AlertDescription>
-        </Alert>
-      )}
+        {/* Info message for editing mode */}
+        {isEditing && (
+          <Alert>
+            <AlertDescription className="text-left">
+              <strong>Edit Mode:</strong> You can only modify product information,
+              color names, and hex values. Images cannot be changed in edit mode.
+            </AlertDescription>
+          </Alert>
+        )}
 
-      <Card>
-        <CardHeader>
-          <CardTitle>
-            {isEditing ? "Edit Product" : "Add New Product"}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Basic Information */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <Label htmlFor="name">Product Name</Label>
-              <Input
-                id="name"
-                name="name"
-                defaultValue={product?.name || testDefaults.name}
-                required
-                disabled={isPending}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="category">Category</Label>
-              <Select
-                name="category_id"
-                defaultValue={product?.category_id || testDefaults.category_id}
-                required
-                disabled={isPending}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((category) => (
-                    <SelectItem key={category.id} value={category.id}>
-                      {category.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="price">Price</Label>
-              <Input
-                id="price"
-                name="price"
-                type="number"
-                step="0.01"
-                min="0"
-                defaultValue={product?.price || testDefaults.price}
-                required
-                disabled={isPending}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="stock">Stock</Label>
-              <Input
-                id="stock"
-                name="stock"
-                type="number"
-                min="0"
-                defaultValue={product?.stock ?? testDefaults.stock}
-                required
-                disabled={isPending}
-              />
-            </div>
-          </div>
-
-          {/* Description */}
-          <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              name="description"
-              defaultValue={product?.description || testDefaults.description}
-              required
-              disabled={isPending}
-            />
-          </div>
-
-          {/* Product Images */}
-          <div className="space-y-2">
-            <Label>Product Images {isEditing && "(Read-only)"}</Label>
-            <div className="flex gap-2 flex-wrap">
-              {productImages.map((img, idx) => (
-                <div
-                  key={idx}
-                  className="relative w-24 h-24 rounded overflow-hidden border bg-muted"
-                >
-                  <Image
-                    src={img instanceof File ? URL.createObjectURL(img) : img}
-                    alt={`Product Preview ${idx + 1}`}
-                    fill
-                    className="object-cover"
-                    sizes="96px"
-                    priority={idx === 0}
-                    onError={(e) => {
-                      console.error("Image load error:", e);
-                      toast({
-                        title: "Image Error",
-                        description:
-                          "Failed to load image. Please try another.",
-                        variant: "destructive",
-                      });
-                    }}
-                  />
-                  {!isEditing && (
-                    <button
-                      type="button"
-                      className={`absolute top-0 right-0 ${
-                        isPending
-                          ? "bg-gray-400"
-                          : "bg-red-500 hover:bg-red-700"
-                      } text-white rounded-bl p-1 z-10 transition-colors`}
-                      onClick={() => removeProductImage(idx)}
-                      aria-label={`Remove image ${idx + 1}`}
-                      disabled={isPending}
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  )}
-                </div>
-              ))}
-              {!isEditing && productImages.length < 4 && (
-                <button
-                  type="button"
-                  className="w-24 h-24 flex flex-col items-center justify-center border-2 border-dashed rounded hover:bg-accent/30 transition"
-                  onClick={() => productImageInputRef.current?.click()}
-                  aria-label="Add product image"
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-left">
+              {isEditing ? "Edit Product" : "Add New Product"}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Basic Information */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label htmlFor="name" className="text-left">Product Name</Label>
+                <Input
+                  id="name"
+                  name="name"
+                  defaultValue={product?.name || testDefaults.name}
+                  required
                   disabled={isPending}
-                >
-                  <ImageIcon className="w-8 h-8 text-muted-foreground" />
-                  <span className="text-xs mt-1">Add Image</span>
-                </button>
-              )}
-              {!isEditing && (
-                <input
-                  ref={productImageInputRef}
-                  type="file"
-                  name="images"
-                  accept="image/*"
-                  multiple
-                  hidden
-                  onChange={handleProductImageChange}
-                  aria-label="Product images"
                 />
-              )}
-            </div>
-            <p className="text-sm text-muted-foreground">
-              {isEditing
-                ? "Images cannot be modified in edit mode."
-                : "Upload up to 4 images. At least 1 required. Maximum size: 5MB per image."}
-            </p>
-          </div>
-
-          {/* Colors */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <Label>Colors {isEditing && "(Names and colors only)"}</Label>
-              {!isEditing && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={addColor}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="category" className="text-left">Category</Label>
+                <Select
+                  name="category_id"
+                  defaultValue={product?.category_id || testDefaults.category_id}
+                  required
                   disabled={isPending}
                 >
-                  <Plus className="w-4 h-4 mr-1" /> Add Color
-                </Button>
-              )}
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((category) => (
+                      <SelectItem key={category.id} value={category.id}>
+                        {category.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="price" className="text-left">Price</Label>
+                <Input
+                  id="price"
+                  name="price"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  defaultValue={product?.price || testDefaults.price}
+                  required
+                  disabled={isPending}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="stock" className="text-left">Stock</Label>
+                <Input
+                  id="stock"
+                  name="stock"
+                  type="number"
+                  min="0"
+                  defaultValue={product?.stock ?? testDefaults.stock}
+                  required
+                  disabled={isPending}
+                />
+              </div>
             </div>
-            <div className="space-y-4">
-              {colors.map((color, index) => (
-                <div key={index} className="flex items-end gap-4">
-                  <div className="flex-1 space-y-2">
-                    <Label>Color Name</Label>
-                    <Input
-                      value={color.name}
-                      onChange={(e) =>
-                        setColors(
-                          colors.map((c, i) =>
-                            i === index ? { ...c, name: e.target.value } : c
-                          )
-                        )
-                      }
-                      disabled={isPending}
-                      required
-                    />
-                  </div>
-                  <div className="flex-1 space-y-2">
-                    <Label>Color Hex</Label>
-                    <Input
-                      type="color"
-                      value={color.hex}
-                      onChange={(e) =>
-                        setColors(
-                          colors.map((c, i) =>
-                            i === index ? { ...c, hex: e.target.value } : c
-                          )
-                        )
-                      }
-                      disabled={isPending}
-                      required
-                    />
-                  </div>
 
-                  {/* Color image display/upload */}
-                  <div className="flex flex-col items-center gap-1">
-                    <Label>Image {isEditing && "(Read-only)"}</Label>
-                    <div className="relative w-16 h-16 rounded overflow-hidden border bg-muted">
-                      {color.image ? (
-                        <>
-                          <Image
-                            src={
-                              color.image instanceof File
-                                ? URL.createObjectURL(color.image)
-                                : color.image
-                            }
-                            alt={`Color Preview - ${color.name}`}
-                            fill
-                            className="object-cover"
-                            sizes="64px"
-                            onError={(e) => {
-                              console.error("Color image load error:", e);
-                              toast({
-                                title: "Image Error",
-                                description:
-                                  "Failed to load color image. Please try another.",
-                                variant: "destructive",
-                              });
-                            }}
-                          />
-                          {!isEditing && (
+            {/* Description */}
+            <div className="space-y-2">
+              <Label htmlFor="description" className="text-left">Description</Label>
+              <Textarea
+                id="description"
+                name="description"
+                defaultValue={product?.description || testDefaults.description}
+                required
+                disabled={isPending}
+              />
+            </div>
+
+            {/* Product Images */}
+            <div className="space-y-2">
+              <Label className="text-left">Product Images {isEditing && "(Read-only)"}</Label>
+              <div className="flex gap-2 flex-wrap">
+                {productImages.map((img, idx) => (
+                  <div
+                    key={idx}
+                    className="relative w-24 h-24 rounded overflow-hidden border bg-muted"
+                  >
+                    <Image
+                      src={img instanceof File ? URL.createObjectURL(img) : img}
+                      alt={`Product Preview ${idx + 1}`}
+                      fill
+                      className="object-cover"
+                      sizes="96px"
+                      priority={idx === 0}
+                      onError={(e) => {
+                        console.error("Image load error:", e);
+                        toast({
+                          title: "Image Error",
+                          description:
+                            "Failed to load image. Please try another.",
+                          variant: "destructive",
+                        });
+                      }}
+                    />
+                    {!isEditing && (
+                      <button
+                        type="button"
+                        className={`absolute top-0 right-0 ${
+                          isPending
+                            ? "bg-gray-400"
+                            : "bg-red-500 hover:bg-red-700"
+                        } text-white rounded-bl p-1 z-10 transition-colors`}
+                        onClick={() => removeProductImage(idx)}
+                        aria-label={`Remove image ${idx + 1}`}
+                        disabled={isPending}
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                ))}
+                {!isEditing && productImages.length < 4 && (
+                  <button
+                    type="button"
+                    className="w-24 h-24 flex flex-col items-center justify-center border-2 border-dashed rounded hover:bg-accent/30 transition"
+                    onClick={() => productImageInputRef.current?.click()}
+                    aria-label="Add product image"
+                    disabled={isPending}
+                  >
+                    <ImageIcon className="w-8 h-8 text-muted-foreground" />
+                    <span className="text-xs mt-1">Add Image</span>
+                  </button>
+                )}
+                {!isEditing && (
+                  <input
+                    ref={productImageInputRef}
+                    type="file"
+                    name="images"
+                    accept="image/*"
+                    multiple
+                    hidden
+                    onChange={handleProductImageChange}
+                    aria-label="Product images"
+                  />
+                )}
+              </div>
+              <p className="text-sm text-muted-foreground text-left">
+                {isEditing
+                  ? "Images cannot be modified in edit mode."
+                  : "Upload up to 4 images. At least 1 required. Maximum size: 5MB per image."}
+              </p>
+            </div>
+
+            {/* Colors */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Label className="text-left">Colors {isEditing && "(Names and colors only)"}</Label>
+                {!isEditing && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={addColor}
+                    disabled={isPending}
+                  >
+                    <Plus className="w-4 h-4 mr-1" /> Add Color
+                  </Button>
+                )}
+              </div>
+              <div className="space-y-4">
+                {colors.map((color, index) => (
+                  <div key={index} className="flex flex-col md:flex-row items-start gap-4">
+                    <div className="flex-1 w-full space-y-2">
+                      <Label className="text-left">Color Name</Label>
+                      <Input
+                        value={color.name}
+                        onChange={(e) =>
+                          setColors(
+                            colors.map((c, i) =>
+                              i === index ? { ...c, name: e.target.value } : c
+                            )
+                          )
+                        }
+                        disabled={isPending}
+                        required
+                      />
+                    </div>
+                    <div className="flex-1 w-full space-y-2">
+                      <Label className="text-left">Color Hex</Label>
+                      <Input
+                        type="color"
+                        value={color.hex}
+                        onChange={(e) =>
+                          setColors(
+                            colors.map((c, i) =>
+                              i === index ? { ...c, hex: e.target.value } : c
+                            )
+                          )
+                        }
+                        disabled={isPending}
+                        required
+                      />
+                    </div>
+
+                    {/* Color image display/upload */}
+                    <div className="flex flex-col items-start gap-1">
+                      <Label className="text-left">Image {isEditing && "(Read-only)"}</Label>
+                      <div className="relative w-16 h-16 rounded overflow-hidden border bg-muted">
+                        {color.image ? (
+                          <>
+                            <Image
+                              src={
+                                color.image instanceof File
+                                  ? URL.createObjectURL(color.image)
+                                  : color.image
+                              }
+                              alt={`Color Preview - ${color.name}`}
+                              fill
+                              className="object-cover"
+                              sizes="64px"
+                              onError={(e) => {
+                                console.error("Color image load error:", e);
+                                toast({
+                                  title: "Image Error",
+                                  description:
+                                    "Failed to load color image. Please try another.",
+                                  variant: "destructive",
+                                });
+                              }}
+                            />
+                            {!isEditing && (
+                              <button
+                                type="button"
+                                className={`absolute top-0 right-0 ${
+                                  isPending
+                                    ? "bg-gray-400"
+                                    : "bg-red-500 hover:bg-red-700"
+                                } text-white rounded-bl p-1 z-10 transition-colors`}
+                                onClick={() => removeColorImage(index)}
+                                aria-label={`Remove ${color.name} color image`}
+                                disabled={isPending}
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                            )}
+                          </>
+                        ) : (
+                          !isEditing && (
                             <button
                               type="button"
-                              className={`absolute top-0 right-0 ${
-                                isPending
-                                  ? "bg-gray-400"
-                                  : "bg-red-500 hover:bg-red-700"
-                              } text-white rounded-bl p-1 z-10 transition-colors`}
-                              onClick={() => removeColorImage(index)}
-                              aria-label={`Remove ${color.name} color image`}
+                              className="w-16 h-16 flex flex-col items-center justify-center border-2 border-dashed rounded hover:bg-accent/30 transition"
+                              onClick={() =>
+                                colorImageInputRefs.current[index]?.click()
+                              }
+                              aria-label={`Add image for ${color.name} color`}
                               disabled={isPending}
                             >
-                              <X className="w-4 h-4" />
+                              <ImageIcon className="w-6 h-6 text-muted-foreground" />
+                              <span className="text-xs mt-1">Add</span>
                             </button>
-                          )}
-                        </>
-                      ) : (
-                        !isEditing && (
-                          <button
-                            type="button"
-                            className="w-16 h-16 flex flex-col items-center justify-center border-2 border-dashed rounded hover:bg-accent/30 transition"
-                            onClick={() =>
-                              colorImageInputRefs.current[index]?.click()
-                            }
-                            aria-label={`Add image for ${color.name} color`}
-                            disabled={isPending}
-                          >
-                            <ImageIcon className="w-6 h-6 text-muted-foreground" />
-                            <span className="text-xs mt-1">Add</span>
-                          </button>
-                        )
-                      )}
-                      {!isEditing && (
-                        <input
-                          ref={(el) => {
-                            colorImageInputRefs.current[index] = el;
-                          }}
-                          type="file"
-                          accept="image/*"
-                          hidden
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) handleColorImageChange(index, file);
-                          }}
-                          aria-label={`Color image for ${color.name}`}
-                        />
-                      )}
+                          )
+                        )}
+                        {!isEditing && (
+                          <input
+                            ref={(el) => {
+                              colorImageInputRefs.current[index] = el;
+                            }}
+                            type="file"
+                            accept="image/*"
+                            hidden
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) handleColorImageChange(index, file);
+                            }}
+                            aria-label={`Color image for ${color.name}`}
+                          />
+                        )}
+                      </div>
                     </div>
+
+                    {!isEditing && (
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        onClick={() => removeColor(index)}
+                        disabled={isPending}
+                        className="w-full md:w-auto"
+                      >
+                        Remove
+                      </Button>
+                    )}
                   </div>
-
-                  {!isEditing && (
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      onClick={() => removeColor(index)}
-                      disabled={isPending}
-                    >
-                      Remove
-                    </Button>
-                  )}
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
 
-          {/* Featured Switch */}
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="featured"
-              name="featured"
-              checked={featured}
-              onCheckedChange={setFeatured}
-              disabled={isPending}
-            />
-            <Label htmlFor="featured">Featured Product</Label>
-          </div>
+            {/* Featured Switch */}
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="featured"
+                name="featured"
+                checked={featured}
+                onCheckedChange={setFeatured}
+                disabled={isPending}
+              />
+              <Label htmlFor="featured" className="text-left">Featured Product</Label>
+            </div>
 
-          {/* Submit Button */}
-          <Button type="submit" className="w-full" disabled={isPending}>
-            {isPending
-              ? isEditing
-                ? "Updating..."
-                : "Creating..."
-              : isEditing
-              ? "Update Product"
-              : "Create Product"}
-          </Button>
-        </CardContent>
-      </Card>
-    </form>
+            {/* Submit Button */}
+            <Button type="submit" className="w-full" disabled={isPending}>
+              {isPending
+                ? isEditing
+                  ? "Updating..."
+                  : "Creating..."
+                : isEditing
+                ? "Update Product"
+                : "Create Product"}
+            </Button>
+          </CardContent>
+        </Card>
+      </form>
+    </div>
   );
 }
