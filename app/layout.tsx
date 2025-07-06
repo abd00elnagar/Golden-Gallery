@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { NavbarWrapper } from "@/components/navbar-wrapper";
 import { Footer } from "@/components/footer";
 import { MobileNav } from "@/components/mobile-nav";
+import { MobileSocial } from "@/components/mobile-social";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/next";
 import { getServerSession } from "next-auth";
@@ -90,11 +91,12 @@ export default async function RootLayout({
           <div className="relative flex min-h-screen flex-col max-w-[100vw]">
             <NavbarWrapper />
             <div className="flex-1">
-              <main className="pb-16 md:pb-0 w-full overflow-x-hidden">
+              <main className="pb-28 md:pb-0 w-full overflow-x-hidden">
                 {children}
               </main>
             </div>
             <Footer className="hidden md:block" />
+            <MobileSocial />
             <MobileNav />
           </div>
           <Toaster />

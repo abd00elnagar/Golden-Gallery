@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { Facebook, Instagram } from "lucide-react";
 
 interface FooterProps {
   className?: string;
@@ -21,6 +22,24 @@ export function Footer({ className }: FooterProps) {
               Discover quality home supplies and essentials for every room in
               your house.
             </p>
+            <div className="flex items-center gap-4 mt-4">
+              <Link
+                href="https://www.facebook.com/share/1Cju2cXhqL/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-muted-foreground hover:text-primary transition-colors"
+              >
+                <Facebook className="h-5 w-5" />
+              </Link>
+              <Link
+                href="https://www.instagram.com/al_dahabi_store?igsh=MmM0dm0yY3pweHgw"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-muted-foreground hover:text-primary transition-colors"
+              >
+                <Instagram className="h-5 w-5" />
+              </Link>
+            </div>
           </div>
 
           <div className="flex flex-col items-start">
@@ -146,6 +165,24 @@ export function Footer({ className }: FooterProps) {
 
         <div className="border-t mt-6 sm:mt-8 pt-6 sm:pt-8 text-center text-xs sm:text-sm text-muted-foreground w-full">
           <p>&copy; 2025 Aldahbi Store. All rights reserved.</p>
+          <div className="flex items-center justify-center gap-4 mt-4 sm:hidden">
+            <Link
+              href="https://www.facebook.com/share/1Cju2cXhqL/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-muted-foreground hover:text-primary transition-colors"
+            >
+              <Facebook className="h-5 w-5" />
+            </Link>
+            <Link
+              href="https://www.instagram.com/al_dahabi_store?igsh=MmM0dm0yY3pweHgw"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-muted-foreground hover:text-primary transition-colors"
+            >
+              <Instagram className="h-5 w-5" />
+            </Link>
+          </div>
         </div>
       </div>
     </footer>
