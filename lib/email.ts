@@ -7,7 +7,7 @@ function getWebsiteUrl(): string {
     process.env.NEXT_PUBLIC_APP_URL ||
     process.env.VERCEL_URL ||
     process.env.APP_URL;
-
+  
   if (envUrl) {
     // Ensure it has the correct protocol
     if (envUrl.startsWith("http")) {
@@ -16,14 +16,14 @@ function getWebsiteUrl(): string {
       return `https://${envUrl}`;
     }
   }
-
+  
   // Fallback URLs for different environments
   if (process.env.NODE_ENV === "production") {
     return "https://goldengallery.com"; // Replace with your actual domain
   } else if (process.env.NODE_ENV === "development") {
     return "http://localhost:3000";
   }
-
+  
   // Final fallback
   return "https://goldengallery.com";
 }
@@ -114,7 +114,7 @@ export async function sendOrderConfirmationEmail(data: OrderEmailData) {
     <html>
     <head>
       <meta charset="utf-8">
-      <title>Order Confirmation - Aldhabi Store</title>
+      <title>Order Confirmation - Aldahbi Store</title>
       <style>
         body { background: #fff; margin: 0; padding: 0; font-family: Arial, sans-serif; color: #000 !important; }
         .container { max-width: 480px; margin: 32px auto; background: #fff; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border: 1px solid #e3e8f0; overflow: hidden; color: #000 !important; }
@@ -145,7 +145,7 @@ export async function sendOrderConfirmationEmail(data: OrderEmailData) {
       <div class="container">
         <div class="header">
           <div class="title">Order Confirmed</div>
-          <div class="subtitle">Thank you for shopping with Aldhabi Store!</div>
+          <div class="subtitle">Thank you for shopping with Aldahbi Store!</div>
         </div>
         <div class="order-link">
           <a href="${orderLink}">View Order Details</a>
@@ -188,10 +188,8 @@ export async function sendOrderConfirmationEmail(data: OrderEmailData) {
           </ul>
         </div>
         <div class="footer">
-          <div>Need help? <a href="https://wa.me/${
-            contactInfo.whatsapp
-          }" style="color:#000;text-decoration:underline;">Contact us on WhatsApp</a></div>
-          <div style="margin-top: 8px;">© 2024 Aldhabi Store. All rights reserved.</div>
+          <div>Need help? <a href="https://wa.me/${contactInfo.whatsapp}" style="color:#000;text-decoration:underline;">Contact us on WhatsApp</a></div>
+          <div style="margin-top: 8px;">© 2024 Aldahbi Store. All rights reserved.</div>
         </div>
       </div>
     </body>
@@ -257,7 +255,7 @@ export async function sendOrderStatusUpdateEmail(
     <html>
     <head>
       <meta charset="utf-8">
-      <title>Order Status Update - Aldhabi Store</title>
+      <title>Order Status Update - Aldahbi Store</title>
       <style>
         body { background: #fff; margin: 0; padding: 0; font-family: Arial, sans-serif; color: #000 !important; }
         .container { max-width: 600px; margin: 32px auto; background: #fff; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border: 1px solid #e3e8f0; overflow: hidden; color: #000 !important; }
@@ -317,10 +315,8 @@ export async function sendOrderStatusUpdateEmail(
         </div>
 
         <div class="footer">
-          <div>Need help? <a href="https://wa.me/${
-            contactInfo.whatsapp
-          }" style="color:#000;text-decoration:underline;">Contact us on WhatsApp</a></div>
-          <div style="margin-top: 8px;">© 2024 Aldhabi Store. All rights reserved.</div>
+          <div>Need help? <a href="https://wa.me/${contactInfo.whatsapp}" style="color:#000;text-decoration:underline;">Contact us on WhatsApp</a></div>
+          <div style="margin-top: 8px;">© 2024 Aldahbi Store. All rights reserved.</div>
         </div>
       </div>
     </body>
@@ -373,7 +369,7 @@ export async function sendContactEmail({
     <html>
     <head>
       <meta charset="utf-8">
-      <title>New Contact Form Submission - Aldhabi Store</title>
+      <title>New Contact Form Submission - Aldahbi Store</title>
       <style>
         body { background: #fff; margin: 0; padding: 0; font-family: Arial, sans-serif; color: #000 !important; }
         .container { max-width: 600px; margin: 32px auto; background: #fff; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border: 1px solid #e3e8f0; overflow: hidden; color: #000 !important; }
@@ -398,7 +394,7 @@ export async function sendContactEmail({
       <div class="container">
         <div class="header">
           <div class="title">New Contact Form Submission</div>
-          <div class="subtitle">Someone has reached out to Aldhabi Store</div>
+          <div class="subtitle">Someone has reached out to Aldahbi Store</div>
         </div>
         
         <div class="section">
@@ -425,7 +421,7 @@ export async function sendContactEmail({
         
         <div class="footer">
           <div>Reply directly to this email to respond to ${name}</div>
-          <div style="margin-top: 8px;">© 2024 Aldhabi Store. All rights reserved.</div>
+          <div style="margin-top: 8px;">© 2024 Aldahbi Store. All rights reserved.</div>
         </div>
       </div>
     </body>
@@ -447,4 +443,4 @@ export async function sendContactEmail({
     console.error("Contact email sending failed:", error);
     return { success: false, error: (error as any).message };
   }
-}
+} 

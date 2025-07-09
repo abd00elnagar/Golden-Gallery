@@ -18,24 +18,24 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: {
-    default: "Aldhabi Store",
-    template: "%s | Aldhabi Store",
+    default: "Aldahbi Store",
+    template: "%s | Aldahbi Store",
   },
   description: "Your one-stop shop for premium home supplies and essentials.",
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_APP_URL || "https://aldahbi.com"
   ),
   openGraph: {
-    title: "Aldhabi Store",
+    title: "Aldahbi Store",
     description: "Your one-stop shop for premium home supplies and essentials.",
     url: process.env.NEXT_PUBLIC_APP_URL || "https://aldahbi.com",
-    siteName: "Aldhabi Store",
+    siteName: "Aldahbi Store",
     images: [
       {
         url: "/logo-light.png",
         width: 512,
         height: 512,
-        alt: "Aldhabi Store Logo",
+        alt: "Aldahbi Store Logo",
       },
     ],
     locale: "en_US",
@@ -43,7 +43,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Aldhabi Store",
+    title: "Aldahbi Store",
     description: "Your one-stop shop for premium home supplies and essentials.",
     images: ["/logo-light.png"],
   },

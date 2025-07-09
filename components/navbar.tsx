@@ -37,9 +37,7 @@ export function Navbar({ user }: NavbarProps) {
         {/* Logo on the left */}
         <div className="flex items-center">
           <Link href="/" className="flex items-center">
-            <span className="text-lg sm:text-xl font-bold text-foreground">
-              Aldhabi Store
-            </span>
+            <span className="text-lg sm:text-xl font-bold text-foreground">Aldahbi Store</span>
           </Link>
         </div>
 

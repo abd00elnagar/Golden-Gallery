@@ -13,30 +13,30 @@ import { CustomCarousel } from "@/components/ui/custom-carousel";
 export const generateMetadata = async () => {
   const domain = process.env.NEXT_PUBLIC_APP_URL || "https://aldahbi.com";
   return {
-    title: "Aldhabi Store",
+    title: "Aldahbi Store",
     description:
-      "Your one-stop shop for premium home supplies and essentials at Aldhabi Store.",
+      "Your one-stop shop for premium home supplies and essentials at Aldahbi Store.",
     alternates: { canonical: domain },
     openGraph: {
-      title: "Aldhabi Store",
+      title: "Aldahbi Store",
       description:
-        "Your one-stop shop for premium home supplies and essentials at Aldhabi Store.",
+        "Your one-stop shop for premium home supplies and essentials at Aldahbi Store.",
       url: domain,
       images: ["/logo-light.png"],
       type: "website",
     },
     twitter: {
       card: "summary_large_image",
-      title: "Aldhabi Store",
+      title: "Aldahbi Store",
       description:
-        "Your one-stop shop for premium home supplies and essentials at Aldhabi Store.",
+        "Your one-stop shop for premium home supplies and essentials at Aldahbi Store.",
       images: ["/logo-light.png"],
     },
     other: {
       "script:ld+json": JSON.stringify({
         "@context": "https://schema.org",
         "@type": "Organization",
-        name: "Aldhabi Store",
+        name: "Aldahbi Store",
         url: domain,
         logo: `${domain}/logo-light.png`,
         sameAs: [domain],

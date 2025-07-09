@@ -6,11 +6,11 @@ export const generateMetadata = async () => {
   const domain = process.env.NEXT_PUBLIC_APP_URL || "https://aldahbi.com";
   return {
     title: "Notifications",
-    description: "View your notifications at Aldhabi Store.",
+    description: "View your notifications at Aldahbi Store.",
     alternates: { canonical: `${domain}/notifications` },
     openGraph: {
       title: "Notifications",
-      description: "View your notifications at Aldhabi Store.",
+      description: "View your notifications at Aldahbi Store.",
       url: `${domain}/notifications`,
       images: ["/logo-light.png"],
       type: "website",
@@ -18,7 +18,7 @@ export const generateMetadata = async () => {
     twitter: {
       card: "summary_large_image",
       title: "Notifications",
-      description: "View your notifications at Aldhabi Store.",
+      description: "View your notifications at Aldahbi Store.",
       images: ["/logo-light.png"],
     },
   };
