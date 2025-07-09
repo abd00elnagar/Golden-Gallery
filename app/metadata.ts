@@ -2,7 +2,7 @@ import { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Aldahbi Store",
+    name: "Aldhabi Store",
     short_name: "Aldahbi",
     description: "Your one-stop shop for luxury jewelry.",
     start_url: "/",
@@ -13,8 +13,8 @@ export default function manifest(): MetadataRoute.Manifest {
       {
         src: "/icon.png",
         sizes: "512x512",
-        type: "image/png"
-      }
-    ]
+        type: "image/png",
+      },
+    ],
   };
 }
