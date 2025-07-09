@@ -21,23 +21,23 @@ export const generateMetadata = async () => {
   const domain = process.env.NEXT_PUBLIC_APP_URL || "https://aldahbi.com";
   return {
     title: "Privacy Policy",
-    description: "Read the privacy policy for Aldahbi Store.",
+    description: "Read the privacy policy for Aldhabi Store.",
     alternates: { canonical: `${domain}/privacy` },
     openGraph: {
       title: "Privacy Policy",
-      description: "Read the privacy policy for Aldahbi Store.",
+      description: "Read the privacy policy for Aldhabi Store.",
       url: `${domain}/privacy`,
       images: ["/logo-light.png"],
-      type: "website"
+      type: "website",
     },
     twitter: {
       card: "summary_large_image",
       title: "Privacy Policy",
-      description: "Read the privacy policy for Aldahbi Store.",
-      images: ["/logo-light.png"]
-    }
-  }
-}
+      description: "Read the privacy policy for Aldhabi Store.",
+      images: ["/logo-light.png"],
+    },
+  };
+};
 
 export default function PrivacyPolicyPage() {
   return (
@@ -129,7 +129,7 @@ export default function PrivacyPolicyPage() {
               </p>
               <div className="mt-4">
                 <p>
-                  <strong>Aldahbi Store</strong>
+                  <strong>Aldhabi Store</strong>
                 </p>
                 <p>Email: privacy@goldengallery.com</p>
                 <p>Phone: +20 155 900 5729</p>
