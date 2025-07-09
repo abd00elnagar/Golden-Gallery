@@ -176,11 +176,11 @@ export default function ContactPage() {
                   <div>
                     <p className="font-medium">Address</p>
                     <p className="text-sm text-muted-foreground">
-                      123 Art Street
+                      الحى الخامس 
                       <br />
-                      New York, NY 10001
+                      مدينه العبور
                       <br />
-                      United States
+                      قليوبيه
                     </p>
                   </div>
                 </div>

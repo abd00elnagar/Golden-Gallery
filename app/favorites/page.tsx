@@ -1,56 +1,59 @@
-import Link from "next/link"
-import { Heart, ShoppingBag } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { ProductCard } from "@/components/product-card"
-import { getUser } from "@/lib/auth"
-import SignInPage from "@/components/SigninPage"
-import { Category, Product, User } from "@/lib/types"
-import { getCategories, getCategory, getProduct } from "@/lib/actions"
-import ProductsList from "@/components/ProductsList"
+import Link from "next/link";
+import { Heart, ShoppingBag } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ProductCard } from "@/components/product-card";
+import { getUser } from "@/lib/auth";
+import SignInPage from "@/components/SigninPage";
+import { Category, Product, User } from "@/lib/types";
+import { getCategories, getCategory, getProduct } from "@/lib/actions";
+import ProductsList from "@/components/ProductsList";
 
 export const generateMetadata = async () => {
-  const domain = process.env.NEXT_PUBLIC_APP_URL || "https://aldahbi.com"
+  const domain = process.env.NEXT_PUBLIC_APP_URL || "https://aldahbi.com";
   return {
     title: "My Favorites",
-    description: "View your favorite jewelry items at Aldahbi Store.",
+    description: "View your favorite jewelry items at Aldhabi Store.",
     alternates: { canonical: `${domain}/favorites` },
     openGraph: {
       title: "My Favorites",
-      description: "View your favorite jewelry items at Aldahbi Store.",
+      description: "View your favorite jewelry items at Aldhabi Store.",
       url: `${domain}/favorites`,
       images: ["/logo-light.png"],
-      type: "website"
+      type: "website",
     },
     twitter: {
       card: "summary_large_image",
       title: "My Favorites",
-      description: "View your favorite jewelry items at Aldahbi Store.",
-      images: ["/logo-light.png"]
-    }
-  }
-}
+      description: "View your favorite jewelry items at Aldhabi Store.",
+      images: ["/logo-light.png"],
+    },
+  };
+};
 
 export default async function FavoritesPage() {
-  const user: User | null = (await getUser())
-  const favorites = user?.favorites || []
-  const keep: string[] = []
-  const products: (Product | { notFound: true; id: string })[] = await Promise.all(
-    favorites.map(async (fav) => {
-      const product = await getProduct(fav.productId)
-      if (!product) return { notFound: true, id: fav.productId }
-      product.category = product.category_id ? (await getCategory(product.category_id)) || undefined : undefined
-      if (product.category_id) {
-        keep.push(product.category_id)
-      }
-      return product
-    })
-  )
-  const categories: Category[] = (await getCategories()).filter((cat) => keep.includes(cat.id))
+  const user: User | null = await getUser();
+  const favorites = user?.favorites || [];
+  const keep: string[] = [];
+  const products: (Product | { notFound: true; id: string })[] =
+    await Promise.all(
+      favorites.map(async (fav) => {
+        const product = await getProduct(fav.productId);
+        if (!product) return { notFound: true, id: fav.productId };
+        product.category = product.category_id
+          ? (await getCategory(product.category_id)) || undefined
+          : undefined;
+        if (product.category_id) {
+          keep.push(product.category_id);
+        }
+        return product;
+      })
+    );
+  const categories: Category[] = (await getCategories()).filter((cat) =>
+    keep.includes(cat.id)
+  );
   // console.log(categories)
   if (!user) {
-    return (
-      <SignInPage /> 
-    )
+    return <SignInPage />;
   }
   return (
     <div className="w-full py-8 px-4 sm:px-6 lg:px-8">
@@ -58,7 +61,8 @@ export default async function FavoritesPage() {
         <div>
           <h1 className="text-3xl font-bold">My Favorites</h1>
           <p className="text-muted-foreground">
-            {favorites.length} {favorites.length === 1 ? "item" : "items"} in your favorites
+            {favorites.length} {favorites.length === 1 ? "item" : "items"} in
+            your favorites
           </p>
         </div>
       </div>
@@ -78,8 +82,13 @@ export default async function FavoritesPage() {
           </Button>
         </div>
       ) : (
-        <ProductsList products={products as Product[]} categories={categories} favorites={favorites.map((fav) => fav.productId)} userId={user.id || undefined}/>
+        <ProductsList
+          products={products as Product[]}
+          categories={categories}
+          favorites={favorites.map((fav) => fav.productId)}
+          userId={user.id || undefined}
+        />
       )}
     </div>
-  )
+  );
 }

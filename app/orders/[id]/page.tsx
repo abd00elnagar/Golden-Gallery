@@ -1,48 +1,48 @@
-import { getOrder, getUserById } from "@/lib/actions"
-import { getUser } from "@/lib/auth"
-import { redirect } from "next/navigation"
-import OrderDetailsClient from "./OrderDetailsClient"
+import { getOrder, getUserById } from "@/lib/actions";
+import { getUser } from "@/lib/auth";
+import { redirect } from "next/navigation";
+import OrderDetailsClient from "./OrderDetailsClient";
 
 interface OrderPageProps {
-  params: { id: string }
+  params: { id: string };
 }
 
 export const generateMetadata = async () => {
   const domain = process.env.NEXT_PUBLIC_APP_URL || "https://aldahbi.com";
   return {
     title: "Order Details",
-    description: "View your order details at Aldahbi Store.",
+    description: "View your order details at Aldhabi Store.",
     alternates: { canonical: `${domain}/orders/[id]` },
     openGraph: {
       title: "Order Details",
-      description: "View your order details at Aldahbi Store.",
+      description: "View your order details at Aldhabi Store.",
       url: `${domain}/orders/[id]`,
       images: ["/logo-light.png"],
-      type: "website"
+      type: "website",
     },
     twitter: {
       card: "summary_large_image",
       title: "Order Details",
-      description: "View your order details at Aldahbi Store.",
-      images: ["/logo-light.png"]
-    }
-  }
-}
+      description: "View your order details at Aldhabi Store.",
+      images: ["/logo-light.png"],
+    },
+  };
+};
 
 export default async function OrderPage({ params }: OrderPageProps) {
-  const user = await getUser()
+  const user = await getUser();
   if (!user) {
-    redirect('/auth/signin')
+    redirect("/auth/signin");
   }
 
-  const orderId = (await params).id
+  const orderId = (await params).id;
   if (!orderId) {
-    redirect('/')
+    redirect("/");
   }
 
-  const order = await getOrder(orderId)
+  const order = await getOrder(orderId);
   if (!order || order.user_id !== user.id) {
-    redirect('/')
+    redirect("/");
   }
 
   // Optionally fetch user for email fallback
@@ -58,5 +58,5 @@ export default async function OrderPage({ params }: OrderPageProps) {
         <OrderDetailsClient order={{ ...order, customerEmail }} />
       </div>
     </div>
-  )
+  );
 }

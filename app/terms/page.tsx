@@ -32,7 +32,7 @@ export default function TermsOfServicePage() {
           <Card title="Acceptance of Terms">
             <div className="prose prose-sm max-w-none">
               <p>
-                By accessing and using Aldahbi Store's website and services, you
+                By accessing and using Aldhabi Store's website and services, you
                 accept and agree to be bound by the terms and provision of this
                 agreement. If you do not agree to abide by the above, please do
                 not use this service.
@@ -44,7 +44,7 @@ export default function TermsOfServicePage() {
             <div className="prose prose-sm max-w-none">
               <p>
                 Permission is granted to temporarily download one copy of the
-                materials on Aldahbi Store's website for personal,
+                materials on Aldhabi Store's website for personal,
                 non-commercial transitory viewing only. This is the grant of a
                 license, not a transfer of title, and under this license you may
                 not:
@@ -118,10 +118,10 @@ export default function TermsOfServicePage() {
           <Card title="Limitation of Liability">
             <div className="prose prose-sm max-w-none">
               <p>
-                In no event shall Aldahbi Store or its suppliers be liable for
+                In no event shall Aldhabi Store or its suppliers be liable for
                 any damages (including, without limitation, damages for loss of
                 data or profit, or due to business interruption) arising out of
-                the use or inability to use the materials on Aldahbi Store's
+                the use or inability to use the materials on Aldhabi Store's
                 website.
               </p>
             </div>
@@ -135,7 +135,7 @@ export default function TermsOfServicePage() {
               </p>
               <div className="mt-4">
                 <p>
-                  <strong>Aldahbi Store</strong>
+                  <strong>Aldhabi Store</strong>
                 </p>
                 <p>Email: legal@goldengallery.com</p>
                 <p>Phone: +20 155 900 5729</p>

@@ -15,7 +15,7 @@ export function Footer({ className }: FooterProps) {
           <div className="flex flex-col items-center col-span-2 sm:col-span-4 md:col-span-1 mb-4 sm:mb-0">
             <div className="flex items-center mb-3 sm:mb-4">
               <span className="text-lg sm:text-xl font-bold text-foreground">
-                Aldahbi Store
+                Aldhabi Store
               </span>
             </div>
             <p className="text-muted-foreground text-xs sm:text-sm text-center max-w-[250px] sm:max-w-none">
@@ -164,7 +164,7 @@ export function Footer({ className }: FooterProps) {
         </div>
 
         <div className="border-t mt-6 sm:mt-8 pt-6 sm:pt-8 text-center text-xs sm:text-sm text-muted-foreground w-full">
-          <p>&copy; 2025 Aldahbi Store. All rights reserved.</p>
+          <p>&copy; 2025 Aldhabi Store. All rights reserved.</p>
           <div className="flex items-center justify-center gap-4 mt-4 sm:hidden">
             <Link
               href="https://www.facebook.com/share/1Cju2cXhqL/"
