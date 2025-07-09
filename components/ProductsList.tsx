@@ -206,18 +206,29 @@ function ProductsList({
   ];
 
   const filteredAndSortedProducts = useMemo(() => {
-    let filtered = filteredProducts;
+    let filtered = products.filter(
+      (product) =>
+        !removedProducts.has(
+          (product as any).notFound ? (product as any).id : product.id
+        )
+    );
 
     // Search filter
     if (searchQuery) {
-      filtered = filtered.filter(
-        (product) =>
-          product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          product.description
-            ?.toLowerCase()
-            .includes(searchQuery.toLowerCase()) ||
-          false
-      );
+      const normalizedQuery = searchQuery.toLowerCase().trim();
+      filtered = filtered.filter((product) => {
+        const normalizedName = product.name.toLowerCase().trim();
+        const normalizedDescription =
+          product.description?.toLowerCase().trim() ?? "";
+
+        // Check if query matches any word in name or description
+        const queryWords = normalizedQuery.split(/\s+/);
+        return queryWords.every(
+          (word) =>
+            normalizedName.includes(word) ||
+            normalizedDescription.includes(word)
+        );
+      });
     }
 
     // Category filter
@@ -228,7 +239,7 @@ function ProductsList({
     }
 
     // Sort products
-    const sorted = [...filtered].sort((a, b) => {
+    return [...filtered].sort((a, b) => {
       switch (selectedSort) {
         case "most-liked":
           return (b.likes || 0) - (a.likes || 0);
@@ -244,9 +255,7 @@ function ProductsList({
           return 0;
       }
     });
-
-    return sorted;
-  }, [filteredProducts, searchQuery, selectedCategory, selectedSort]);
+  }, [products, removedProducts, searchQuery, selectedCategory, selectedSort]);
 
   // Get visible products based on current count
   const visibleProducts = filteredAndSortedProducts.slice(0, visibleCount);
