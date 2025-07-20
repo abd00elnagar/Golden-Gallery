@@ -438,7 +438,7 @@ function ProductDetails({
           {/* Image Gallery */}
           <Card className="overflow-hidden">
             <CardContent className="p-0">
-              <div className="relative h-80 md:h-96">
+              <div className="relative h-fit">
                 <Image
                   src={product.images[currentImageIndex] || "/placeholder.svg"}
                   alt={product.name}
