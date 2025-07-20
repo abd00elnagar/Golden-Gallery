@@ -72,6 +72,7 @@ interface OrderEmailData {
     productName: string;
     quantity: number;
     price: number;
+    color_name?: string;
   }>;
   subtotal: number;
   shipping: number;
@@ -109,6 +110,32 @@ export async function sendOrderConfirmationEmail(data: OrderEmailData) {
   const orderLink = `${websiteUrl}/orders/${orderId}`;
 
   const contactInfo = getContactInfo();
+  const itemsHtml = items
+    .map(
+      (item) => `
+    <tr>
+      <td style="padding: 8px 0;">
+        <div style="font-weight: 600;">${item.productName}</div>
+        ${
+          item.color_name
+            ? `<div style="font-size: 14px; color: #666;">Color: ${item.color_name}</div>`
+            : ""
+        }
+        <div style="font-size: 14px; color: #666;">Quantity: ${
+          item.quantity
+        }</div>
+        <div style="font-size: 14px; color: #666;">Price: $${item.price.toFixed(
+          2
+        )}</div>
+      </td>
+      <td style="padding: 8px 0; text-align: right;">
+        $${(item.price * item.quantity).toFixed(2)}
+      </td>
+    </tr>
+  `
+    )
+    .join("");
+
   const emailHtml = `
     <!DOCTYPE html>
     <html>
@@ -165,6 +192,16 @@ export async function sendOrderConfirmationEmail(data: OrderEmailData) {
           </table>
         </div>
         <div class="section">
+          <div class="section-title">Items Ordered</div>
+          <table class="info-table">
+            ${itemsHtml}
+          </table>
+          <div class="total-section">
+            <div class="total-label">Total:</div>
+            <div class="total-value">$${total.toFixed(2)}</div>
+          </div>
+        </div>
+        <div class="section">
           <div class="section-title">Shipping Info</div>
           <table class="info-table">
             <tr><td><strong>Address:</strong></td><td>${
@@ -173,9 +210,6 @@ export async function sendOrderConfirmationEmail(data: OrderEmailData) {
             <tr><td><strong>Phone:</strong></td><td>${
               shippingPhone || "N/A"
             }</td></tr>
-            <tr><td><strong>Total Cost:</strong></td><td>EGP ${
-              total?.toFixed(2) ?? "N/A"
-            }</td></tr>  
           </table>
         </div>
         <div class="section">

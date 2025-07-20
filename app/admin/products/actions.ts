@@ -83,6 +83,10 @@ export async function createNewProduct(formData: FormData) {
       category_id: formData.get("category_id") as string,
       images: images,
       colors: JSON.parse(formData.get("colors") as string),
+      features: JSON.parse((formData.get("features") as string) || "[]"),
+      whatsInTheBox: JSON.parse(
+        (formData.get("whatsInTheBox") as string) || "[]"
+      ),
       likes: 0,
       featured: formData.get("featured") === "true",
     };
@@ -98,15 +102,12 @@ export async function createNewProduct(formData: FormData) {
     revalidatePath("/admin/products");
     return { success: true, product: newProduct, redirect: "/admin/products" };
   } catch (error: any) {
-    // Log the full error for debugging
     console.error("Server Error:", {
       error,
       message: error.message,
       stack: error.stack,
       cause: error.cause,
     });
-
-    // Return the raw error
     return {
       success: false,
       error: error.message || error.toString(),
@@ -134,6 +135,10 @@ export async function updateProduct(productId: string, formData: FormData) {
       category_id: formData.get("category_id") as string,
       images: images,
       colors: JSON.parse(formData.get("colors") as string),
+      features: JSON.parse((formData.get("features") as string) || "[]"),
+      whatsInTheBox: JSON.parse(
+        (formData.get("whatsInTheBox") as string) || "[]"
+      ),
       featured: formData.get("featured") === "true",
     };
 
@@ -152,15 +157,12 @@ export async function updateProduct(productId: string, formData: FormData) {
       redirect: "/admin/products",
     };
   } catch (error: any) {
-    // Log the full error for debugging
     console.error("Server Error:", {
       error,
       message: error.message,
       stack: error.stack,
       cause: error.cause,
     });
-
-    // Return the raw error
     return {
       success: false,
       error: error.message || error.toString(),
@@ -198,7 +200,7 @@ export async function createOrUpdateProductWithImages(
 
     // Validate basic fields
     if (!name || !description || isNaN(price) || isNaN(stock) || !category_id) {
-      return { success: false, error: "All fields are required." };
+      throw new Error("All fields are required.");
     }
 
     // 2. Parse colors
@@ -207,215 +209,68 @@ export async function createOrUpdateProductWithImages(
       colors = JSON.parse((formData.get("colors") as string) || "[]");
     } catch (error) {
       console.error("Color parsing error:", error);
-      return { success: false, error: "Invalid colors data." };
+      throw error;
     }
 
     // Validate colors
     if (colors.some((c) => !c.name || !c.hex)) {
-      return {
-        success: false,
-        error: "Each color must have a name and hex value.",
-      };
+      throw new Error("Each color must have a name and hex value.");
     }
 
+    // 3. Parse features and what's in the box
+    let features: string[] = [];
+    let whats_in_the_box: string[] = [];
+    try {
+      features = JSON.parse((formData.get("features") as string) || "[]");
+      whats_in_the_box = JSON.parse(
+        (formData.get("whatsInTheBox") as string) || "[]"
+      );
+    } catch (error) {
+      console.error("Features/whats_in_the_box parsing error:", error);
+      throw error;
+    }
+
+    // 4. Handle image uploads
     let uploadedImageUrls: string[] = [];
-    let colorObjs: { name: string; hex: string; image: string }[] = [];
-
-    if (preserveImages) {
-      // Editing mode: preserve existing images
-      try {
-        const existingProductImages = JSON.parse(
-          (formData.get("existingProductImages") as string) || "[]"
-        );
-        const existingColorImages = JSON.parse(
-          (formData.get("existingColorImages") as string) || "[]"
-        );
-
-        // Validate existing product images
-        if (!Array.isArray(existingProductImages)) {
-          return { success: false, error: "Invalid product images data." };
-        }
-
-        // Filter out invalid image URLs
-        uploadedImageUrls = existingProductImages.filter(
-          (img: any) => img && typeof img === "string" && img.trim() !== ""
-        );
-
-        // Validate existing color images
-        if (!Array.isArray(existingColorImages)) {
-          return { success: false, error: "Invalid color images data." };
-        }
-
-        // Build color objects with validated images
-        colorObjs = colors.map((color, index) => ({
-          ...color,
-          image:
-            existingColorImages[index] &&
-            typeof existingColorImages[index] === "string" &&
-            existingColorImages[index].trim() !== ""
-              ? existingColorImages[index]
-              : "",
-        }));
-      } catch (error) {
-        console.error("Error parsing existing images:", error);
-        return { success: false, error: "Failed to parse existing images." };
+    if (!preserveImages) {
+      const imageFiles = formData.getAll("images") as File[];
+      if (imageFiles.length < 1) {
+        throw new Error("At least one product image is required.");
       }
-    } else {
-      // New product mode: upload new images
+      if (imageFiles.length > 4) {
+        throw new Error("Maximum 4 product images allowed.");
+      }
+
       try {
-        // Parse and validate product images
-        const images = formData
-          .getAll("images")
-          .filter((f): f is File => f instanceof File && f.size > 0);
-
-        // Validate image count
-        if (images.length === 0) {
-          return {
-            success: false,
-            error: "At least one product image is required.",
-          };
-        }
-        if (images.length > 4) {
-          return {
-            success: false,
-            error: "A maximum of 4 product images is allowed.",
-          };
-        }
-
-        // Validate image types and sizes
-        const MAX_SIZE = 5 * 1024 * 1024; // 5MB
-        for (const file of images) {
-          if (!file.type.startsWith("image/")) {
-            return {
-              success: false,
-              error: `File '${file.name}' is not an image.`,
-            };
-          }
-          if (file.size > MAX_SIZE) {
-            return {
-              success: false,
-              error: `File '${file.name}' exceeds 5MB limit.`,
-            };
-          }
-        }
-
-        // Parse and validate color images
-        const colorImages: File[] = [];
-        for (let i = 0; i < colors.length; i++) {
-          const file = formData.get(`colorImage_${i}`);
-          if (!(file instanceof File) || file.size === 0) {
-            return {
-              success: false,
-              error: `Image required for color '${colors[i].name}'.`,
-            };
-          }
-          if (!file.type.startsWith("image/")) {
-            return {
-              success: false,
-              error: `Invalid image type for color '${colors[i].name}'.`,
-            };
-          }
-          if (file.size > MAX_SIZE) {
-            return {
-              success: false,
-              error: `Image for color '${colors[i].name}' exceeds 5MB limit.`,
-            };
-          }
-          colorImages.push(file);
-        }
-
-        // Upload product images with retries
-        for (const file of images) {
-          let url = null;
-          let attempts = 0;
-          const MAX_ATTEMPTS = 3;
-
-          while (!url && attempts < MAX_ATTEMPTS) {
-            try {
-              url = await uploadImage(file, "products");
-              attempts++;
-              if (!url) {
-                console.error(
-                  `Upload attempt ${attempts} failed for ${file.name}`
-                );
-                await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait 1s before retry
-              }
-            } catch (error) {
-              console.error(`Upload error attempt ${attempts}:`, error);
-              attempts++;
-              if (attempts < MAX_ATTEMPTS) {
-                await new Promise((resolve) => setTimeout(resolve, 1000));
-              }
-            }
-          }
-
-          if (!url) {
-            return {
-              success: false,
-              error: `Failed to upload product image '${file.name}' after ${MAX_ATTEMPTS} attempts.`,
-            };
-          }
-          uploadedImageUrls.push(url);
-        }
-
-        // Upload color images with retries
-        for (let i = 0; i < colors.length; i++) {
-          const color = colors[i];
-          const file = colorImages[i];
-          let url = null;
-          let attempts = 0;
-          const MAX_ATTEMPTS = 3;
-
-          while (!url && attempts < MAX_ATTEMPTS) {
-            try {
-              url = await uploadImage(file, "product-colors");
-              attempts++;
-              if (!url) {
-                console.error(
-                  `Upload attempt ${attempts} failed for color ${color.name}`
-                );
-                await new Promise((resolve) => setTimeout(resolve, 1000));
-              }
-            } catch (error) {
-              console.error(`Upload error attempt ${attempts}:`, error);
-              attempts++;
-              if (attempts < MAX_ATTEMPTS) {
-                await new Promise((resolve) => setTimeout(resolve, 1000));
-              }
-            }
-          }
-
-          if (!url) {
-            return {
-              success: false,
-              error: `Failed to upload image for color '${color.name}' after ${MAX_ATTEMPTS} attempts.`,
-            };
-          }
-          colorObjs.push({ ...color, image: url });
-        }
+        uploadedImageUrls = await Promise.all(
+          imageFiles.map(async (file) => {
+            const url = await uploadImage(file);
+            if (!url) throw new Error(`Failed to upload image: ${file.name}`);
+            return url;
+          })
+        );
       } catch (error) {
-        console.error("Error processing images:", error);
-        return {
-          success: false,
-          error: "An error occurred while processing images.",
-        };
+        console.error("Image upload error:", error);
+        throw error;
       }
     }
 
-    // Build product data
+    // 5. Create or update product
     const productData = {
       name,
       description,
       price,
       stock,
       category_id,
-      images: uploadedImageUrls,
-      colors: colorObjs,
       featured,
-      likes: preserveImages ? undefined : 0, // Don't reset likes when editing
+      colors,
+      features,
+      whats_in_the_box,
+      images: preserveImages
+        ? JSON.parse(formData.get("existingProductImages") as string)
+        : uploadedImageUrls,
     };
 
-    // Save product (create or update)
     let result;
     try {
       if (productId) {
@@ -423,25 +278,28 @@ export async function createOrUpdateProductWithImages(
       } else {
         result = await createProduct(productData);
       }
-
-      if (!result) {
-        return { success: false, error: "Failed to save product to database." };
-      }
-
-      revalidatePath("/admin/products");
-      return { success: true, product: result, redirect: "/admin/products" };
     } catch (error) {
-      console.error("Database operation error:", error);
-      return {
-        success: false,
-        error: "Failed to save product. Please try again.",
-      };
+      console.error("Database operation failed:", error);
+      throw error;
     }
-  } catch (error) {
-    console.error("Unexpected error:", error);
+
+    revalidatePath("/admin/products");
+    return {
+      success: true,
+      product: result,
+      redirect: "/admin/products",
+    };
+  } catch (error: any) {
+    console.error("Server Error:", {
+      error,
+      message: error.message,
+      stack: error.stack,
+    });
+
     return {
       success: false,
-      error: "An unexpected error occurred. Please try again.",
+      error: error.message || String(error),
+      serverError: error,
     };
   }
 }

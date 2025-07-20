@@ -32,7 +32,7 @@ export const generateMetadata = async () => {
 export default async function CheckoutPage({
   searchParams,
 }: {
-  searchParams: { productId?: string; quantity?: string };
+  searchParams: { productId?: string; quantity?: string; color?: string };
 }) {
   const user = await getUser();
   if (!user) {
@@ -41,6 +41,7 @@ export default async function CheckoutPage({
   const params = await searchParams;
   const productId = params?.productId;
   const quantity = parseInt(params?.quantity || "1");
+  const color = params?.color;
   let cartItems = [];
   if (productId) {
     const product = await getProduct(productId);
@@ -53,6 +54,7 @@ export default async function CheckoutPage({
           image: product.images[0] || null,
           quantity: quantity,
           stock: product.stock,
+          color_name: color || "",
         },
       ];
     }

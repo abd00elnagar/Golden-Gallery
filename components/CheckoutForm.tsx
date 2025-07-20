@@ -27,6 +27,7 @@ interface CartItem {
   image: string | null;
   quantity: number;
   stock: number;
+  color_name?: string;
 }
 
 interface CheckoutFormProps {
@@ -161,11 +162,13 @@ export default function CheckoutForm({ user, cartItems }: CheckoutFormProps) {
                     automatically cancelled.
                   </AlertDescription>
                 </Alert>
-                
+
                 <Alert>
                   <AlertTriangle className="h-4 w-4" />
                   <AlertDescription>
-                    <strong>Email Notice:</strong> Your order confirmation email may be sent to your spam/junk folder. Please check there if you don't receive it in your inbox.
+                    <strong>Email Notice:</strong> Your order confirmation email
+                    may be sent to your spam/junk folder. Please check there if
+                    you don't receive it in your inbox.
                   </AlertDescription>
                 </Alert>
 
@@ -286,6 +289,11 @@ export default function CheckoutForm({ user, cartItems }: CheckoutFormProps) {
                         <h4 className="font-medium text-sm">
                           {item.productName}
                         </h4>
+                        {item.color_name && (
+                          <p className="text-xs text-muted-foreground">
+                            Color: {item.color_name}
+                          </p>
+                        )}
                         <p className="text-sm font-medium">
                           ${(item.price * item.quantity).toFixed(2)}
                         </p>

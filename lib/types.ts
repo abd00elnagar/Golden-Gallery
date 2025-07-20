@@ -29,11 +29,16 @@ export interface User {
 export interface Product {
   id: string;
   name: string;
-  description: string | null;
+  description: string | null; // Markdown supported
   price: number;
   stock: number;
   images: string[];
-  colors: ProductColor[];
+  features: string[]; // Array of key product features
+  whats_in_the_box: string[]; // Array of included items
+  colors: {
+    name: string;
+    hex: string; // Color hex code or name
+  }[]; // Removed image field as we'll use color swatches
   category_id: string | null;
   likes: number;
   ordered: number;

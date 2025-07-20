@@ -24,6 +24,7 @@ import type { Product } from "@/lib/types";
 import { useRouter } from "next/navigation";
 import { FaWhatsapp } from "react-icons/fa";
 import { Dialog, DialogTrigger, DialogContent } from "@/components/ui/dialog";
+import MDEditor from "@uiw/react-md-editor";
 
 function SignInPrompt({
   open,
@@ -169,11 +170,13 @@ function AddToCartButton({
   userId,
   quantity,
   isOutOfStock,
+  selectedColor,
 }: {
   productId: string;
   userId?: string;
   quantity: number;
   isOutOfStock: boolean;
+  selectedColor: string;
 }) {
   const { pending } = useFormStatus();
   const [state, formAction] = useActionState(addToCartAction, null);
@@ -228,6 +231,7 @@ function AddToCartButton({
     <form action={formAction} onSubmit={handleSubmit}>
       <input type="hidden" name="productId" value={productId} />
       <input type="hidden" name="quantity" value={quantity.toString()} />
+      <input type="hidden" name="selectedColor" value={selectedColor} />
       <Button
         type="submit"
         size="lg"
@@ -267,9 +271,10 @@ function ProductDetails({
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [imageLoading, setImageLoading] = useState(true);
   const router = useRouter();
+  const { toast } = useToast();
 
   // Track manually selected color (not auto-selected)
-  const [selectedColorIndex, setSelectedColorIndex] = useState(-1);
+  const [selectedColor, setSelectedColor] = useState("");
 
   // Update likes when product changes
   useEffect(() => {
@@ -400,7 +405,11 @@ function ProductDetails({
   };
 
   const handleBuyNow = () => {
-    router.push(`/checkout?productId=${product.id}&quantity=${quantity}`);
+    router.push(
+      `/checkout?productId=${product.id}&quantity=${quantity}${
+        selectedColor ? `&color=${encodeURIComponent(selectedColor)}` : ""
+      }`
+    );
   };
   const waMessage = encodeURIComponent(
     `Hello, I want to order:\n${product.name} - ${product.price} EGP\n${
@@ -411,89 +420,101 @@ function ProductDetails({
   const waLink = `https://wa.me/${whatsappNumber}?text=${waMessage}`;
 
   return (
-    <div className="w-full max-w-6xl">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
-        {/* Image Gallery */}
-        <div className="relative">
-          {/* Back Button */}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="absolute top-2 left-2 z-10 h-8 w-8 md:h-10 md:w-10 bg-background/80 hover:bg-background"
-            onClick={() => router.back()}
+    <div className="container mx-auto px-4 py-8">
+      <div className="flex flex-col gap-8">
+        {/* Product Header */}
+        <div className="flex items-center gap-4">
+          <Link
+            href="/"
+            className="text-muted-foreground hover:text-foreground"
           >
-            <ArrowLeft className="h-4 w-4 md:h-5 md:w-5" />
-          </Button>
-
-          {/* Main Image */}
-          <div className="relative aspect-square overflow-hidden rounded-lg mb-2 md:mb-4">
-            <Image
-              src={product.images[currentImageIndex] || "/placeholder.jpg"}
-              alt={product.name}
-              fill
-              className={`object-cover transition-opacity duration-300 ${
-                imageLoading ? "opacity-0" : "opacity-100"
-              }`}
-              onLoad={() => setImageLoading(false)}
-              onError={handleImageError}
-              priority
-            />
-
-            {/* Image Navigation */}
-            <div className="absolute inset-0 flex items-center justify-between p-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 bg-background/80 hover:bg-background"
-                onClick={handlePreviousImage}
-                disabled={currentImageIndex === 0}
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 bg-background/80 hover:bg-background"
-                onClick={handleNextImage}
-                disabled={currentImageIndex === product.images.length - 1}
-              >
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-
-          {/* Thumbnail Gallery */}
-          <div className="grid grid-cols-6 gap-2">
-            {product.images.map((image, index) => (
-              <button
-                key={index}
-                className={`relative aspect-square overflow-hidden rounded-md ${
-                  currentImageIndex === index
-                    ? "ring-2 ring-primary"
-                    : "ring-1 ring-border hover:ring-2 hover:ring-primary/50"
-                }`}
-                onClick={() => handleImageSelect(index)}
-              >
-                <Image
-                  src={image}
-                  alt={`${product.name} - Image ${index + 1}`}
-                  fill
-                  className="object-cover"
-                />
-              </button>
-            ))}
-          </div>
+            <ArrowLeft className="h-5 w-5" />
+          </Link>
+          <h1 className="text-3xl font-bold">{product.name}</h1>
         </div>
 
-        {/* Product Info */}
-        <div className="flex flex-col">
-          <div className="flex-1 space-y-4">
-            {/* Title and Category */}
-            <div>
-              <div className="flex items-start justify-between mb-1">
-                <h1 className="text-2xl md:text-3xl font-bold">
-                  {product.name}
-                </h1>
+        {/* Main Product Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Image Gallery */}
+          <Card className="overflow-hidden">
+            <CardContent className="p-0">
+              <div className="relative aspect-square">
+                <Image
+                  src={product.images[currentImageIndex] || "/placeholder.svg"}
+                  alt={product.name}
+                  fill
+                  className="object-cover"
+                  onError={handleImageError}
+                  priority
+                />
+                {product.images.length > 1 && (
+                  <>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="absolute left-2 top-1/2 -translate-y-1/2 bg-background/80 hover:bg-background/90"
+                      onClick={handlePreviousImage}
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 bg-background/80 hover:bg-background/90"
+                      onClick={handleNextImage}
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </>
+                )}
+              </div>
+              {product.images.length > 1 && (
+                <div className="grid grid-cols-4 gap-2 p-2">
+                  {product.images.map((image, index) => (
+                    <button
+                      key={index}
+                      onClick={() => handleImageSelect(index)}
+                      className={`relative aspect-square overflow-hidden rounded-md ${
+                        currentImageIndex === index
+                          ? "ring-2 ring-primary"
+                          : "hover:opacity-75"
+                      }`}
+                    >
+                      <Image
+                        src={image}
+                        alt={`${product.name} view ${index + 1}`}
+                        fill
+                        className="object-cover"
+                      />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Product Info */}
+          <div className="space-y-6">
+            {/* Price and Actions */}
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <p className="text-3xl font-bold">
+                  ${product.price.toFixed(2)}
+                </p>
+                <div className="flex items-center gap-2">
+                  <Badge
+                    variant={product.stock > 0 ? "default" : "destructive"}
+                  >
+                    {product.stock > 0 ? "In Stock" : "Out of Stock"}
+                  </Badge>
+                  {product.stock > 0 && (
+                    <span className="text-sm text-muted-foreground">
+                      {product.stock} available
+                    </span>
+                  )}
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
                 <FavoriteButton
                   productId={product.id}
                   userId={userId}
@@ -502,136 +523,123 @@ function ProductDetails({
                   onLikesUpdate={setCurrentLikes}
                 />
               </div>
-              {category && (
-                <Link
-                  href={`/category/${category.id}`}
-                  className="inline-block"
-                >
-                  <Badge variant="outline" className="text-xs">
-                    {category.name}
-                  </Badge>
-                </Link>
-              )}
-            </div>
-
-            {/* Price and Stock */}
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <span className="text-2xl font-bold">${product.price}</span>
-                <div className="flex items-center gap-2">
-                  <Badge variant="secondary" className="text-xs">
-                    {product.stock > 0
-                      ? `${product.stock} in stock`
-                      : "Out of stock"}
-                  </Badge>
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <Heart className="h-3 w-3" />
-                    <span>{currentLikes} likes</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Description */}
-            <div>
-              <h2 className="font-semibold mb-2 text-sm md:text-base">
-                Description
-              </h2>
-              <p className="text-sm md:text-base text-muted-foreground">
-                {product.description}
-              </p>
             </div>
 
             {/* Colors */}
-            {product.colors && product.colors.length > 0 && (
-              <div>
-                <h2 className="font-semibold mb-2 text-sm md:text-base">
-                  Available Colors
-                </h2>
+            {product.colors.length > 0 && (
+              <div className="space-y-2">
+                <p className="font-medium">Colors (Optional):</p>
                 <div className="flex flex-wrap gap-2">
-                  {product.colors.map((color, index) => (
+                  {product.colors.map((color) => (
                     <button
-                      key={index}
-                      className={`w-8 h-8 rounded-full border-2 transition-all hover:scale-110 ${
-                        selectedColorIndex === index
+                      key={color.name}
+                      onClick={() => setSelectedColor(color.name)}
+                      className={`w-10 h-10 rounded-full border-2 transition-all ${
+                        selectedColor === color.name
                           ? "ring-2 ring-primary ring-offset-2"
-                          : "ring-1 ring-border"
+                          : "hover:scale-110"
                       }`}
                       style={{ backgroundColor: color.hex }}
-                      onClick={() => handleColorSelect(index)}
                       title={color.name}
+                      type="button"
+                      aria-label={`Select ${color.name} color`}
                     />
                   ))}
+                </div>
+                {selectedColor && (
+                  <p className="text-sm text-muted-foreground">
+                    Selected color: {selectedColor}
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* Features */}
+            {product.features && product.features.length > 0 && (
+              <div className="space-y-2">
+                <h2 className="text-xl font-semibold">Key Features</h2>
+                <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                  {product.features.map((feature, index) => (
+                    <li key={index}>{feature}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Description with Markdown */}
+            {product.description && (
+              <div className="space-y-2">
+                <h2 className="text-xl font-semibold">Description</h2>
+                <div
+                  data-color-mode="light"
+                  className="prose prose-sm max-w-none"
+                >
+                  <MDEditor.Markdown source={product.description} />
                 </div>
               </div>
             )}
 
-            {/* Quantity */}
-            <div>
-              <h2 className="font-semibold mb-2 text-sm md:text-base">
-                Quantity
-              </h2>
-              <div className="flex items-center gap-2">
+            {/* What's in the Box */}
+            {product.whatsInTheBox && product.whatsInTheBox.length > 0 && (
+              <div className="space-y-2">
+                <h2 className="text-xl font-semibold">What's in the Box</h2>
+                <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                  {product.whatsInTheBox.map((item, index) => (
+                    <li key={index}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            <Separator />
+
+            {/* Add to Cart and Buy Now */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-4">
+                <div className="space-y-1">
+                  <p className="font-medium">Quantity:</p>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                      disabled={quantity <= 1}
+                    >
+                      -
+                    </Button>
+                    <span className="w-12 text-center">{quantity}</span>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() =>
+                        setQuantity(Math.min(product.stock, quantity + 1))
+                      }
+                      disabled={quantity >= product.stock}
+                    >
+                      +
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <AddToCartButton
+                  productId={product.id}
+                  userId={userId}
+                  quantity={quantity}
+                  isOutOfStock={product.stock < 1}
+                  selectedColor={selectedColor}
+                />
                 <Button
+                  size="lg"
                   variant="outline"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  disabled={quantity <= 1}
+                  onClick={handleBuyNow}
+                  disabled={product.stock < 1}
                 >
-                  -
-                </Button>
-                <span className="w-12 text-center">{quantity}</span>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={() =>
-                    setQuantity(Math.min(product.stock, quantity + 1))
-                  }
-                  disabled={quantity >= product.stock}
-                >
-                  +
+                  <ShoppingBag className="h-4 w-4 mr-2" />
+                  Buy Now
                 </Button>
               </div>
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex flex-col gap-3 mt-6">
-            <AddToCartButton
-              productId={product.id}
-              userId={userId}
-              quantity={quantity}
-              isOutOfStock={product.stock === 0}
-            />
-            <div className="grid grid-cols-2 gap-3">
-              <Button
-                variant="outline"
-                size="lg"
-                className="w-full"
-                onClick={handleBuyNow}
-                disabled={product.stock === 0}
-              >
-                <ShoppingBag className="h-4 w-4 mr-2" />
-                Buy Now
-              </Button>
-              <Link
-                href={`https://wa.me/201559005729?text=Hi, I'm interested in ${encodeURIComponent(
-                  product.name
-                )}`}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="w-full bg-[#25D366] text-white hover:bg-[#22c55e]"
-                >
-                  <FaWhatsapp className="h-4 w-4 mr-2" />
-                  Contact
-                </Button>
-              </Link>
             </div>
           </div>
         </div>

@@ -3,6 +3,7 @@
 import { useState, useTransition, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import MDEditor from "@uiw/react-md-editor";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,7 +21,7 @@ import { useToast } from "@/hooks/use-toast";
 import { createOrUpdateProductWithImages } from "./actions";
 import type { Product, Category } from "@/lib/types";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { X, Plus, Image as ImageIcon } from "lucide-react";
+import { X, Plus, Image as ImageIcon, GripVertical } from "lucide-react";
 import { useActionState } from "react";
 
 interface ProductFormProps {
@@ -38,20 +39,26 @@ export function ProductForm({
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
 
-  // Product images state - when editing, keep existing images as strings
+  // Product images state with drag and drop reordering
   const [productImages, setProductImages] = useState<(File | string)[]>(
     product?.images || []
   );
+  const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
 
-  // Color state: { name, hex, image: File | string }
-  const [colors, setColors] = useState<
-    { name: string; hex: string; image?: File | string }[]
-  >(
-    (product?.colors as any[])?.map((c) => ({
-      name: c.name,
-      hex: c.hex,
-      image: c.image,
-    })) || []
+  // Features and what's in the box lists
+  const [features, setFeatures] = useState<string[]>(product?.features || []);
+  const [whatsInTheBox, setWhatsInTheBox] = useState<string[]>(
+    product?.whats_in_the_box || []
+  );
+
+  // Description markdown state
+  const [description, setDescription] = useState<string>(
+    product?.description || ""
+  );
+
+  // Color state: { name, hex }
+  const [colors, setColors] = useState<{ name: string; hex: string }[]>(
+    product?.colors || []
   );
 
   // Featured state
@@ -60,28 +67,73 @@ export function ProductForm({
   const [serverError, setServerError] = useState<any>(null);
   const [formError, setFormError] = useState<string | null>(null);
 
-  // File input refs - only used for new products
+  // File input ref - only used for new products
   const productImageInputRef = useRef<HTMLInputElement>(null);
-  const colorImageInputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-  // useActionState for server validation
-  const initialState = {
-    success: false,
-    error: "",
-    product: undefined,
-    redirect: undefined,
+  // Handle image reordering
+  const handleDragStart = (index: number) => {
+    setDraggingIndex(index);
   };
-  const [state, formAction] = useActionState(
-    createOrUpdateProductWithImages,
-    initialState
-  );
 
-  // Handle redirect on success
-  useEffect(() => {
-    if (state.success && state.redirect) {
-      router.push(state.redirect);
-    }
-  }, [state, router]);
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    if (draggingIndex === null) return;
+
+    const newImages = [...productImages];
+    const draggedImage = newImages[draggingIndex];
+    newImages.splice(draggingIndex, 1);
+    newImages.splice(index, 0, draggedImage);
+    setProductImages(newImages);
+    setDraggingIndex(index);
+  };
+
+  const handleDragEnd = () => {
+    setDraggingIndex(null);
+  };
+
+  // Handle features and what's in the box
+  const addFeature = () => {
+    setFeatures([...features, ""]);
+  };
+
+  const removeFeature = (index: number) => {
+    setFeatures(features.filter((_, i) => i !== index));
+  };
+
+  const updateFeature = (index: number, value: string) => {
+    const newFeatures = [...features];
+    newFeatures[index] = value;
+    setFeatures(newFeatures);
+  };
+
+  const addBoxItem = () => {
+    setWhatsInTheBox([...whatsInTheBox, ""]);
+  };
+
+  const removeBoxItem = (index: number) => {
+    setWhatsInTheBox(whatsInTheBox.filter((_, i) => i !== index));
+  };
+
+  const updateBoxItem = (index: number, value: string) => {
+    const newItems = [...whatsInTheBox];
+    newItems[index] = value;
+    setWhatsInTheBox(newItems);
+  };
+
+  // Handle color management
+  const addColor = () => {
+    setColors([...colors, { name: "", hex: "#000000" }]);
+  };
+
+  const removeColor = (index: number) => {
+    setColors(colors.filter((_, i) => i !== index));
+  };
+
+  const updateColor = (index: number, field: "name" | "hex", value: string) => {
+    const newColors = [...colors];
+    newColors[index] = { ...newColors[index], [field]: value };
+    setColors(newColors);
+  };
 
   // Handle product image selection - only for new products
   const handleProductImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -139,59 +191,10 @@ export function ProductForm({
     setFormError(null); // Clear any errors since we're removing an image
   };
 
-  // Handle color image selection - only for new products
-  const handleColorImageChange = (idx: number, file: File) => {
-    if (isEditing) return; // Disabled for editing
-
-    // Validate file type
-    if (!file.type.startsWith("image/")) {
-      toast({
-        title: "Invalid File",
-        description: "Only image files are allowed.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Validate file size (max 5MB)
-    const MAX_SIZE = 5 * 1024 * 1024; // 5MB
-    if (file.size > MAX_SIZE) {
-      toast({
-        title: "File Too Large",
-        description: "Image must be smaller than 5MB.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setColors((prev) =>
-      prev.map((c, i) => (i === idx ? { ...c, image: file } : c))
-    );
-  };
-
-  const removeColorImage = (idx: number) => {
-    if (isEditing) return; // Disabled for editing
-
-    setColors((prev) =>
-      prev.map((c, i) => (i === idx ? { ...c, image: undefined } : c))
-    );
-  };
-
-  // Handle color add/remove - only for new products
-  const addColor = () => {
-    if (isEditing) return; // Disabled for editing
-    setColors([...colors, { name: "", hex: "#000000" }]);
-  };
-
-  const removeColor = (idx: number) => {
-    if (isEditing) return; // Disabled for editing
-    setColors(colors.filter((_, i) => i !== idx));
-    colorImageInputRefs.current.splice(idx, 1);
-  };
-
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setFormError(null);
+    setServerError(null);
 
     // Client-side validation
     if (!isEditing) {
@@ -204,20 +207,26 @@ export function ProductForm({
         setFormError("A maximum of 4 product images is allowed.");
         return;
       }
-      if (colors.some((c) => !c.name || !c.hex)) {
-        setFormError("Each color must have a name and hex value.");
-        return;
-      }
-      if (colors.some((c) => !c.image)) {
-        setFormError("Each color must have an image.");
-        return;
-      }
-    } else {
-      // For editing, only validate color names and hex values
-      if (colors.some((c) => !c.name || !c.hex)) {
-        setFormError("Each color must have a name and hex value.");
-        return;
-      }
+    }
+
+    // Validate colors
+    if (colors.some((c) => !c.name || !c.hex)) {
+      setFormError("Each color must have a name and hex value.");
+      return;
+    }
+
+    // Validate features and what's in the box if any items exist
+    if (features.length > 0 && features.some((f) => !f.trim())) {
+      setFormError("All features must have a value.");
+      return;
+    }
+
+    if (
+      whatsInTheBox.length > 0 &&
+      whatsInTheBox.some((item) => !item.trim())
+    ) {
+      setFormError("All 'What's in the Box' items must have a value.");
+      return;
     }
 
     const form = e.currentTarget;
@@ -227,29 +236,22 @@ export function ProductForm({
     formData.set("featured", featured.toString());
 
     if (!isEditing) {
-      // For new products, append product images and color images
+      // For new products, append product images
       productImages.forEach((img) => {
         if (img instanceof File) formData.append("images", img);
-      });
-      colors.forEach((c, i) => {
-        if (c.image instanceof File)
-          formData.append(`colorImage_${i}`, c.image);
       });
     } else {
       // For editing, preserve existing images
       formData.set("preserveImages", "true");
       formData.set("existingProductImages", JSON.stringify(productImages));
-      formData.set(
-        "existingColorImages",
-        JSON.stringify(colors.map((c) => c.image))
-      );
     }
 
     // Append colors data
-    formData.set(
-      "colors",
-      JSON.stringify(colors.map(({ name, hex }) => ({ name, hex })))
-    );
+    formData.set("colors", JSON.stringify(colors));
+
+    // Append features and what's in the box
+    formData.set("features", JSON.stringify(features));
+    formData.set("whatsInTheBox", JSON.stringify(whatsInTheBox));
 
     // If editing, add productId
     if (isEditing && product?.id) {
@@ -261,14 +263,35 @@ export function ProductForm({
     });
   };
 
-  const testDefaults = !isEditing ? {
-    name: "Test Product",
-    description: "This is a test home supplies product description.",
-    price: 99.99,
-    stock: 10,
-    category_id: categories[0]?.id || "",
-    featured: true,
-  } : {};
+  const testDefaults = !isEditing
+    ? {
+        name: "Test Product",
+        description: "This is a test home supplies product description.",
+        price: 99.99,
+        stock: 10,
+        category_id: categories[0]?.id || "",
+        featured: true,
+      }
+    : {};
+
+  // useActionState for server validation
+  const initialState = {
+    success: false,
+    error: "",
+    product: undefined,
+    redirect: undefined,
+  };
+  const [state, formAction] = useActionState(
+    createOrUpdateProductWithImages,
+    initialState
+  );
+
+  // Handle redirect on success
+  useEffect(() => {
+    if (state.success && state.redirect) {
+      router.push(state.redirect);
+    }
+  }, [state, router]);
 
   return (
     <div className="w-full">
@@ -288,8 +311,9 @@ export function ProductForm({
         {isEditing && (
           <Alert>
             <AlertDescription className="text-left">
-              <strong>Edit Mode:</strong> You can only modify product information,
-              color names, and hex values. Images cannot be changed in edit mode.
+              <strong>Edit Mode:</strong> You can only modify product
+              information, color names, and hex values. Images cannot be changed
+              in edit mode.
             </AlertDescription>
           </Alert>
         )}
@@ -304,7 +328,9 @@ export function ProductForm({
             {/* Basic Information */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label htmlFor="name" className="text-left">Product Name</Label>
+                <Label htmlFor="name" className="text-left">
+                  Product Name
+                </Label>
                 <Input
                   id="name"
                   name="name"
@@ -314,10 +340,14 @@ export function ProductForm({
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="category" className="text-left">Category</Label>
+                <Label htmlFor="category" className="text-left">
+                  Category
+                </Label>
                 <Select
                   name="category_id"
-                  defaultValue={product?.category_id || testDefaults.category_id}
+                  defaultValue={
+                    product?.category_id || testDefaults.category_id
+                  }
                   required
                   disabled={isPending}
                 >
@@ -334,7 +364,9 @@ export function ProductForm({
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="price" className="text-left">Price</Label>
+                <Label htmlFor="price" className="text-left">
+                  Price
+                </Label>
                 <Input
                   id="price"
                   name="price"
@@ -347,7 +379,9 @@ export function ProductForm({
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="stock" className="text-left">Stock</Label>
+                <Label htmlFor="stock" className="text-left">
+                  Stock
+                </Label>
                 <Input
                   id="stock"
                   name="stock"
@@ -360,233 +394,231 @@ export function ProductForm({
               </div>
             </div>
 
-            {/* Description */}
+            {/* Description with Markdown Support */}
             <div className="space-y-2">
-              <Label htmlFor="description" className="text-left">Description</Label>
-              <Textarea
-                id="description"
-                name="description"
-                defaultValue={product?.description || testDefaults.description}
-                required
-                disabled={isPending}
+              <Label htmlFor="description" className="text-left">
+                Description (Markdown Supported)
+              </Label>
+              <div data-color-mode="light">
+                <MDEditor
+                  value={description}
+                  onChange={(val) => setDescription(val || "")}
+                  preview="edit"
+                  height={200}
+                />
+                <input type="hidden" name="description" value={description} />
+              </div>
+            </div>
+
+            {/* Features List */}
+            <div className="space-y-2">
+              <Label className="text-left">
+                Key Features{" "}
+                {features.length > 0 && <span className="text-red-500">*</span>}
+              </Label>
+              <div className="space-y-2">
+                {features.map((feature, index) => (
+                  <div key={index} className="flex gap-2">
+                    <Input
+                      value={feature}
+                      onChange={(e) => updateFeature(index, e.target.value)}
+                      placeholder="Enter a feature"
+                      required={features.length > 0}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={() => removeFeature(index)}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={addFeature}
+                  className="w-full"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Feature
+                </Button>
+              </div>
+              <input
+                type="hidden"
+                name="features"
+                value={JSON.stringify(features)}
               />
             </div>
 
-            {/* Product Images */}
+            {/* What's in the Box List */}
             <div className="space-y-2">
-              <Label className="text-left">Product Images {isEditing && "(Read-only)"}</Label>
-              <div className="flex gap-2 flex-wrap">
-                {productImages.map((img, idx) => (
-                  <div
-                    key={idx}
-                    className="relative w-24 h-24 rounded overflow-hidden border bg-muted"
-                  >
-                    <Image
-                      src={img instanceof File ? URL.createObjectURL(img) : img}
-                      alt={`Product Preview ${idx + 1}`}
-                      fill
-                      className="object-cover"
-                      sizes="96px"
-                      priority={idx === 0}
-                      onError={(e) => {
-                        console.error("Image load error:", e);
-                        toast({
-                          title: "Image Error",
-                          description:
-                            "Failed to load image. Please try another.",
-                          variant: "destructive",
-                        });
-                      }}
+              <Label className="text-left">
+                What's in the Box{" "}
+                {whatsInTheBox.length > 0 && (
+                  <span className="text-red-500">*</span>
+                )}
+              </Label>
+              <div className="space-y-2">
+                {whatsInTheBox.map((item, index) => (
+                  <div key={index} className="flex gap-2">
+                    <Input
+                      value={item}
+                      onChange={(e) => updateBoxItem(index, e.target.value)}
+                      placeholder="Enter an item"
+                      required={whatsInTheBox.length > 0}
                     />
-                    {!isEditing && (
-                      <button
-                        type="button"
-                        className={`absolute top-0 right-0 ${
-                          isPending
-                            ? "bg-gray-400"
-                            : "bg-red-500 hover:bg-red-700"
-                        } text-white rounded-bl p-1 z-10 transition-colors`}
-                        onClick={() => removeProductImage(idx)}
-                        aria-label={`Remove image ${idx + 1}`}
-                        disabled={isPending}
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    )}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={() => removeBoxItem(index)}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
                   </div>
                 ))}
-                {!isEditing && productImages.length < 4 && (
-                  <button
-                    type="button"
-                    className="w-24 h-24 flex flex-col items-center justify-center border-2 border-dashed rounded hover:bg-accent/30 transition"
-                    onClick={() => productImageInputRef.current?.click()}
-                    aria-label="Add product image"
-                    disabled={isPending}
-                  >
-                    <ImageIcon className="w-8 h-8 text-muted-foreground" />
-                    <span className="text-xs mt-1">Add Image</span>
-                  </button>
-                )}
-                {!isEditing && (
-                  <input
-                    ref={productImageInputRef}
-                    type="file"
-                    name="images"
-                    accept="image/*"
-                    multiple
-                    hidden
-                    onChange={handleProductImageChange}
-                    aria-label="Product images"
-                  />
-                )}
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={addBoxItem}
+                  className="w-full"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Item
+                </Button>
               </div>
-              <p className="text-sm text-muted-foreground text-left">
-                {isEditing
-                  ? "Images cannot be modified in edit mode."
-                  : "Upload up to 4 images. At least 1 required. Maximum size: 5MB per image."}
-              </p>
+              <input
+                type="hidden"
+                name="whatsInTheBox"
+                value={JSON.stringify(whatsInTheBox)}
+              />
             </div>
 
             {/* Colors */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <Label className="text-left">Colors {isEditing && "(Names and colors only)"}</Label>
-                {!isEditing && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={addColor}
-                    disabled={isPending}
-                  >
-                    <Plus className="w-4 h-4 mr-1" /> Add Color
-                  </Button>
-                )}
-              </div>
-              <div className="space-y-4">
+            <div className="space-y-2">
+              <Label className="text-left">Colors</Label>
+              <div className="space-y-2">
                 {colors.map((color, index) => (
-                  <div key={index} className="flex flex-col md:flex-row items-start gap-4">
-                    <div className="flex-1 w-full space-y-2">
-                      <Label className="text-left">Color Name</Label>
-                      <Input
-                        value={color.name}
-                        onChange={(e) =>
-                          setColors(
-                            colors.map((c, i) =>
-                              i === index ? { ...c, name: e.target.value } : c
-                            )
-                          )
-                        }
-                        disabled={isPending}
-                        required
-                      />
-                    </div>
-                    <div className="flex-1 w-full space-y-2">
-                      <Label className="text-left">Color Hex</Label>
-                      <Input
-                        type="color"
-                        value={color.hex}
-                        onChange={(e) =>
-                          setColors(
-                            colors.map((c, i) =>
-                              i === index ? { ...c, hex: e.target.value } : c
-                            )
-                          )
-                        }
-                        disabled={isPending}
-                        required
-                      />
-                    </div>
-
-                    {/* Color image display/upload */}
-                    <div className="flex flex-col items-start gap-1">
-                      <Label className="text-left">Image {isEditing && "(Read-only)"}</Label>
-                      <div className="relative w-16 h-16 rounded overflow-hidden border bg-muted">
-                        {color.image ? (
-                          <>
-                            <Image
-                              src={
-                                color.image instanceof File
-                                  ? URL.createObjectURL(color.image)
-                                  : color.image
-                              }
-                              alt={`Color Preview - ${color.name}`}
-                              fill
-                              className="object-cover"
-                              sizes="64px"
-                              onError={(e) => {
-                                console.error("Color image load error:", e);
-                                toast({
-                                  title: "Image Error",
-                                  description:
-                                    "Failed to load color image. Please try another.",
-                                  variant: "destructive",
-                                });
-                              }}
-                            />
-                            {!isEditing && (
-                              <button
-                                type="button"
-                                className={`absolute top-0 right-0 ${
-                                  isPending
-                                    ? "bg-gray-400"
-                                    : "bg-red-500 hover:bg-red-700"
-                                } text-white rounded-bl p-1 z-10 transition-colors`}
-                                onClick={() => removeColorImage(index)}
-                                aria-label={`Remove ${color.name} color image`}
-                                disabled={isPending}
-                              >
-                                <X className="w-4 h-4" />
-                              </button>
-                            )}
-                          </>
-                        ) : (
-                          !isEditing && (
-                            <button
-                              type="button"
-                              className="w-16 h-16 flex flex-col items-center justify-center border-2 border-dashed rounded hover:bg-accent/30 transition"
-                              onClick={() =>
-                                colorImageInputRefs.current[index]?.click()
-                              }
-                              aria-label={`Add image for ${color.name} color`}
-                              disabled={isPending}
-                            >
-                              <ImageIcon className="w-6 h-6 text-muted-foreground" />
-                              <span className="text-xs mt-1">Add</span>
-                            </button>
-                          )
-                        )}
-                        {!isEditing && (
-                          <input
-                            ref={(el) => {
-                              colorImageInputRefs.current[index] = el;
-                            }}
-                            type="file"
-                            accept="image/*"
-                            hidden
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) handleColorImageChange(index, file);
-                            }}
-                            aria-label={`Color image for ${color.name}`}
-                          />
-                        )}
-                      </div>
-                    </div>
-
-                    {!isEditing && (
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        onClick={() => removeColor(index)}
-                        disabled={isPending}
-                        className="w-full md:w-auto"
-                      >
-                        Remove
-                      </Button>
-                    )}
+                  <div key={index} className="flex gap-2 items-center">
+                    <Input
+                      value={color.name}
+                      onChange={(e) =>
+                        updateColor(index, "name", e.target.value)
+                      }
+                      placeholder="Color name"
+                      className="flex-1"
+                    />
+                    <input
+                      type="color"
+                      value={color.hex}
+                      onChange={(e) =>
+                        updateColor(index, "hex", e.target.value)
+                      }
+                      className="h-10 w-20 px-1 rounded border"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={() => removeColor(index)}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
                   </div>
                 ))}
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={addColor}
+                  className="w-full"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Color
+                </Button>
               </div>
+              <input
+                type="hidden"
+                name="colors"
+                value={JSON.stringify(colors)}
+              />
+            </div>
+
+            {/* Product Images with Drag and Drop */}
+            <div className="space-y-2">
+              <Label className="text-left">
+                Product Images {isEditing && "(Read-only)"}
+              </Label>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {productImages.map((image, index) => (
+                  <div
+                    key={index}
+                    draggable
+                    onDragStart={() => handleDragStart(index)}
+                    onDragOver={(e) => handleDragOver(e, index)}
+                    onDragEnd={handleDragEnd}
+                    className={`relative group border rounded-lg p-2 cursor-move ${
+                      draggingIndex === index ? "opacity-50" : ""
+                    }`}
+                  >
+                    {!isEditing && (
+                      <div className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="icon"
+                          onClick={() => removeProductImage(index)}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    )}
+                    <div className="absolute top-2 left-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <GripVertical className="h-4 w-4 text-gray-500" />
+                    </div>
+                    <Image
+                      src={
+                        image instanceof File
+                          ? URL.createObjectURL(image)
+                          : image
+                      }
+                      alt={`Product image ${index + 1}`}
+                      width={200}
+                      height={200}
+                      className="rounded object-cover w-full aspect-square"
+                    />
+                  </div>
+                ))}
+                {!isEditing && productImages.length < 4 && (
+                  <div
+                    className="border-2 border-dashed rounded-lg p-4 flex items-center justify-center cursor-pointer"
+                    onClick={() => productImageInputRef.current?.click()}
+                  >
+                    <div className="text-center">
+                      <ImageIcon className="mx-auto h-8 w-8 text-gray-400" />
+                      <span className="mt-2 block text-sm text-gray-600">
+                        Add Images (Max 4)
+                      </span>
+                      <span className="mt-1 block text-xs text-gray-500">
+                        Select multiple at once
+                      </span>
+                    </div>
+                    <input
+                      ref={productImageInputRef}
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={handleProductImageChange}
+                      className="hidden"
+                      aria-label="Upload product images"
+                    />
+                  </div>
+                )}
+              </div>
+              <p className="text-sm text-muted-foreground mt-2">
+                Images must be less than 5MB each. You can add up to 4 images.
+              </p>
             </div>
 
             {/* Featured Switch */}
@@ -598,7 +630,9 @@ export function ProductForm({
                 onCheckedChange={setFeatured}
                 disabled={isPending}
               />
-              <Label htmlFor="featured" className="text-left">Featured Product</Label>
+              <Label htmlFor="featured" className="text-left">
+                Featured Product
+              </Label>
             </div>
 
             {/* Submit Button */}

@@ -1,142 +1,164 @@
-"use client"
+"use client";
 
-import { useState, useEffect, useCallback, useTransition } from "react"
-import { useFormStatus } from "react-dom"
-import Image from "next/image"
-import Link from "next/link"
-import { Trash2, Plus, Minus, ShoppingBag, ExternalLink } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { useToast } from "@/hooks/use-toast"
-import { updateCartQuantityAction, removeFromCartAction } from "@/lib/actions"
+import { useState, useEffect, useCallback, useTransition } from "react";
+import { useFormStatus } from "react-dom";
+import Image from "next/image";
+import Link from "next/link";
+import { Trash2, Plus, Minus, ShoppingBag, ExternalLink } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
+import { updateCartQuantityAction, removeFromCartAction } from "@/lib/actions";
 
 interface CartItem {
-  productId: string
-  productName: string
-  price: number
-  image: string | null
-  quantity: number
-  stock: number
-  notFound?: boolean
+  productId: string;
+  productName: string;
+  price: number;
+  image: string | null;
+  quantity: number;
+  stock: number;
+  notFound?: boolean;
+  color_name?: string;
 }
 
-function CartItemActions({ item, onUpdate, onRemove }: {
-  item: CartItem
-  onUpdate: (productId: string, quantity: number) => void
-  onRemove: (productId: string) => void
+function CartItemActions({
+  item,
+  onUpdate,
+  onRemove,
+}: {
+  item: CartItem;
+  onUpdate: (productId: string, quantity: number) => void;
+  onRemove: (productId: string) => void;
 }) {
-  const { pending } = useFormStatus()
-  const [quantity, setQuantity] = useState(item.quantity)
-  const [isPending, startTransition] = useTransition()
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-  const { toast } = useToast()
+  const { pending } = useFormStatus();
+  const [quantity, setQuantity] = useState(item.quantity);
+  const [isPending, startTransition] = useTransition();
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const { toast } = useToast();
 
   // Update local quantity when item.quantity changes
   useEffect(() => {
-    setQuantity(item.quantity)
-  }, [item.quantity])
+    setQuantity(item.quantity);
+  }, [item.quantity]);
 
-  const handleQuantityChange = useCallback((newQuantity: number) => {
-    if (newQuantity < 0 || newQuantity > item.stock) return
-    
-    // Optimistic update
-    setQuantity(newQuantity)
-    onUpdate(item.productId, newQuantity)
-    
-    startTransition(async () => {
-      try {
-        const formData = new FormData()
-        formData.append('productId', item.productId)
-        formData.append('quantity', newQuantity.toString())
-        const result = await updateCartQuantityAction(null, formData)
-        if (result?.error) {
+  const handleQuantityChange = useCallback(
+    (newQuantity: number) => {
+      if (newQuantity < 0 || newQuantity > item.stock) return;
+
+      // Optimistic update
+      setQuantity(newQuantity);
+      onUpdate(item.productId, newQuantity);
+
+      startTransition(async () => {
+        try {
+          const formData = new FormData();
+          formData.append("productId", item.productId);
+          formData.append("quantity", newQuantity.toString());
+          const result = await updateCartQuantityAction(null, formData);
+          if (result?.error) {
+            // Revert on error
+            setQuantity(item.quantity);
+            onUpdate(item.productId, item.quantity);
+            toast({
+              title: "Error",
+              description: result.error,
+              variant: "destructive",
+            });
+          } else {
+            toast({
+              title: "Success",
+              description: result?.message || "Quantity updated",
+            });
+          }
+        } catch (error) {
           // Revert on error
-          setQuantity(item.quantity)
-          onUpdate(item.productId, item.quantity)
+          setQuantity(item.quantity);
+          onUpdate(item.productId, item.quantity);
           toast({
             title: "Error",
-            description: result.error,
+            description: "Failed to update quantity",
             variant: "destructive",
-          })
-        } else {
-          toast({
-            title: "Success",
-            description: result?.message || "Quantity updated",
-          })
+          });
         }
-      } catch (error) {
-        // Revert on error
-        setQuantity(item.quantity)
-        onUpdate(item.productId, item.quantity)
-        toast({
-          title: "Error",
-          description: "Failed to update quantity",
-          variant: "destructive",
-        })
-      }
-    })
-  }, [item.productId, item.quantity, item.stock, onUpdate, startTransition, toast])
+      });
+    },
+    [
+      item.productId,
+      item.quantity,
+      item.stock,
+      onUpdate,
+      startTransition,
+      toast,
+    ]
+  );
 
   const handleRemove = useCallback(() => {
-    setShowDeleteDialog(false)
+    setShowDeleteDialog(false);
     // Optimistic update
-    onRemove(item.productId)
-    
+    onRemove(item.productId);
+
     startTransition(async () => {
       try {
-        const formData = new FormData()
-        formData.append('productId', item.productId)
-        const result = await removeFromCartAction(null, formData)
+        const formData = new FormData();
+        formData.append("productId", item.productId);
+        const result = await removeFromCartAction(null, formData);
         if (result?.error) {
           // Revert on error - add item back
-          onUpdate(item.productId, item.quantity)
+          onUpdate(item.productId, item.quantity);
           toast({
             title: "Error",
             description: result.error,
             variant: "destructive",
-          })
+          });
         } else {
           toast({
             title: "Success",
             description: result?.message || "Item removed",
-          })
+          });
         }
       } catch (error) {
         // Revert on error - add item back
-        onUpdate(item.productId, item.quantity)
+        onUpdate(item.productId, item.quantity);
         toast({
           title: "Error",
           description: "Failed to remove item",
           variant: "destructive",
-        })
+        });
       }
-    })
-  }, [item.productId, item.quantity, onRemove, onUpdate, startTransition, toast])
+    });
+  }, [
+    item.productId,
+    item.quantity,
+    onRemove,
+    onUpdate,
+    startTransition,
+    toast,
+  ]);
 
   return (
     <div className="flex flex-col items-end gap-2">
       {/* Action buttons */}
       <div className="flex items-center gap-1">
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          asChild
-        >
+        <Button variant="ghost" size="icon" asChild>
           <Link href={`/product/${item.productId}`}>
             <ExternalLink className="h-4 w-4" />
             <span className="sr-only">View product</span>
           </Link>
         </Button>
-        
+
         <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
           <DialogTrigger asChild>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              disabled={isPending}
-            >
+            <Button variant="ghost" size="icon" disabled={isPending}>
               <Trash2 className="h-4 w-4" />
               <span className="sr-only">Remove item</span>
             </Button>
@@ -145,14 +167,22 @@ function CartItemActions({ item, onUpdate, onRemove }: {
             <DialogHeader>
               <DialogTitle>Remove Item</DialogTitle>
               <DialogDescription>
-                Are you sure you want to remove "{item.productName}" from your cart? This action cannot be undone.
+                Are you sure you want to remove "{item.productName}" from your
+                cart? This action cannot be undone.
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
+              <Button
+                variant="outline"
+                onClick={() => setShowDeleteDialog(false)}
+              >
                 Cancel
               </Button>
-              <Button variant="destructive" onClick={handleRemove} disabled={isPending}>
+              <Button
+                variant="destructive"
+                onClick={handleRemove}
+                disabled={isPending}
+              >
                 Remove
               </Button>
             </DialogFooter>
@@ -171,9 +201,9 @@ function CartItemActions({ item, onUpdate, onRemove }: {
         >
           <Minus className="h-3 w-3" />
         </Button>
-        
+
         <span className="w-8 text-center">{quantity}</span>
-        
+
         <Button
           variant="outline"
           size="icon"
@@ -185,43 +215,49 @@ function CartItemActions({ item, onUpdate, onRemove }: {
         </Button>
       </div>
     </div>
-  )
+  );
 }
 
-function NotFoundCartItem({ item, onRemove }: { item: CartItem, onRemove: (productId: string) => void }) {
-  const [isPending, startTransition] = useTransition()
-  const { toast } = useToast()
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+function NotFoundCartItem({
+  item,
+  onRemove,
+}: {
+  item: CartItem;
+  onRemove: (productId: string) => void;
+}) {
+  const [isPending, startTransition] = useTransition();
+  const { toast } = useToast();
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const handleRemove = useCallback(() => {
-    setShowDeleteDialog(false)
-    onRemove(item.productId)
+    setShowDeleteDialog(false);
+    onRemove(item.productId);
     startTransition(async () => {
       try {
-        const formData = new FormData()
-        formData.append('productId', item.productId)
-        const result = await removeFromCartAction(null, formData)
+        const formData = new FormData();
+        formData.append("productId", item.productId);
+        const result = await removeFromCartAction(null, formData);
         if (result?.error) {
           toast({
             title: "Error",
             description: result.error,
             variant: "destructive",
-          })
+          });
         } else {
           toast({
             title: "Success",
             description: result?.message || "Item removed",
-          })
+          });
         }
       } catch (error) {
         toast({
           title: "Error",
           description: "Failed to remove item",
           variant: "destructive",
-        })
+        });
       }
-    })
-  }, [item.productId, onRemove, startTransition, toast])
+    });
+  }, [item.productId, onRemove, startTransition, toast]);
 
   return (
     <Card className="border-dashed border-muted-foreground/20">
@@ -230,8 +266,12 @@ function NotFoundCartItem({ item, onRemove }: { item: CartItem, onRemove: (produ
           <span className="text-3xl">❓</span>
         </div>
         <div className="flex-1">
-          <h3 className="font-semibold text-muted-foreground">Product unavailable</h3>
-          <p className="text-sm text-muted-foreground">This product is no longer available.</p>
+          <h3 className="font-semibold text-muted-foreground">
+            Product unavailable
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            This product is no longer available.
+          </p>
         </div>
         <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
           <DialogTrigger asChild>
@@ -244,14 +284,22 @@ function NotFoundCartItem({ item, onRemove }: { item: CartItem, onRemove: (produ
             <DialogHeader>
               <DialogTitle>Remove Item</DialogTitle>
               <DialogDescription>
-                Are you sure you want to remove this unavailable product from your cart?
+                Are you sure you want to remove this unavailable product from
+                your cart?
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
+              <Button
+                variant="outline"
+                onClick={() => setShowDeleteDialog(false)}
+              >
                 Cancel
               </Button>
-              <Button variant="destructive" onClick={handleRemove} disabled={isPending}>
+              <Button
+                variant="destructive"
+                onClick={handleRemove}
+                disabled={isPending}
+              >
                 Remove
               </Button>
             </DialogFooter>
@@ -259,53 +307,75 @@ function NotFoundCartItem({ item, onRemove }: { item: CartItem, onRemove: (produ
         </Dialog>
       </CardContent>
     </Card>
-  )
+  );
 }
 
-export default function CartList({ cartItems: initialCartItems }: { cartItems: CartItem[] }) {
-  const [cartItems, setCartItems] = useState<CartItem[]>(initialCartItems)
+export default function CartList({
+  cartItems: initialCartItems,
+}: {
+  cartItems: CartItem[];
+}) {
+  const [cartItems, setCartItems] = useState<CartItem[]>(initialCartItems);
 
-  const handleUpdateQuantity = useCallback((productId: string, newQuantity: number) => {
-    if (newQuantity === 0) {
-      setCartItems(items => items.filter(item => item.productId !== productId))
-    } else {
-      setCartItems(items =>
-        items.map(item =>
-          item.productId === productId ? { ...item, quantity: newQuantity } : item
-        )
-      )
-    }
-  }, [])
+  const handleUpdateQuantity = useCallback(
+    (productId: string, newQuantity: number) => {
+      if (newQuantity === 0) {
+        setCartItems((items) =>
+          items.filter((item) => item.productId !== productId)
+        );
+      } else {
+        setCartItems((items) =>
+          items.map((item) =>
+            item.productId === productId
+              ? { ...item, quantity: newQuantity }
+              : item
+          )
+        );
+      }
+    },
+    []
+  );
 
   const handleRemove = useCallback((productId: string) => {
-    setCartItems(items => items.filter(item => item.productId !== productId))
-  }, [])
+    setCartItems((items) =>
+      items.filter((item) => item.productId !== productId)
+    );
+  }, []);
 
   // Only valid items for summary/checkout
-  const validCartItems = cartItems.filter(item => !item.notFound)
-  const subtotal = validCartItems.reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 0), 0)
-  const total = subtotal
+  const validCartItems = cartItems.filter((item) => !item.notFound);
+  const subtotal = validCartItems.reduce(
+    (sum, item) => sum + (item.price || 0) * (item.quantity || 0),
+    0
+  );
+  const total = subtotal;
 
   if (cartItems.length === 0) {
     return (
       <div className="text-center w-full mx-auto">
         <ShoppingBag className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
         <h1 className="text-2xl font-bold mb-2">Your cart is empty</h1>
-        <p className="text-muted-foreground mb-6">Looks like you haven't added any items to your cart yet.</p>
+        <p className="text-muted-foreground mb-6">
+          Looks like you haven't added any items to your cart yet.
+        </p>
         <Button asChild>
           <Link href="/">Continue Shopping</Link>
         </Button>
       </div>
-    )
+    );
   }
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
       {/* Cart Items */}
       <div className="lg:col-span-2 space-y-4">
-        {cartItems.map((item) => (
+        {cartItems.map((item) =>
           item.notFound ? (
-            <NotFoundCartItem key={item.productId} item={item} onRemove={handleRemove} />
+            <NotFoundCartItem
+              key={item.productId}
+              item={item}
+              onRemove={handleRemove}
+            />
           ) : (
             <Card key={item.productId}>
               <CardContent className="p-4">
@@ -320,6 +390,11 @@ export default function CartList({ cartItems: initialCartItems }: { cartItems: C
                   </div>
                   <div className="flex-1">
                     <h3 className="font-semibold">{item.productName || "Product"}</h3>
+                    {item.color_name && (
+                      <p className="text-sm text-muted-foreground">
+                        Color: {item.color_name}
+                      </p>
+                    )}
                     <p className="text-lg font-bold mt-2">${item.price || 0}</p>
                   </div>
                   <CartItemActions 
@@ -331,7 +406,7 @@ export default function CartList({ cartItems: initialCartItems }: { cartItems: C
               </CardContent>
             </Card>
           )
-        ))}
+        )}
       </div>
 
       {/* Order Summary */}
@@ -350,7 +425,12 @@ export default function CartList({ cartItems: initialCartItems }: { cartItems: C
               <span>Total</span>
               <span>${total.toFixed(2)}</span>
             </div>
-            <Button className="w-full" size="lg" asChild disabled={validCartItems.length === 0}>
+            <Button
+              className="w-full"
+              size="lg"
+              asChild
+              disabled={validCartItems.length === 0}
+            >
               <Link href="/checkout">Proceed to Checkout</Link>
             </Button>
             <Button variant="outline" className="w-full bg-transparent" asChild>
@@ -360,5 +440,5 @@ export default function CartList({ cartItems: initialCartItems }: { cartItems: C
         </Card>
       </div>
     </div>
-  )
+  );
 }
