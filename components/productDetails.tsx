@@ -580,11 +580,11 @@ function ProductDetails({
             )}
 
             {/* What's in the Box */}
-            {product.whatsInTheBox && product.whatsInTheBox.length > 0 && (
+            {product.whats_in_the_box && product.whats_in_the_box.length > 0 && (
               <div className="space-y-2">
                 <h2 className="text-xl font-semibold">What's in the Box</h2>
                 <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                  {product.whatsInTheBox.map((item, index) => (
+                  {product.whats_in_the_box.map((item, index) => (
                     <li key={index}>{item}</li>
                   ))}
                 </ul>
