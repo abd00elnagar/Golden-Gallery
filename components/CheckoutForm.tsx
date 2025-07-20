@@ -281,7 +281,7 @@ export default function CheckoutForm({ user, cartItems }: CheckoutFormProps) {
                             No Image
                           </div>
                         )}
-                        <span className="absolute top-1 right-1 bg-primary text-black text-xs font-bold px-2 py-0.5 rounded-full shadow">
+                        <span className="absolute top-1 right-1 bg-black text-white text-xs font-bold px-2 py-0.5 rounded-full shadow">
                           {item.quantity}x
                         </span>
                       </div>
