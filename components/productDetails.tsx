@@ -436,7 +436,7 @@ function ProductDetails({
         {/* Main Product Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Image Gallery */}
-          <Card className="overflow-hidden">
+          <Card className="overflow-hidden h-fit">
             <CardContent className="p-0">
               <div className="relative h-80 md:h-96">
                 <Image
