@@ -260,13 +260,13 @@ export function ProductCard({ product, isFavorite, userId }: ProductCardProps) {
         productLikes={product.likes}
         onLikesUpdate={setCurrentLikes}
       />
-      <div className="relative aspect-square overflow-hidden">
+      <div className="relative aspect-square overflow-hidden bg-white flex items-center justify-center">
         <Link href={`/product/${product.id}`} className="block w-full h-full">
           <Image
             src={product.images?.[0]}
             alt={product.name}
             fill
-            className="object-cover transition-transform group-hover:scale-105"
+            className="object-contain transition-transform group-hover:scale-105"
             priority
           />
         </Link>
@@ -297,7 +297,7 @@ export function ProductCard({ product, isFavorite, userId }: ProductCardProps) {
 
         <div className="flex items-center justify-between mb-1.5">
           <span className="font-semibold text-base md:text-lg">
-            ${product.price}
+          EGP {product.price}
           </span>
           {product.category && (
             <Badge variant="outline" className="text-[10px] px-1.5 py-0">

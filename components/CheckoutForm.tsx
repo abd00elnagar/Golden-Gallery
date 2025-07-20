@@ -295,7 +295,7 @@ export default function CheckoutForm({ user, cartItems }: CheckoutFormProps) {
                           </p>
                         )}
                         <p className="text-sm font-medium">
-                          ${(item.price * item.quantity).toFixed(2)}
+                        EGP {(item.price * item.quantity).toFixed(2)}
                         </p>
                       </div>
                     </div>

@@ -298,13 +298,13 @@ export function OrdersTable({ initialOrders }: OrdersTableProps) {
                                       </div>
                                       <div className="text-right">
                                         <p className="font-medium">
-                                          $
+                                        EGP
                                           {(item.price * item.quantity).toFixed(
                                             2
                                           )}
                                         </p>
                                         <p className="text-sm text-muted-foreground">
-                                          ${item.price} each
+                                        EGP {item.price} each
                                         </p>
                                       </div>
                                     </div>

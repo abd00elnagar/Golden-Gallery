@@ -25,6 +25,7 @@ import { useRouter } from "next/navigation";
 import { FaWhatsapp } from "react-icons/fa";
 import { Dialog, DialogTrigger, DialogContent } from "@/components/ui/dialog";
 import MDEditor from "@uiw/react-md-editor";
+import { Markdown } from "@/components/ui/markdown";
 
 function SignInPrompt({
   open,
@@ -299,11 +300,8 @@ function ProductDetails({
     );
   }
 
-  // Create a combined array of all images: product images first, then color images
-  const allImages = [
-    ...(product.images || []),
-    ...(product.colors || []).map((color) => color.image).filter(Boolean),
-  ];
+  // Create a combined array of all images: product images only
+  const allImages = product.images || [];
 
   const currentImage = allImages[currentImageIndex] || "/placeholder.svg";
 
@@ -316,91 +314,44 @@ function ProductDetails({
   // Handle carousel navigation
   const handlePreviousImage = () => {
     if (allImages.length <= 1) return;
-
     let newIndex: number;
     if (currentImageIndex > 0) {
       newIndex = currentImageIndex - 1;
     } else {
       newIndex = allImages.length - 1;
     }
-
     if (newIndex === currentImageIndex) {
       return;
     }
-
     setImageLoading(true);
     setCurrentImageIndex(newIndex);
-
-    // Update color selection if navigating to a color image
-    const productImageCount = product.images?.length || 0;
-    if (newIndex >= productImageCount) {
-      const colorIndex = newIndex - productImageCount;
-      setSelectedColorIndex(colorIndex);
-    } else {
-      setSelectedColorIndex(-1);
-    }
   };
 
   const handleNextImage = () => {
     if (allImages.length <= 1) return;
-
     let newIndex: number;
     if (currentImageIndex < allImages.length - 1) {
       newIndex = currentImageIndex + 1;
     } else {
       newIndex = 0;
     }
-
     if (newIndex === currentImageIndex) {
       return;
     }
-
     setImageLoading(true);
     setCurrentImageIndex(newIndex);
-
-    // Update color selection if navigating to a color image
-    const productImageCount = product.images?.length || 0;
-    if (newIndex >= productImageCount) {
-      const colorIndex = newIndex - productImageCount;
-      setSelectedColorIndex(colorIndex);
-    } else {
-      setSelectedColorIndex(-1);
-    }
   };
 
-  // Handle color button click - jump to that color's image and select it
-  const handleColorSelect = (colorIndex: number) => {
-    const productImageCount = product.images?.length || 0;
-    const colorImageIndex = productImageCount + colorIndex;
-    if (colorImageIndex == currentImageIndex) {
-      return;
-    }
-    // Always update the image and selection, even if clicking the same color
-    setImageLoading(true);
-    setCurrentImageIndex(colorImageIndex);
-    setSelectedColorIndex(colorIndex);
+  // Handle color button click - just set the selected color
+  const handleColorSelect = (colorName: string) => {
+    setSelectedColor(colorName);
   };
 
   // Handle image thumbnail selection
   const handleImageSelect = (index: number) => {
     if (index >= 0 && index < allImages.length) {
-      if (index == currentImageIndex) {
-        return;
-      }
-
-      const productImageCount = product.images?.length || 0;
-
-      if (index >= productImageCount) {
-        // This is a color image
-        const colorIndex = index - productImageCount;
-        handleColorSelect(colorIndex);
-        return;
-      } else {
-        // This is a product image
-        setSelectedColorIndex(-1);
-        setCurrentImageIndex(index);
-        setImageLoading(true);
-      }
+      setCurrentImageIndex(index);
+      setImageLoading(true);
     }
   };
 
@@ -437,18 +388,19 @@ function ProductDetails({
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Image Gallery */}
           <Card className="overflow-hidden h-fit">
-            <CardContent className="p-0">
-              <div className="relative h-80 md:h-96">
+            <CardContent className="p-2">
+              <div className="relative h-[400px] md:h-[600px] bg-white flex items-center justify-center mb-4">
                 <Image
-                  src={product.images[currentImageIndex] || "/placeholder.svg"}
+                  src={allImages[currentImageIndex] || "/placeholder.svg"}
                   alt={product.name}
                   fill
-                  className="object-cover"
+                  className="object-contain"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   onError={handleImageError}
                   priority
                 />
-                {product.images.length > 1 && (
-                  <>
+                {allImages.length > 1 && (
+                  <div>
                     <Button
                       variant="ghost"
                       size="icon"
@@ -465,12 +417,12 @@ function ProductDetails({
                     >
                       <ChevronRight className="h-4 w-4" />
                     </Button>
-                  </>
+                  </div>
                 )}
               </div>
-              {product.images.length > 1 && (
-                <div className="grid grid-cols-4 gap-2 p-2">
-                  {product.images.map((image, index) => (
+              {allImages.length > 1 && (
+                <div className="grid grid-cols-4 gap-2 p-2 mb-2">
+                  {allImages.map((image, index) => (
                     <button
                       key={index}
                       onClick={() => handleImageSelect(index)}
@@ -479,12 +431,14 @@ function ProductDetails({
                           ? "ring-2 ring-primary"
                           : "hover:opacity-75"
                       }`}
+                      title={`Select image view ${index + 1}`}
                     >
                       <Image
                         src={image}
                         alt={`${product.name} view ${index + 1}`}
                         fill
-                        className="object-cover"
+                        className="object-contain"
+                        sizes="64px"
                       />
                     </button>
                   ))}
@@ -533,7 +487,7 @@ function ProductDetails({
                   {product.colors.map((color) => (
                     <button
                       key={color.name}
-                      onClick={() => setSelectedColor(color.name)}
+                      onClick={() => handleColorSelect(color.name)}
                       className={`w-10 h-10 rounded-full border-2 transition-all ${
                         selectedColor === color.name
                           ? "ring-2 ring-primary ring-offset-2"
@@ -568,14 +522,8 @@ function ProductDetails({
 
             {/* Description with Markdown */}
             {product.description && (
-              <div className="space-y-2">
-                <h2 className="text-xl font-semibold">Description</h2>
-                <div
-                  data-color-mode="light"
-                  className="prose prose-sm max-w-none"
-                >
-                  <MDEditor.Markdown source={product.description} />
-                </div>
+              <div className="prose dark:prose-invert max-w-none">
+                <Markdown>{product.description}</Markdown>
               </div>
             )}
 
@@ -622,19 +570,35 @@ function ProductDetails({
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <AddToCartButton
-                  productId={product.id}
-                  userId={userId}
-                  quantity={quantity}
-                  isOutOfStock={product.stock < 1}
-                  selectedColor={selectedColor}
-                />
+              <div
+                className="grid grid-cols-2 grid-rows-2 gap-4"
+              >
+                <div className="col-span-2">
+                  <AddToCartButton
+                    productId={product.id}
+                    userId={userId}
+                    quantity={quantity}
+                    isOutOfStock={product.stock < 1}
+                    selectedColor={selectedColor}
+                  />
+                </div>
+                <Button
+                  asChild
+                  variant="outline"
+                  className="w-full flex items-center gap-2"
+                  onClick={() => window.open(waLink, '_blank')}
+                >
+                  <span className="flex items-center gap-2">
+                    Order via WhatsApp
+                    <FaWhatsapp className="text-green-500" />
+                  </span>
+                </Button>
                 <Button
                   size="lg"
                   variant="outline"
                   onClick={handleBuyNow}
                   disabled={product.stock < 1}
+                  className="w-full"
                 >
                   <ShoppingBag className="h-4 w-4 mr-2" />
                   Buy Now

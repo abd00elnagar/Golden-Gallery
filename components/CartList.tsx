@@ -395,7 +395,7 @@ export default function CartList({
                         Color: {item.color_name}
                       </p>
                     )}
-                    <p className="text-lg font-bold mt-2">${item.price || 0}</p>
+                    <p className="text-lg font-bold mt-2">EGP {item.price || 0}</p>
                   </div>
                   <CartItemActions 
                     item={item}
