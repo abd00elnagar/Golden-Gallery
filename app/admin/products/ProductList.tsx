@@ -219,7 +219,7 @@ export function ProductList({
                             </Badge>
                           </TableCell>
                           <TableCell className="font-medium">
-                            ${product.price}
+                          EGP {product.price}
                           </TableCell>
                           <TableCell className="text-center">
                             {product.stock}

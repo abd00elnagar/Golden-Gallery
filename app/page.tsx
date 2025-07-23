@@ -99,7 +99,7 @@ export default async function HomePage() {
                       src={product.images[0] || "/placeholder.jpg"}
                       alt={product.name}
                       fill
-                      className="object-cover"
+                      className="object-contain bg-white"
                       priority
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
@@ -112,7 +112,7 @@ export default async function HomePage() {
                           variant="secondary"
                           className="bg-white/20 backdrop-blur-sm text-xs"
                         >
-                          ${product.price}
+                          EGP {product.price}
                         </Badge>
                         <div className="flex items-center gap-1 text-white text-xs">
                           <Heart className="w-3 h-3" />
@@ -140,7 +140,7 @@ export default async function HomePage() {
                       src={topLikedProducts[0]?.images[0] || "/placeholder.jpg"}
                       alt={topLikedProducts[0]?.name || "Featured product"}
                       fill
-                      className="object-cover transition-transform group-hover:scale-105"
+                      className="object-contain bg-white transition-transform group-hover:scale-105"
                       priority
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
@@ -153,7 +153,7 @@ export default async function HomePage() {
                           variant="secondary"
                           className="bg-white/20 backdrop-blur-sm"
                         >
-                          ${topLikedProducts[0]?.price}
+                          EGP {topLikedProducts[0]?.price}
                         </Badge>
                         <div className="flex items-center gap-1">
                           <Heart className="w-4 h-4" />
@@ -178,7 +178,7 @@ export default async function HomePage() {
                         src={product.images[0] || "/placeholder.jpg"}
                         alt={product.name}
                         fill
-                        className="object-cover transition-transform group-hover:scale-105"
+                        className="object-contain bg-white transition-transform group-hover:scale-105"
                         priority
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
@@ -191,7 +191,7 @@ export default async function HomePage() {
                             variant="secondary"
                             className="bg-white/20 backdrop-blur-sm"
                           >
-                            ${product.price}
+                            EGP {product.price}
                           </Badge>
                           <div className="flex items-center gap-1 text-sm">
                             <Heart className="w-3 h-3" />

@@ -148,10 +148,10 @@ export default function OrderDetailsClient({ order }: { order: any }) {
                   </div>
                   <div className="text-right">
                     <p className="font-medium">
-                      ${(item.price * item.quantity).toFixed(2)}
+                    EGP {(item.price * item.quantity).toFixed(2)}
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      ${item.price} each
+                    EGP {item.price} each
                     </p>
                   </div>
                 </div>

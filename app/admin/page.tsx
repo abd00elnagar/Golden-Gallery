@@ -324,7 +324,7 @@ async function DashboardContent() {
                       <div className="space-y-1">
                         <p className="font-medium">{product.name}</p>
                         <p className="text-sm text-muted-foreground">
-                          ${product.price}
+                        EGP {product.price}
                         </p>
                       </div>
                       <div className="text-right space-y-1">

@@ -131,7 +131,7 @@ export async function sendOrderConfirmationEmail(data: OrderEmailData) {
         )}</div>
       </td>
       <td style="padding: 8px 0; text-align: right;">
-        $${(item.price * item.quantity).toFixed(2)}
+        EGP ${(item.price * item.quantity).toFixed(2)}
       </td>
     </tr>
   `
