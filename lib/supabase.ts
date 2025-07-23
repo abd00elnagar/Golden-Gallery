@@ -16,8 +16,8 @@ export const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
 // Server-side client for admin operations using service role key
 export const createServerClient = () => {
   return createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
     {
       auth: {
         autoRefreshToken: false,
@@ -177,8 +177,13 @@ export interface Database {
           id: string;
           user_id: string;
           order_number: string;
-          status: "pending" | "processing" | "shipped" | "delivered" | "cancelled";
-          payment_method: "cod" | "card" | "paypal";
+          status:
+            | "pending"
+            | "processing"
+            | "shipped"
+            | "delivered"
+            | "cancelled";
+          payment_method: string;
           shipping_address: string;
           shipping_phone: string;
           total_amount: number;
@@ -198,8 +203,13 @@ export interface Database {
           id?: string;
           user_id: string;
           order_number: string;
-          status?: "pending" | "processing" | "shipped" | "delivered" | "cancelled";
-          payment_method?: "cod" | "card" | "paypal";
+          status?:
+            | "pending"
+            | "processing"
+            | "shipped"
+            | "delivered"
+            | "cancelled";
+          payment_method?: string;
           shipping_address: string;
           shipping_phone: string;
           total_amount: number;
@@ -219,8 +229,13 @@ export interface Database {
           id?: string;
           user_id?: string;
           order_number?: string;
-          status?: "pending" | "processing" | "shipped" | "delivered" | "cancelled";
-          payment_method?: "cod" | "card" | "paypal";
+          status?:
+            | "pending"
+            | "processing"
+            | "shipped"
+            | "delivered"
+            | "cancelled";
+          payment_method?: string;
           shipping_address?: string;
           shipping_phone?: string;
           total_amount?: number;

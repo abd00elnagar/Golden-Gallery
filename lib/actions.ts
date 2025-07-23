@@ -660,14 +660,31 @@ export async function createOrder(
 
   const serverClient = createServerClient();
   try {
+    console.log("Attempting to create order with data:", {
+      ...orderData,
+      items: orderData.items.length, // Just log the length for brevity
+    });
+
     const { data, error } = await serverClient
       .from("orders")
       .insert(orderData)
       .select()
       .single();
-    if (error) return null;
+
+    if (error) {
+      console.error("Database error creating order:", {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+      });
+      return null;
+    }
+
+    console.log("Order created successfully:", data);
     return data;
-  } catch {
+  } catch (error) {
+    console.error("Unexpected error creating order:", error);
     return null;
   }
 }
@@ -1158,6 +1175,7 @@ export async function createOrderAction(prevState: any, formData: FormData) {
   try {
     const user = await getUser();
     if (!user) {
+      console.error("Authentication error: User not found");
       return { error: "User not authenticated" };
     }
 
@@ -1168,6 +1186,17 @@ export async function createOrderAction(prevState: any, formData: FormData) {
     const phone = formData.get("phone") as string;
     const address = formData.get("address") as string;
     const isBuyNow = formData.get("buyNow") === "1";
+    const paymentMethod = formData.get("payment_method") as string;
+
+    console.log("Form data received:", {
+      firstName,
+      lastName,
+      email,
+      phone,
+      address,
+      isBuyNow,
+      paymentMethod,
+    });
 
     // Get cart items - for Buy Now, we need to get from form data
     let cartItems = [];
@@ -1175,14 +1204,24 @@ export async function createOrderAction(prevState: any, formData: FormData) {
       // For Buy Now, the cart items should be passed in the form data
       const cartItemsJson = formData.get("cartItems") as string;
       if (cartItemsJson) {
-        cartItems = JSON.parse(cartItemsJson);
+        try {
+          cartItems = JSON.parse(cartItemsJson);
+          console.log("Buy Now cart items:", cartItems);
+        } catch (parseError) {
+          console.error("Failed to parse cart items JSON:", parseError);
+          return { error: "Invalid cart items data" };
+        }
       }
     } else {
       // For regular cart checkout, get from user's cart
       cartItems = await getUserCartItems(user && user.id);
+      console.log("Regular cart items:", cartItems);
     }
 
-    if (!cartItems.length) return { error: "Cart is empty" };
+    if (!cartItems.length) {
+      console.error("Cart is empty");
+      return { error: "Cart is empty" };
+    }
 
     // Calculate totals
     const subtotal = cartItems.reduce(
@@ -1196,7 +1235,7 @@ export async function createOrderAction(prevState: any, formData: FormData) {
       user_id: user && user.id,
       order_number: `ORD-${Date.now()}`,
       status: "pending" as "pending",
-      payment_method: "cod" as "cod",
+      payment_method: paymentMethod,
       shipping_address: address,
       shipping_phone: phone,
       total_amount: total,
@@ -1211,42 +1250,70 @@ export async function createOrderAction(prevState: any, formData: FormData) {
       created_at: new Date().toISOString(),
     };
 
+    console.log("Creating order with data:", orderData);
+
     // Save order in DB
     const order = await createOrder(orderData);
-    if (!order) return { error: "Failed to create order" };
+    if (!order) {
+      const errorMessage =
+        "Failed to create order in database. Please try again or contact support if the issue persists.";
+      console.error(errorMessage);
+      return {
+        error: errorMessage,
+        details: "Check server logs for more details",
+      };
+    }
 
-    // Add notification for order creation
+    console.log("Order created successfully:", order);
+
+    // Add notification for order creation with payment instructions
     const notifications = user.notifications || [];
+    let notificationMessage = `Your order #${order.order_number} has been placed successfully.`;
+
+    if (paymentMethod === "vodafone_cash" || paymentMethod === "instapay") {
+      notificationMessage += ` Please send ${total.toFixed(2)} EGP to ${
+        paymentMethod === "vodafone_cash"
+          ? "Vodafone Cash number: 01066425852"
+          : "Instapay number: 01066425852"
+      } and send the payment screenshot on WhatsApp to verify your purchase.`;
+    }
+
     notifications.unshift({
       id: crypto.randomUUID(),
       orderId: order.id,
-      message: `Your order #${order.order_number} has been placed successfully.`,
+      message: notificationMessage,
       read: false,
       createdAt: new Date().toISOString(),
     });
 
     // Update user with new notification and clear cart if needed
     const serverClient = createServerClient();
-    if (!isBuyNow) {
-      await serverClient
-        .from("users")
-        .update({
-          cart: [],
-          orders: [...(user.orders || []), order.id],
-          notifications,
-        })
-        .eq("id", user.id);
-    } else {
-      await serverClient
-        .from("users")
-        .update({
-          orders: [...(user.orders || []), order.id],
-          notifications,
-        })
-        .eq("id", user.id);
+    try {
+      if (!isBuyNow) {
+        await serverClient
+          .from("users")
+          .update({
+            cart: [],
+            orders: [...(user.orders || []), order.id],
+            notifications,
+          })
+          .eq("id", user.id);
+      } else {
+        await serverClient
+          .from("users")
+          .update({
+            orders: [...(user.orders || []), order.id],
+            notifications,
+          })
+          .eq("id", user.id);
+      }
+      console.log("User data updated successfully");
+    } catch (updateError) {
+      console.error("Failed to update user data:", updateError);
+      // Don't return error here as order is already created
     }
 
-    // Send confirmation email
+    // Send confirmation email with payment instructions
     try {
       console.log(
         `Sending order confirmation email to ${email} for order ${order.order_number}`
@@ -1272,6 +1339,7 @@ export async function createOrderAction(prevState: any, formData: FormData) {
         ).toLocaleDateString(),
         orderDate: orderData.created_at,
         status: orderData.status,
+        payment_method: paymentMethod,
       });
 
       if (emailResult.success) {
@@ -1287,10 +1355,27 @@ export async function createOrderAction(prevState: any, formData: FormData) {
       // Don't fail the order if email fails
     }
 
-    return { success: true, orderId: order.id };
+    // Return success with appropriate message
+    const successMessage =
+      paymentMethod === "cod"
+        ? "You will receive a confirmation email shortly."
+        : `Please send ${total.toFixed(2)} EGP to ${
+            paymentMethod === "vodafone_cash"
+              ? "Vodafone Cash number: 01066425852"
+              : "Instapay number: 01066425852"
+          } and send the payment screenshot on WhatsApp to verify your purchase.`;
+
+    return {
+      success: true,
+      orderId: order.id,
+      message: successMessage,
+    };
   } catch (error: any) {
     console.error("Order creation error:", error);
-    return { error: error.message || "Order failed" };
+    return {
+      error: error.message || "Order failed",
+      details: error.stack || "No stack trace available",
+    };
   }
 }
 

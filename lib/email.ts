@@ -84,6 +84,7 @@ interface OrderEmailData {
   orderDate: string;
   status: string;
   baseUrl?: string; // for generating the order link
+  payment_method?: string; // Added for payment method
 }
 
 export async function sendOrderConfirmationEmail(data: OrderEmailData) {
@@ -103,6 +104,7 @@ export async function sendOrderConfirmationEmail(data: OrderEmailData) {
     orderDate,
     status,
     baseUrl,
+    payment_method,
   } = data;
 
   // Use the dynamic URL function
@@ -216,9 +218,33 @@ export async function sendOrderConfirmationEmail(data: OrderEmailData) {
           <div class="section-title">Important Notes</div>
           <ul style="margin: 0 0 0 18px; font-size: 15px; color: #444;">
             <li>Please ensure your phone number is correct for delivery coordination.</li>
+            ${
+              payment_method === "cod"
+                ? `
             <li>Payment will be collected in cash upon delivery.</li>
             <li>You will receive a call from our delivery team before arrival.</li>
             <li>Please have the exact amount ready for payment.</li>
+            `
+                : payment_method === "vodafone_cash"
+                ? `
+            <li>Please send ${total.toFixed(
+              2
+            )} EGP to our Vodafone Cash number: <strong>01066425852</strong></li>
+            <li>Include your order number (${orderNumber}) in the payment reference.</li>
+            <li>Send the payment screenshot on WhatsApp to verify your purchase.</li>
+            <li>Your order will be processed after payment verification.</li>
+            `
+                : payment_method === "instapay"
+                ? `
+            <li>Please send ${total.toFixed(
+              2
+            )} EGP to our Instapay number: <strong>01066425852</strong></li>
+            <li>Include your order number (${orderNumber}) in the payment reference.</li>
+            <li>Send the payment screenshot on WhatsApp to verify your purchase.</li>
+            <li>Your order will be processed after payment verification.</li>
+            `
+                : ""
+            }
           </ul>
         </div>
         <div class="footer">

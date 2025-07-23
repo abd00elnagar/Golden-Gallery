@@ -300,7 +300,7 @@ function ProductDetails({
     );
   }
 
-  // Create a combined array of all images: product images only
+
   const allImages = product.images || [];
 
   const currentImage = allImages[currentImageIndex] || "/placeholder.svg";
@@ -406,6 +406,7 @@ function ProductDetails({
                       size="icon"
                       className="absolute left-2 top-1/2 -translate-y-1/2 bg-background/80 hover:bg-background/90"
                       onClick={handlePreviousImage}
+                      title="Previous image"
                     >
                       <ChevronLeft className="h-4 w-4" />
                     </Button>
@@ -414,6 +415,7 @@ function ProductDetails({
                       size="icon"
                       className="absolute right-2 top-1/2 -translate-y-1/2 bg-background/80 hover:bg-background/90"
                       onClick={handleNextImage}
+                      title="Next image"
                     >
                       <ChevronRight className="h-4 w-4" />
                     </Button>
@@ -453,7 +455,7 @@ function ProductDetails({
             <div className="flex items-center justify-between">
               <div className="space-y-1">
                 <p className="text-3xl font-bold">
-                  ${product.price.toFixed(2)}
+                  EGP {product.price.toFixed(2)}
                 </p>
                 <div className="flex items-center gap-2">
                   <Badge
@@ -532,7 +534,9 @@ function ProductDetails({
               <div className="space-y-2">
                 <h2 className="text-xl font-semibold">What's in the Box</h2>
                 <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                  {product.whats_in_the_box.map((item, index) => (
+
+                  {product.whats_in_the_box.map((item: string, index: number) => (
+
                     <li key={index}>{item}</li>
                   ))}
                 </ul>
