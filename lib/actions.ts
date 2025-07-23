@@ -1273,8 +1273,8 @@ export async function createOrderAction(prevState: any, formData: FormData) {
     if (paymentMethod === "vodafone_cash" || paymentMethod === "instapay") {
       notificationMessage += ` Please send ${total.toFixed(2)} EGP to ${
         paymentMethod === "vodafone_cash"
-          ? "Vodafone Cash number: 0123456789"
-          : "Instapay number: 0123456789"
+          ? "Vodafone Cash number: 01066425852"
+          : "Instapay number: 01066425852"
       } and send the payment screenshot on WhatsApp to verify your purchase.`;
     }
 
@@ -1361,8 +1361,8 @@ export async function createOrderAction(prevState: any, formData: FormData) {
         ? "You will receive a confirmation email shortly."
         : `Please send ${total.toFixed(2)} EGP to ${
             paymentMethod === "vodafone_cash"
-              ? "Vodafone Cash number: 0123456789"
-              : "Instapay number: 0123456789"
+              ? "Vodafone Cash number: 01066425852"
+              : "Instapay number: 01066425852"
           } and send the payment screenshot on WhatsApp to verify your purchase.`;
 
     return {

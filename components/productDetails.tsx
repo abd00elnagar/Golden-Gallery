@@ -300,10 +300,7 @@ function ProductDetails({
   }
 
   // Create a combined array of all images: product images first, then color images
-  const allImages = [
-    ...(product.images || []),
-    ...(product.colors || []).map((color) => color.image).filter(Boolean),
-  ];
+  const allImages = product.images || [];
 
   const currentImage = allImages[currentImageIndex] || "/placeholder.svg";
 
@@ -330,15 +327,6 @@ function ProductDetails({
 
     setImageLoading(true);
     setCurrentImageIndex(newIndex);
-
-    // Update color selection if navigating to a color image
-    const productImageCount = product.images?.length || 0;
-    if (newIndex >= productImageCount) {
-      const colorIndex = newIndex - productImageCount;
-      setSelectedColorIndex(colorIndex);
-    } else {
-      setSelectedColorIndex(-1);
-    }
   };
 
   const handleNextImage = () => {
@@ -357,28 +345,11 @@ function ProductDetails({
 
     setImageLoading(true);
     setCurrentImageIndex(newIndex);
-
-    // Update color selection if navigating to a color image
-    const productImageCount = product.images?.length || 0;
-    if (newIndex >= productImageCount) {
-      const colorIndex = newIndex - productImageCount;
-      setSelectedColorIndex(colorIndex);
-    } else {
-      setSelectedColorIndex(-1);
-    }
   };
 
-  // Handle color button click - jump to that color's image and select it
-  const handleColorSelect = (colorIndex: number) => {
-    const productImageCount = product.images?.length || 0;
-    const colorImageIndex = productImageCount + colorIndex;
-    if (colorImageIndex == currentImageIndex) {
-      return;
-    }
-    // Always update the image and selection, even if clicking the same color
-    setImageLoading(true);
-    setCurrentImageIndex(colorImageIndex);
-    setSelectedColorIndex(colorIndex);
+  // Handle color button click - just set the selected color
+  const handleColorSelect = (colorName: string) => {
+    setSelectedColor(colorName);
   };
 
   // Handle image thumbnail selection
@@ -388,19 +359,8 @@ function ProductDetails({
         return;
       }
 
-      const productImageCount = product.images?.length || 0;
-
-      if (index >= productImageCount) {
-        // This is a color image
-        const colorIndex = index - productImageCount;
-        handleColorSelect(colorIndex);
-        return;
-      } else {
-        // This is a product image
-        setSelectedColorIndex(-1);
-        setCurrentImageIndex(index);
-        setImageLoading(true);
-      }
+      setCurrentImageIndex(index);
+      setImageLoading(true);
     }
   };
 
@@ -454,6 +414,7 @@ function ProductDetails({
                       size="icon"
                       className="absolute left-2 top-1/2 -translate-y-1/2 bg-background/80 hover:bg-background/90"
                       onClick={handlePreviousImage}
+                      title="Previous image"
                     >
                       <ChevronLeft className="h-4 w-4" />
                     </Button>
@@ -462,6 +423,7 @@ function ProductDetails({
                       size="icon"
                       className="absolute right-2 top-1/2 -translate-y-1/2 bg-background/80 hover:bg-background/90"
                       onClick={handleNextImage}
+                      title="Next image"
                     >
                       <ChevronRight className="h-4 w-4" />
                     </Button>
@@ -479,6 +441,7 @@ function ProductDetails({
                           ? "ring-2 ring-primary"
                           : "hover:opacity-75"
                       }`}
+                      title={`Select image view ${index + 1}`}
                     >
                       <Image
                         src={image}
@@ -580,11 +543,11 @@ function ProductDetails({
             )}
 
             {/* What's in the Box */}
-            {product.whatsInTheBox && product.whatsInTheBox.length > 0 && (
+            {product.whats_in_the_box && product.whats_in_the_box.length > 0 && (
               <div className="space-y-2">
                 <h2 className="text-xl font-semibold">What's in the Box</h2>
                 <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                  {product.whatsInTheBox.map((item, index) => (
+                  {product.whats_in_the_box.map((item: string, index: number) => (
                     <li key={index}>{item}</li>
                   ))}
                 </ul>

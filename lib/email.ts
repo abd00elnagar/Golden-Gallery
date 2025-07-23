@@ -229,7 +229,7 @@ export async function sendOrderConfirmationEmail(data: OrderEmailData) {
                 ? `
             <li>Please send ${total.toFixed(
               2
-            )} EGP to our Vodafone Cash number: <strong>0123456789</strong></li>
+            )} EGP to our Vodafone Cash number: <strong>01066425852</strong></li>
             <li>Include your order number (${orderNumber}) in the payment reference.</li>
             <li>Send the payment screenshot on WhatsApp to verify your purchase.</li>
             <li>Your order will be processed after payment verification.</li>
@@ -238,7 +238,7 @@ export async function sendOrderConfirmationEmail(data: OrderEmailData) {
                 ? `
             <li>Please send ${total.toFixed(
               2
-            )} EGP to our Instapay number: <strong>0123456789</strong></li>
+            )} EGP to our Instapay number: <strong>01066425852</strong></li>
             <li>Include your order number (${orderNumber}) in the payment reference.</li>
             <li>Send the payment screenshot on WhatsApp to verify your purchase.</li>
             <li>Your order will be processed after payment verification.</li>

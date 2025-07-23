@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { Facebook, Instagram } from "lucide-react";
+import { Facebook, Instagram, MapPin } from "lucide-react";
 
 interface FooterProps {
   className?: string;
@@ -38,6 +38,14 @@ export function Footer({ className }: FooterProps) {
                 className="text-muted-foreground hover:text-primary transition-colors"
               >
                 <Instagram className="h-5 w-5" />
+              </Link>
+              <Link
+                href="https://maps.google.com/?q=30.2198754,31.4750288"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
+              >
+                <MapPin className="h-5 w-5" />
               </Link>
             </div>
           </div>
@@ -181,6 +189,14 @@ export function Footer({ className }: FooterProps) {
               className="text-muted-foreground hover:text-primary transition-colors"
             >
               <Instagram className="h-5 w-5" />
+            </Link>
+            <Link
+              href="https://maps.google.com/?q=30.2198754,31.4750288"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
+            >
+              <MapPin className="h-5 w-5" />
             </Link>
           </div>
         </div>
