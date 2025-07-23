@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Facebook, Instagram, MapPin } from "lucide-react";
+import { FaWhatsapp } from "react-icons/fa";
 
 interface FooterProps {
   className?: string;
@@ -46,6 +47,14 @@ export function Footer({ className }: FooterProps) {
                 className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
               >
                 <MapPin className="h-5 w-5" />
+              </Link>
+              <Link
+                href="https://wa.me/201559005729"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
+              >
+                <FaWhatsapp className="h-5 w-5" />
               </Link>
             </div>
           </div>
@@ -197,6 +206,14 @@ export function Footer({ className }: FooterProps) {
               className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
             >
               <MapPin className="h-5 w-5" />
+            </Link>
+            <Link
+              href="https://wa.me/201559005729"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
+            >
+              <FaWhatsapp className="h-5 w-5" />
             </Link>
           </div>
         </div>

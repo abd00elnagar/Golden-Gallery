@@ -211,7 +211,7 @@ export default function CheckoutForm({ user, cartItems }: CheckoutFormProps) {
                       <AlertDescription>
                         <strong>Instapay</strong> - Send payment to Instapay
                         number:
-                        <strong className="block mt-1">0123456789</strong>
+                        <strong className="block mt-1">01066425852</strong>
                         Please include your order number in the payment
                         reference.
                       </AlertDescription>
@@ -224,7 +224,7 @@ export default function CheckoutForm({ user, cartItems }: CheckoutFormProps) {
                       <AlertDescription>
                         <strong>Vodafone Cash</strong> - Send payment to
                         Vodafone Cash wallet:
-                        <strong className="block mt-1">0123456789</strong>
+                        <strong className="block mt-1">01066425852</strong>
                         Please include your order number in the payment
                         reference.
                       </AlertDescription>
