@@ -46,7 +46,7 @@ export async function generateMetadata({
         brand: { "@type": "Brand", name: "Aldhabi Store" },
         offers: {
           "@type": "Offer",
-          priceCurrency: "USD",
+          priceCurrency: "EGP",
           price: product.price,
           availability:
             product.stock > 0

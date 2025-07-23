@@ -39,6 +39,7 @@ export default function CheckoutForm({ user, cartItems }: CheckoutFormProps) {
   const router = useRouter();
   const { toast } = useToast();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const [shippingData, setShippingData] = useState({
     firstName: user.name?.split(" ")[0] || "",
@@ -47,6 +48,8 @@ export default function CheckoutForm({ user, cartItems }: CheckoutFormProps) {
     phone: user.phone || "",
     address: user.address || "",
   });
+
+  const [paymentMethod, setPaymentMethod] = useState<string>("cod");
 
   const subtotal = cartItems.reduce(
     (sum, item) => sum + item.price * item.quantity,
@@ -62,6 +65,7 @@ export default function CheckoutForm({ user, cartItems }: CheckoutFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsProcessing(true);
+    setError(null);
 
     // Validate phone number
     if (!shippingData.phone || shippingData.phone.length < 10) {
@@ -82,13 +86,17 @@ export default function CheckoutForm({ user, cartItems }: CheckoutFormProps) {
       formData.append("email", shippingData.email);
       formData.append("phone", shippingData.phone);
       formData.append("address", shippingData.address);
-      formData.append("governorate", ""); // Empty for now
-      formData.append("district", ""); // Empty for now
-      formData.append("village", ""); // Empty for now
+      formData.append("payment_method", paymentMethod);
       if (isBuyNow) {
         formData.append("buyNow", "1");
         formData.append("cartItems", JSON.stringify(cartItems));
       }
+
+      console.log("Debug - Payment method:", {
+        paymentMethod,
+        formDataPaymentMethod: formData.get("payment_method"),
+        shippingData,
+      });
 
       // Submit the form
       const result = await createOrderAction(
@@ -99,22 +107,34 @@ export default function CheckoutForm({ user, cartItems }: CheckoutFormProps) {
       if (result.success) {
         toast({
           title: "Order placed successfully!",
-          description:
-            "You will receive a confirmation email shortly. Pay cash on delivery.",
+          description: result.message,
         });
         router.push(`/orders/${result.orderId}`);
       } else {
+        const errorDetails = result.details
+          ? `\n\nDetails: ${result.details}`
+          : "";
+        console.error("Order creation failed:", {
+          error: result.error,
+          details: result.details,
+        });
+        setError(`${result.error}${errorDetails}`);
         toast({
           title: "Order failed",
-          description:
-            result.error || "An error occurred while placing your order.",
+          description: result.error,
           variant: "destructive",
         });
       }
     } catch (error) {
+      console.error("Form submission error:", error);
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "An error occurred while placing your order.";
+      setError(errorMessage);
       toast({
         title: "Order failed",
-        description: "An error occurred while placing your order.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -131,19 +151,88 @@ export default function CheckoutForm({ user, cartItems }: CheckoutFormProps) {
         </Button>
       </div>
 
+      {error && (
+        <Alert variant="destructive" className="mb-6">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            <div className="font-semibold">Error creating order:</div>
+            <div className="mt-1">{error}</div>
+          </AlertDescription>
+        </Alert>
+      )}
+
       <form onSubmit={handleSubmit}>
         {isBuyNow && <input type="hidden" name="buyNow" value="1" />}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             {/* Payment Method Notice */}
-            <Alert>
-              <Shield className="h-4 w-4" />
-              <AlertDescription>
-                <strong>Cash on Delivery (COD)</strong> - Pay with cash when
-                your order arrives. No payment information required.
-              </AlertDescription>
-            </Alert>
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle>Payment Method</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>Select Payment Method</Label>
+                    <Select
+                      value={paymentMethod}
+                      onValueChange={(value) => setPaymentMethod(value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select payment method" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="cod">
+                          Cash on Delivery (COD)
+                        </SelectItem>
+                        <SelectItem value="instapay">Instapay</SelectItem>
+                        <SelectItem value="vodafone_cash">
+                          Vodafone Cash
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {paymentMethod === "cod" && (
+                    <Alert>
+                      <Shield className="h-4 w-4" />
+                      <AlertDescription>
+                        <strong>Cash on Delivery (COD)</strong> - Pay with cash
+                        when your order arrives. No payment information
+                        required.
+                      </AlertDescription>
+                    </Alert>
+                  )}
+
+                  {paymentMethod === "instapay" && (
+                    <Alert>
+                      <Shield className="h-4 w-4" />
+                      <AlertDescription>
+                        <strong>Instapay</strong> - Send payment to Instapay
+                        number:
+                        <strong className="block mt-1">0123456789</strong>
+                        Please include your order number in the payment
+                        reference.
+                      </AlertDescription>
+                    </Alert>
+                  )}
+
+                  {paymentMethod === "vodafone_cash" && (
+                    <Alert>
+                      <Shield className="h-4 w-4" />
+                      <AlertDescription>
+                        <strong>Vodafone Cash</strong> - Send payment to
+                        Vodafone Cash wallet:
+                        <strong className="block mt-1">0123456789</strong>
+                        Please include your order number in the payment
+                        reference.
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
 
             {/* Shipping Information */}
             <Card>
@@ -308,12 +397,12 @@ export default function CheckoutForm({ user, cartItems }: CheckoutFormProps) {
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span>Subtotal</span>
-                    <span>${subtotal.toFixed(2)}</span>
+                    <span>EGP{subtotal.toFixed(2)}</span>
                   </div>
                   <Separator />
                   <div className="flex justify-between font-bold">
                     <span>Total</span>
-                    <span>${total.toFixed(2)}</span>
+                    <span>EGP{total.toFixed(2)}</span>
                   </div>
                 </div>
 
@@ -331,13 +420,15 @@ export default function CheckoutForm({ user, cartItems }: CheckoutFormProps) {
                   ) : (
                     <>
                       <Shield className="h-4 w-4 mr-2" />
-                      Place Order (COD)
+                      Place Order
                     </>
                   )}
                 </Button>
 
                 <p className="text-xs text-muted-foreground text-center">
-                  Pay cash when your order arrives
+                  {paymentMethod === "cod"
+                    ? "Pay cash when your order arrives"
+                    : "Please send the payment and include your order number as reference"}
                 </p>
               </CardContent>
             </Card>

@@ -74,7 +74,7 @@ export interface Order {
   user_id: string;
   order_number: string;
   status: "pending" | "processing" | "shipped" | "delivered" | "cancelled";
-  payment_method: "cod" | "card" | "paypal";
+  payment_method: string;
   shipping_address: string;
   shipping_phone: string;
   total_amount: number;

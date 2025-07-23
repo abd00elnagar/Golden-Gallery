@@ -499,7 +499,7 @@ function ProductDetails({
             <div className="flex items-center justify-between">
               <div className="space-y-1">
                 <p className="text-3xl font-bold">
-                  ${product.price.toFixed(2)}
+                  EGP {product.price.toFixed(2)}
                 </p>
                 <div className="flex items-center gap-2">
                   <Badge
