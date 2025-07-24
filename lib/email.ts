@@ -126,7 +126,7 @@ export async function sendOrderConfirmationEmail(data: OrderEmailData) {
         <div style="font-size: 14px; color: #666;">Quantity: ${
           item.quantity
         }</div>
-        <div style="font-size: 14px; color: #666;">Price: $${item.price.toFixed(
+        <div style="font-size: 14px; color: #666;">Price: EGP ${item.price.toFixed(
           2
         )}</div>
       </td>
@@ -200,7 +200,7 @@ export async function sendOrderConfirmationEmail(data: OrderEmailData) {
           </table>
           <div class="total-section">
             <div class="total-label">Total:</div>
-            <div class="total-value">$${total.toFixed(2)}</div>
+            <div class="total-value">EGP ${total.toFixed(2)}</div>
           </div>
         </div>
         <div class="section">

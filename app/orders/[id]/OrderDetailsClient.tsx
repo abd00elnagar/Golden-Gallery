@@ -169,12 +169,12 @@ export default function OrderDetailsClient({ order }: { order: any }) {
             <div className="space-y-2">
               <div className="flex justify-between">
                 <span>Subtotal</span>
-                <span>${subtotal.toFixed(2)}</span>
+                <span>EGP {subtotal.toFixed(2)}</span>
               </div>
               <Separator />
               <div className="flex justify-between font-bold text-lg">
                 <span>Total</span>
-                <span>${total.toFixed(2)}</span>
+                <span>EGP {total.toFixed(2)}</span>
               </div>
             </div>
           </CardContent>

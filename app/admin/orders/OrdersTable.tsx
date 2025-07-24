@@ -215,7 +215,7 @@ export function OrdersTable({ initialOrders }: OrdersTableProps) {
                         </Select>
                       </TableCell>
                       <TableCell className="font-medium">
-                        ${order.total_amount.toFixed(2)}
+                        EGP {order.total_amount.toFixed(2)}
                       </TableCell>
                       <TableCell className="text-right">
                         <Dialog>
@@ -336,7 +336,7 @@ export function OrdersTable({ initialOrders }: OrdersTableProps) {
                                   <div className="flex justify-between text-lg font-bold">
                                     <span>Total</span>
                                     <span>
-                                      ${order.total_amount.toFixed(2)}
+                                      EGP {order.total_amount.toFixed(2)}
                                     </span>
                                   </div>
                                   <p className="text-sm text-muted-foreground">

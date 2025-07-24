@@ -389,18 +389,22 @@ export default function CartList({
                     />
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-semibold">{item.productName || "Product"}</h3>
+                    <h3 className="font-semibold">
+                      {item.productName || "Product"}
+                    </h3>
                     {item.color_name && (
                       <p className="text-sm text-muted-foreground">
                         Color: {item.color_name}
                       </p>
                     )}
-                    <p className="text-lg font-bold mt-2">EGP {item.price || 0}</p>
+                    <p className="text-lg font-bold mt-2">
+                      EGP {item.price || 0}
+                    </p>
                   </div>
-                  <CartItemActions 
+                  <CartItemActions
                     item={item}
-                    onUpdate={handleUpdateQuantity} 
-                    onRemove={handleRemove} 
+                    onUpdate={handleUpdateQuantity}
+                    onRemove={handleRemove}
                   />
                 </div>
               </CardContent>
@@ -418,12 +422,12 @@ export default function CartList({
           <CardContent className="space-y-4">
             <div className="flex justify-between">
               <span>Subtotal ({validCartItems.length} items)</span>
-              <span>${subtotal.toFixed(2)}</span>
+              <span>EGP {subtotal.toFixed(2)}</span>
             </div>
             <Separator />
             <div className="flex justify-between font-bold text-lg">
               <span>Total</span>
-              <span>${total.toFixed(2)}</span>
+              <span>EGP {total.toFixed(2)}</span>
             </div>
             <Button
               className="w-full"
