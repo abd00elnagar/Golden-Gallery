@@ -20,7 +20,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { createOrUpdateProductWithImages, deleteProductImage } from "./actions";
 import type { Product, Category } from "@/lib/types";
-import { uploadImage } from "@/lib/actions";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { X, Plus, Image as ImageIcon, GripVertical } from "lucide-react";
 import { useActionState } from "react";

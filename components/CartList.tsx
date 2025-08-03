@@ -372,12 +372,12 @@ export default function CartList({
         {cartItems.map((item) =>
           item.notFound ? (
             <NotFoundCartItem
-              key={item.productId}
+              key={`${item.productId}-${item.color_name || ""}`}
               item={item}
               onRemove={handleRemove}
             />
           ) : (
-            <Card key={item.productId}>
+            <Card key={`${item.productId}-${item.color_name || ""}`}>
               <CardContent className="p-4">
                 <div className="flex gap-4">
                   <div className="relative w-20 h-20 rounded-lg overflow-hidden">
