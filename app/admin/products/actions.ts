@@ -4,12 +4,14 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import {
   getProducts,
+  getProduct,
   deleteProduct as deleteProductFromDB,
   createProduct,
   updateProduct as updateProductFromDB,
   type Product,
   uploadImage,
 } from "@/lib/actions";
+import { createServerClient } from "@/lib/supabase";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 
@@ -183,6 +185,68 @@ export async function updateProduct(productId: string, formData: FormData) {
  * - colorImages: each color image as colorImage_0, colorImage_1, ...
  * - If editing, pass productId as a hidden field
  */
+export async function deleteProductImage(
+  productId: string,
+  imageUrl: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const session = await getServerSession(authOptions);
+    const user = session?.user as SessionUser;
+
+    if (!user || user.role !== "admin") {
+      return {
+        success: false,
+        error: "Unauthorized: Only admins can delete product images",
+      };
+    }
+
+    // Get current product data
+    const product = await getProduct(productId);
+    if (!product) {
+      return { success: false, error: "Product not found" };
+    }
+
+    // Ensure product will still have at least one image
+    if (product.images.length <= 1) {
+      return { success: false, error: "Cannot delete the last product image" };
+    }
+
+    // Remove image URL from product's images array
+    const updatedImages = product.images.filter((img) => img !== imageUrl);
+
+    // Update product in database
+    const updatedProduct = await updateProductFromDB(productId, {
+      images: updatedImages,
+    });
+    if (!updatedProduct) {
+      return { success: false, error: "Failed to update product" };
+    }
+
+    // Delete image from storage
+    const serverClient = createServerClient();
+    const imagePath = imageUrl.split("images/").pop(); // Get path after "images/"
+    if (imagePath) {
+      const { error: storageError } = await serverClient.storage
+        .from("images")
+        .remove([imagePath]);
+
+      if (storageError) {
+        console.error("Storage deletion error:", storageError);
+        // Don't fail the operation if storage cleanup fails
+      }
+    }
+
+    revalidatePath("/admin/products");
+    return { success: true };
+  } catch (error: any) {
+    console.error("Delete product image error:", error);
+    return {
+      success: false,
+      error: error.message || "Failed to delete product image",
+    };
+  }
+}
+
 export async function createOrUpdateProductWithImages(
   prevState: any,
   formData: FormData
@@ -231,29 +295,42 @@ export async function createOrUpdateProductWithImages(
     }
 
     // 4. Handle image uploads
-    let uploadedImageUrls: string[] = [];
-    if (!preserveImages) {
-      const imageFiles = formData.getAll("images") as File[];
-      if (imageFiles.length < 1) {
-        throw new Error("At least one product image is required.");
-      }
-      if (imageFiles.length > 4) {
-        throw new Error("Maximum 4 product images allowed.");
-      }
+    const imageOrder = JSON.parse(formData.get("imageOrder") as string);
+    if (!imageOrder || !Array.isArray(imageOrder)) {
+      throw new Error("Invalid image order data");
+    }
 
-      try {
-        uploadedImageUrls = await Promise.all(
-          imageFiles.map(async (file) => {
+    // Validate total number of images
+    if (!productId && imageOrder.length < 1) {
+      throw new Error("At least one product image is required.");
+    }
+    if (imageOrder.length > 4) {
+      throw new Error("Maximum 4 product images allowed.");
+    }
+
+    // Process images in order
+    const orderedImages = await Promise.all(
+      imageOrder.map(
+        async (item: { type: string; url?: string; index: number }) => {
+          if (item.type === "existing") {
+            return item.url;
+          } else {
+            // Upload new image
+            const file = formData.get(`image_${item.index}`) as File;
+            if (!file) throw new Error(`Missing file for index ${item.index}`);
+
             const url = await uploadImage(file);
             if (!url) throw new Error(`Failed to upload image: ${file.name}`);
             return url;
-          })
-        );
-      } catch (error) {
-        console.error("Image upload error:", error);
-        throw error;
-      }
-    }
+          }
+        }
+      )
+    );
+
+    // Filter out any undefined values (failed uploads)
+    const finalImages = orderedImages.filter(
+      (url): url is string => typeof url === "string"
+    );
 
     // 5. Create or update product
     const productData = {
@@ -266,9 +343,7 @@ export async function createOrUpdateProductWithImages(
       colors,
       features,
       whats_in_the_box,
-      images: preserveImages
-        ? JSON.parse(formData.get("existingProductImages") as string)
-        : uploadedImageUrls,
+      images: finalImages,
     };
 
     let result;

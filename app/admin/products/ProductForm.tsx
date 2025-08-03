@@ -18,8 +18,9 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { createOrUpdateProductWithImages } from "./actions";
+import { createOrUpdateProductWithImages, deleteProductImage } from "./actions";
 import type { Product, Category } from "@/lib/types";
+import { uploadImage } from "@/lib/actions";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { X, Plus, Image as ImageIcon, GripVertical } from "lucide-react";
 import { useActionState } from "react";
@@ -44,6 +45,8 @@ export function ProductForm({
     product?.images || []
   );
   const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
+  const [isDeletingImage, setIsDeletingImage] = useState<string | null>(null);
+  const [imageDeleteError, setImageDeleteError] = useState<string | null>(null);
 
   // Features and what's in the box lists
   const [features, setFeatures] = useState<string[]>(product?.features || []);
@@ -135,11 +138,53 @@ export function ProductForm({
     setColors(newColors);
   };
 
-  // Handle product image selection - only for new products
-  const handleProductImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (isEditing) return; // Disabled for editing
+  // Handle product image deletion
+  const handleDeleteImage = async (imageUrl: string) => {
+    if (!isEditing || !product?.id) return;
 
+    setImageDeleteError(null);
+    setIsDeletingImage(imageUrl);
+
+    try {
+      const { success, error } = await deleteProductImage(product.id, imageUrl);
+
+      if (success) {
+        setProductImages((prev) => prev.filter((img) => img !== imageUrl));
+        toast({
+          title: "Success",
+          description: "Image deleted successfully",
+        });
+      } else {
+        setImageDeleteError(error || "Failed to delete image");
+        toast({
+          title: "Error",
+          description: error || "Failed to delete image",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error deleting image:", error);
+      setImageDeleteError("Failed to delete image");
+      toast({
+        title: "Error",
+        description: "Failed to delete image",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeletingImage(null);
+    }
+  };
+
+  // Handle product image selection
+  const handleProductImageChange = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    // Clear any previous errors
+    setFormError(null);
+    setImageDeleteError(null);
 
     // Validate file types
     const invalidFiles = files.filter(
@@ -169,26 +214,56 @@ export function ProductForm({
       return;
     }
 
-    // Clear any previous errors
-    setFormError(null);
+    // Check for duplicate images by comparing file contents
+    const existingImages = productImages.filter(
+      (img): img is File => img instanceof File
+    );
+    const duplicates = await Promise.all(
+      files.map(async (newFile) => {
+        const newBuffer = await newFile.arrayBuffer();
+        const duplicateFound = await Promise.any(
+          existingImages.map(async (existingFile) => {
+            const existingBuffer = await existingFile.arrayBuffer();
+            return newBuffer.byteLength === existingBuffer.byteLength;
+          })
+        ).catch(() => false);
+        return duplicateFound;
+      })
+    );
+
+    if (duplicates.some(Boolean)) {
+      setFormError("One or more selected images appear to be duplicates.");
+      e.target.value = ""; // Clear input
+      return;
+    }
 
     // Add new images
     setProductImages((prev) => [...prev, ...files]);
 
     // Clear the input value to allow uploading the same file again
     e.target.value = "";
+
+    toast({
+      title: "Success",
+      description: "Images added successfully",
+    });
   };
 
   const removeProductImage = (idx: number) => {
-    if (isEditing) return; // Disabled for editing
+    const image = productImages[idx];
 
-    setProductImages((prev) => {
-      const newImages = [...prev];
-      newImages.splice(idx, 1); // Remove the image at index
-      return newImages;
-    });
-
-    setFormError(null); // Clear any errors since we're removing an image
+    if (isEditing && typeof image === "string") {
+      // For existing images in edit mode, use the delete handler
+      handleDeleteImage(image);
+    } else {
+      // For new images or in create mode, just remove from state
+      setProductImages((prev) => {
+        const newImages = [...prev];
+        newImages.splice(idx, 1); // Remove the image at index
+        return newImages;
+      });
+      setFormError(null); // Clear any errors since we're removing an image
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -235,16 +310,22 @@ export function ProductForm({
     // Add featured value to form data
     formData.set("featured", featured.toString());
 
-    if (!isEditing) {
-      // For new products, append product images
-      productImages.forEach((img) => {
-        if (img instanceof File) formData.append("images", img);
-      });
-    } else {
-      // For editing, preserve existing images
-      formData.set("preserveImages", "true");
-      formData.set("existingProductImages", JSON.stringify(productImages));
-    }
+    // Create an array to track image order and type
+    const imageOrder = await Promise.all(
+      productImages.map(async (img, index) => {
+        if (typeof img === "string") {
+          // Existing image
+          return { type: "existing", url: img, index };
+        } else {
+          // New image (File)
+          formData.append(`image_${index}`, img);
+          return { type: "new", index };
+        }
+      })
+    );
+
+    // Store the order information
+    formData.set("imageOrder", JSON.stringify(imageOrder));
 
     // Append colors data
     formData.set("colors", JSON.stringify(colors));
@@ -275,16 +356,13 @@ export function ProductForm({
     : {};
 
   // useActionState for server validation
-  const initialState = {
+  const [state, formAction] = useActionState(createOrUpdateProductWithImages, {
     success: false,
-    error: "",
+    error: undefined,
+    serverError: undefined,
     product: undefined,
     redirect: undefined,
-  };
-  const [state, formAction] = useActionState(
-    createOrUpdateProductWithImages,
-    initialState
-  );
+  });
 
   // Handle redirect on success
   useEffect(() => {
@@ -547,9 +625,12 @@ export function ProductForm({
 
             {/* Product Images with Drag and Drop */}
             <div className="space-y-2">
-              <Label className="text-left">
-                Product Images {isEditing && "(Read-only)"}
-              </Label>
+              <Label className="text-left">Product Images</Label>
+              {imageDeleteError && (
+                <Alert variant="destructive" className="mb-4">
+                  <AlertDescription>{imageDeleteError}</AlertDescription>
+                </Alert>
+              )}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {productImages.map((image, index) => (
                   <div
@@ -560,20 +641,23 @@ export function ProductForm({
                     onDragEnd={handleDragEnd}
                     className={`relative group border rounded-lg p-2 cursor-move ${
                       draggingIndex === index ? "opacity-50" : ""
-                    }`}
+                    } ${isDeletingImage === image ? "opacity-50" : ""}`}
                   >
-                    {!isEditing && (
-                      <div className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button
-                          type="button"
-                          variant="destructive"
-                          size="icon"
-                          onClick={() => removeProductImage(index)}
-                        >
+                    <div className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="icon"
+                        onClick={() => removeProductImage(index)}
+                        disabled={isDeletingImage === image}
+                      >
+                        {isDeletingImage === image ? (
+                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                        ) : (
                           <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    )}
+                        )}
+                      </Button>
+                    </div>
                     <div className="absolute top-2 left-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
                       <GripVertical className="h-4 w-4 text-gray-500" />
                     </div>
@@ -590,15 +674,15 @@ export function ProductForm({
                     />
                   </div>
                 ))}
-                {!isEditing && productImages.length < 4 && (
+                {productImages.length < 4 && (
                   <div
-                    className="border-2 border-dashed rounded-lg p-4 flex items-center justify-center cursor-pointer"
+                    className="border-2 border-dashed rounded-lg p-4 flex items-center justify-center cursor-pointer hover:border-primary/50 transition-colors"
                     onClick={() => productImageInputRef.current?.click()}
                   >
                     <div className="text-center">
                       <ImageIcon className="mx-auto h-8 w-8 text-gray-400" />
                       <span className="mt-2 block text-sm text-gray-600">
-                        Add Images (Max 4)
+                        {isEditing ? "Add New Images" : "Add Images"} (Max 4)
                       </span>
                       <span className="mt-1 block text-xs text-gray-500">
                         Select multiple at once
@@ -618,6 +702,8 @@ export function ProductForm({
               </div>
               <p className="text-sm text-muted-foreground mt-2">
                 Images must be less than 5MB each. You can add up to 4 images.
+                {isEditing &&
+                  " Delete an image to upload a new one in its place."}
               </p>
             </div>
 
