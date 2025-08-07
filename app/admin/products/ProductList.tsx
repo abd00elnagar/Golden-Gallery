@@ -195,14 +195,13 @@ export function ProductList({
                         <TableRow key={product.id}>
                           <TableCell>
                             <div className="flex items-center gap-3">
-                              <div className="relative w-12 h-12 rounded-lg overflow-hidden">
+                              <div className="rounded-lg overflow-hidden" style={{ width: "2em", height: "2em", minWidth: "2em", minHeight: "2em" }}>
                                 <Image
-                                  src={
-                                    product.images?.[0] || "/placeholder.svg"
-                                  }
+                                  src={product.images?.[0] || "/placeholder.svg"}
                                   alt={product.name}
-                                  fill
-                                  className="object-cover"
+                                  width={32}
+                                  height={32}
+                                  className="object-cover w-full h-full"
                                 />
                               </div>
                               <div>
